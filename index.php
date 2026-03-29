@@ -3,18 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performances du Club - Vue par Nageur</title>
+    <title>Performances du Club - PEC</title>
     <style>
     body {
         font-family: Arial, sans-serif;
         background-color: #f4f7f6;
         padding: 20px;
-    }
-
-    h1 {
-        color: #333;
-        text-align: center;
     }
 
     .container {
@@ -68,108 +62,100 @@
         color: #d9534f;
         font-weight: bold;
     }
-
-    .alert {
-        padding: 15px;
-        background-color: #ff9800;
-        color: white;
-        border-radius: 4px;
-        text-align: center;
-    }
     </style>
 </head>
 
 <body>
 
     <div class="container">
-        <h1>🏆 Grille des Performances par Nageur 🏆</h1>
+        <h1 style="text-align:center;">🏆 Grille des Performances par Nageur 🏆</h1>
 
         <?php
-    $fichiers_json = glob("profils_nageurs_*.json");
+        // Configuration de la base de données
+        $host = 'localhost';
+        $db = 'ffessm_nap';
+        $user = 'root';
+        $pass = '';
 
-    if (empty($fichiers_json)) {
-        echo "<div class='alert'>⚠️ Aucun fichier JSON n'a été trouvé dans ce dossier.</div>";
-    } else {
-        $fichier_cible = $fichiers_json[0];
-        echo "<p style='text-align:center;'><em>Données chargées depuis : <strong>" . basename($fichier_cible) . "</strong></em></p>";
+        try {
+            // Connexion à la BDD via PDO
+            $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $contenu_json = file_get_contents($fichier_cible);
-        $profils = json_decode($contenu_json, true);
+            // Récupérer toutes les performances
+            $stmt = $pdo->query('SELECT * FROM performances ORDER BY nom ASC, prenom ASC');
+            $lignes_bdd = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($profils === null) {
-            echo "<div class='alert'>❌ Erreur lors de la lecture du fichier JSON.</div>";
-        } else {
-            // 1. Identifier toutes les épreuves existantes pour créer les colonnes
-            $ordre_officiel = [
-                "25SF", "50SF", "100SF", "200SF", "400SF", "800SF", "1500SF", "1850SF",
-                "25AP", "50AP", "100IS", "800IS", "200IS", "400IS", "50BI", "100BI", "200BI", "400BI"
-            ];
-            
-            $epreuves_trouvees = [];
-            foreach ($profils as $infos) {
-                if (!empty($infos['performances'])) {
-                    foreach ($infos['performances'] as $perf) {
-                        if (!in_array($perf['epreuve'], $epreuves_trouvees)) {
-                            $epreuves_trouvees[] = $perf['epreuve'];
-                        }
+            if (empty($lignes_bdd)) {
+                echo "<p style='text-align:center;'>Aucune performance trouvée en base de données.</p>";
+            } else {
+                // Reconstruire la logique par nageur
+                $profils = [];
+                $epreuves_trouvees = [];
+
+                foreach ($lignes_bdd as $ligne) {
+                    $nom_complet = $ligne['nom'] . ' ' . $ligne['prenom'];
+
+                    // Initialiser le nageur s'il n'existe pas encore dans notre tableau PHP
+                    if (!isset($profils[$nom_complet])) {
+                        $profils[$nom_complet] = [
+                            'nom' => $ligne['nom'],
+                            'prenom' => $ligne['prenom'],
+                            'categorie' => $ligne['categorie'],
+                            'chronos' => []
+                        ];
                     }
-                }
-            }
 
-            // Trier les colonnes d'épreuves selon l'ordre officiel de la fédération
-            $colonnes_epreuves = [];
-            foreach ($ordre_officiel as $epreuve) {
-                if (in_array($epreuve, $epreuves_trouvees)) {
-                    $colonnes_epreuves[] = $epreuve;
-                }
-            }
+                    // Ajouter le chrono et l'épreuve à la liste des épreuves existantes
+                    $profils[$nom_complet]['chronos'][$ligne['epreuve']] = $ligne['temps'];
 
-            // 2. Construire l'entête du tableau
-            echo "<table>";
-            echo "<thead><tr>";
-            echo "<th>Nom</th>";
-            echo "<th>Prénom</th>";
-            echo "<th>Catégorie</th>";
-            
-            foreach ($colonnes_epreuves as $epreuve) {
-                echo "<th>" . htmlspecialchars($epreuve) . "</th>";
-            }
-            echo "</tr></thead><tbody>";
-
-            // 3. Remplir les lignes pour chaque nageur
-            foreach ($profils as $nom_complet => $infos) {
-                // Créer un tableau associatif avec [ "50SF" => "00:20.54", "100BI" => "00:51.22" ]
-                $chronos_du_nageur = [];
-                if (!empty($infos['performances'])) {
-                    foreach ($infos['performances'] as $perf) {
-                        $chronos_du_nageur[$perf['epreuve']] = $perf['temps'];
+                    if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
+                        $epreuves_trouvees[] = $ligne['epreuve'];
                     }
                 }
 
-                // Afficher la ligne uniquement s'il a au moins un chrono
-                if (!empty($chronos_du_nageur)) {
-                    echo "<tr>";
-                    echo "<td><strong>" . htmlspecialchars($infos['nom']) . "</strong></td>";
-                    echo "<td>" . htmlspecialchars($infos['prenom']) . "</td>";
-                    echo "<td>" . htmlspecialchars($infos['categorie']) . "</td>";
+                // Ordre officiel des colonnes
+                $ordre_officiel = [
+                    '25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF',
+                    '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'
+                ];
 
-                    // Afficher les temps dans la bonne colonne
+                $colonnes_epreuves = [];
+                foreach ($ordre_officiel as $epreuve) {
+                    if (in_array($epreuve, $epreuves_trouvees)) {
+                        $colonnes_epreuves[] = $epreuve;
+                    }
+                }
+
+                // Génération du tableau HTML
+                echo '<table>';
+                echo '<thead><tr><th>Nom</th><th>Prénom</th><th>Catégorie</th>';
+                foreach ($colonnes_epreuves as $epreuve) {
+                    echo '<th>' . htmlspecialchars($epreuve) . '</th>';
+                }
+                echo '</tr></thead><tbody>';
+
+                foreach ($profils as $infos) {
+                    echo '<tr>';
+                    echo '<td><strong>' . htmlspecialchars($infos['nom']) . '</strong></td>';
+                    echo '<td>' . htmlspecialchars($infos['prenom']) . '</td>';
+                    echo '<td>' . htmlspecialchars($infos['categorie']) . '</td>';
+
                     foreach ($colonnes_epreuves as $epreuve) {
-                        if (isset($chronos_du_nageur[$epreuve])) {
-                            echo "<td class='temps'>" . htmlspecialchars($chronos_du_nageur[$epreuve]) . "</td>";
+                        if (isset($infos['chronos'][$epreuve])) {
+                            echo "<td class='temps'>" . htmlspecialchars($infos['chronos'][$epreuve]) . '</td>';
                         } else {
-                            echo "<td class='vide'>-</td>"; // Tiret si l'épreuve n'a pas été nagée
+                            echo "<td class='vide'>-</td>";
                         }
                     }
-                    echo "</tr>";
+                    echo '</tr>';
                 }
+                echo '</tbody></table>';
             }
-
-            echo "</tbody></table>";
+        } catch (PDOException $e) {
+            echo "<p style='color:red; text-align:center;'>Erreur de connexion à la BDD : " . $e->getMessage() . '</p>';
         }
-    }
-    ?>
-
+        ?>
     </div>
 
 </body>
