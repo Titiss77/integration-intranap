@@ -5,7 +5,7 @@ import time
 url = "https://nap.ffessm.fr/request.php"
 token = "15e86f224cf5f9737247328e34a456ca" # N'oubliez pas de mettre à jour le token si besoin
 club_cible = "PEC"
-saison_cible = "2026"
+saison_cible = "2025"
 
 epreuves = [
     "25SF", "50SF", "100SF", "200SF", "400SF", "800SF", "1500SF", "1850SF",

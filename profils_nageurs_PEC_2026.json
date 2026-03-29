@@ -1,0 +1,1382 @@
+{
+    "LE BIGOT  Maelys": {
+        "nom": "LE BIGOT ",
+        "prenom": "Maelys",
+        "genre": "Femmes",
+        "naissance": "10/06/2008",
+        "categorie": "FSE",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:26.50",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "00:56.84",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50AP",
+                "temps": "00:23.08",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:07.25",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "KERJEAN Eloise": {
+        "nom": "KERJEAN",
+        "prenom": "Eloise",
+        "genre": "Femmes",
+        "naissance": "31/01/2010",
+        "categorie": "FJU",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:27.18",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:26.25",
+                "date": "13/12/2025",
+                "lieu": "Dijon"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:58.55",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:07.63",
+                "date": "13/12/2025",
+                "lieu": "Dijon"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "04:34.68",
+                "date": "13/12/2025",
+                "lieu": "Dijon"
+            }
+        ]
+    },
+    "LE BIGOT Maelys": {
+        "nom": "LE BIGOT",
+        "prenom": "Maelys",
+        "genre": "Femmes",
+        "naissance": "10/06/2008",
+        "categorie": "FSE",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:27.36",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "ROZE Emma": {
+        "nom": "ROZE",
+        "prenom": "Emma",
+        "genre": "Femmes",
+        "naissance": "19/11/2011",
+        "categorie": "FCA",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:27.70",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:01.65",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:21.53",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:48.76",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:31.18",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:20.96",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:45.89",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:31.75",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "CAMUS Pauline": {
+        "nom": "CAMUS",
+        "prenom": "Pauline",
+        "genre": "Femmes",
+        "naissance": "31/03/2009",
+        "categorie": "FJU",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:28.13",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:03.06",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:29.45",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:02.88",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:35.21",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:24.69",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "LEBEE Garance": {
+        "nom": "LEBEE",
+        "prenom": "Garance",
+        "genre": "Femmes",
+        "naissance": "28/07/2012",
+        "categorie": "FCA",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:30.35",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:00.75",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:43.53",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "05:40.80",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100IS",
+                "temps": "00:42.88",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200IS",
+                "temps": "02:29.94",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:29.31",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:07.97",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "KERGOURLAY Sandra": {
+        "nom": "KERGOURLAY",
+        "prenom": "Sandra",
+        "genre": "Femmes",
+        "naissance": "14/10/1973",
+        "categorie": "F45+",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:32.71",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:33.56",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:12.67",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:48.78",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:45.62",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    },
+    "MARTIN Céline": {
+        "nom": "MARTIN",
+        "prenom": "Céline",
+        "genre": "Femmes",
+        "naissance": "09/01/1985",
+        "categorie": "F35+",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:35.10",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:19.74",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "03:00.51",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "06:10.16",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "12:35.60",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:36.27",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "03:15.45",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "06:27.67",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "FRANCES Mathis": {
+        "nom": "FRANCES",
+        "prenom": "Mathis",
+        "genre": "Hommes",
+        "naissance": "02/07/2006",
+        "categorie": "HSE",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:21.03",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "00:48.17",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "50AP",
+                "temps": "00:18.61",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:24.60",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:53.41",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            }
+        ]
+    },
+    "LEDUC Zacharie": {
+        "nom": "LEDUC",
+        "prenom": "Zacharie",
+        "genre": "Hommes",
+        "naissance": "07/04/2009",
+        "categorie": "HJU",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:23.06",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "00:51.04",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:23.08",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:51.70",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:00.40",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "04:28.17",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    },
+    "SOLLAZZO Luca": {
+        "nom": "SOLLAZZO",
+        "prenom": "Luca",
+        "genre": "Hommes",
+        "naissance": "18/06/2011",
+        "categorie": "HCA",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:24.09",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "00:54.04",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:07.92",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:26.15",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "09:02.05",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:23.41",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:53.04",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "01:59.83",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "04:21.89",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    },
+    "VIGOUROUX Nevis": {
+        "nom": "VIGOUROUX",
+        "prenom": "Nevis",
+        "genre": "Hommes",
+        "naissance": "25/05/2011",
+        "categorie": "HCA",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:26.51",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "00:58.62",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:25.99",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:58.67",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:15.57",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:05.62",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            }
+        ]
+    },
+    "PRIGENT Celian": {
+        "nom": "PRIGENT",
+        "prenom": "Celian",
+        "genre": "Hommes",
+        "naissance": "18/12/2010",
+        "categorie": "HJU",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:26.63",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "00:58.56",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50AP",
+                "temps": "00:26.61",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:25.89",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:58.42",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:03.42",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "04:27.46",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            }
+        ]
+    },
+    "PRIGENT Yves": {
+        "nom": "PRIGENT",
+        "prenom": "Yves",
+        "genre": "Hommes",
+        "naissance": "03/06/1978",
+        "categorie": "H45+",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:27.28",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:04.59",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:22.64",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50AP",
+                "temps": "00:29.90",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:01.49",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:23.96",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:25.65",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    },
+    "LEBEE Thomas": {
+        "nom": "LEBEE",
+        "prenom": "Thomas",
+        "genre": "Hommes",
+        "naissance": "11/09/1979",
+        "categorie": "H45+",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:27.67",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:04.02",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:26.92",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:03.67",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:24.51",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:20.24",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "LANDOLSI Simon": {
+        "nom": "LANDOLSI",
+        "prenom": "Simon",
+        "genre": "Hommes",
+        "naissance": "25/02/2014",
+        "categorie": "HMI",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:30.55",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:11.05",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:33.77",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "05:12.00",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "11:11.23",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100IS",
+                "temps": "01:15.89",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:29.76",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:15.88",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:35.08",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:11.85",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "SOLLAZZO Gabriele": {
+        "nom": "SOLLAZZO",
+        "prenom": "Gabriele",
+        "genre": "Hommes",
+        "naissance": "15/01/2016",
+        "categorie": "HBE",
+        "performances": [
+            {
+                "epreuve": "50SF",
+                "temps": "00:37.82",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "100SF",
+                "temps": "01:23.73",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:35.16",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:23.86",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    },
+    "BOUTOUILLER Florie": {
+        "nom": "BOUTOUILLER",
+        "prenom": "Florie",
+        "genre": "Femmes",
+        "naissance": "14/06/2005",
+        "categorie": "FSE",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:02.32",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:10.80",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:20.71",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:24.63",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:53.80",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "01:57.65",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            }
+        ]
+    },
+    "LAVIGNE  Anne": {
+        "nom": "LAVIGNE ",
+        "prenom": "Anne",
+        "genre": "Femmes",
+        "naissance": "06/10/1981",
+        "categorie": "F45+",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:03.38",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:12.68",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:32.06",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "09:05.97",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "1500SF",
+                "temps": "18:02.44",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100IS",
+                "temps": "01:00.22",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200IS",
+                "temps": "02:08.94",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            }
+        ]
+    },
+    "GOBIN Tifenn": {
+        "nom": "GOBIN",
+        "prenom": "Tifenn",
+        "genre": "Femmes",
+        "naissance": "01/04/1980",
+        "categorie": "F45+",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:03.83",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:15.96",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:38.55",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "10:05.40",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "1500SF",
+                "temps": "18:52.41",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:02.25",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:11.53",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            }
+        ]
+    },
+    "STEPHAN Elodie": {
+        "nom": "STEPHAN",
+        "prenom": "Elodie",
+        "genre": "Femmes",
+        "naissance": "20/10/1993",
+        "categorie": "FSE",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:08.47",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:36.14",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            }
+        ]
+    },
+    "FEAT Anne": {
+        "nom": "FEAT",
+        "prenom": "Anne",
+        "genre": "Femmes",
+        "naissance": "09/11/1968",
+        "categorie": "F55+",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:12.08",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:20.89",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "05:07.87",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "10:55.79",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "1500SF",
+                "temps": "20:50.06",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50AP",
+                "temps": "00:27.01",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            }
+        ]
+    },
+    "VIGOUROUX Nina": {
+        "nom": "VIGOUROUX",
+        "prenom": "Nina",
+        "genre": "Femmes",
+        "naissance": "08/10/2013",
+        "categorie": "FMI",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:16.28",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:45.07",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:14.83",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "11:49.66",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:30.20",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:12.98",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    },
+    "TORC-H Killian": {
+        "nom": "TORC-H",
+        "prenom": "Killian",
+        "genre": "Hommes",
+        "naissance": "13/08/2003",
+        "categorie": "HSE",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "00:50.18",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:22.44",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:51.27",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "01:59.37",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:04.56",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            }
+        ]
+    },
+    "HENRI Thierry": {
+        "nom": "HENRI",
+        "prenom": "Thierry",
+        "genre": "Hommes",
+        "naissance": "24/12/1962",
+        "categorie": "H55+",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:07.74",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:19.80",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "04:47.23",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "09:41.36",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "1500SF",
+                "temps": "18:32.73",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:03.75",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:13.90",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "04:37.71",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "SANCEAU Matthieu": {
+        "nom": "SANCEAU",
+        "prenom": "Matthieu",
+        "genre": "Hommes",
+        "naissance": "05/11/1990",
+        "categorie": "H35+",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:13.27",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:33.51",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "05:18.98",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "10:45.81",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "1500SF",
+                "temps": "21:04.52",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:27.77",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:07.22",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:45.94",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:31.18",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            }
+        ]
+    },
+    "KERJEAN Christophe": {
+        "nom": "KERJEAN",
+        "prenom": "Christophe",
+        "genre": "Hommes",
+        "naissance": "21/08/1975",
+        "categorie": "H45+",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:13.66",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:34.60",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "05:13.19",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "08:29.49",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "1500SF",
+                "temps": "21:00.17",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:02.19",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:32.98",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "05:15.92",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            }
+        ]
+    },
+    "LE POGAM Maxime": {
+        "nom": "LE POGAM",
+        "prenom": "Maxime",
+        "genre": "Hommes",
+        "naissance": "25/01/2012",
+        "categorie": "HCA",
+        "performances": [
+            {
+                "epreuve": "100SF",
+                "temps": "01:15.37",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "200SF",
+                "temps": "02:36.94",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "400SF",
+                "temps": "05:21.06",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "800SF",
+                "temps": "10:39.36",
+                "date": "12/10/2025",
+                "lieu": "Baud"
+            },
+            {
+                "epreuve": "25AP",
+                "temps": "00:13.85",
+                "date": "18/01/2026",
+                "lieu": "Auray"
+            },
+            {
+                "epreuve": "100IS",
+                "temps": "01:25.06",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200IS",
+                "temps": "03:07.15",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "50BI",
+                "temps": "00:29.27",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "01:00.54",
+                "date": "07/02/2026",
+                "lieu": "Lorient"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:16.00",
+                "date": "18/01/2026",
+                "lieu": "Auray"
+            },
+            {
+                "epreuve": "400BI",
+                "temps": "04:47.74",
+                "date": "18/01/2026",
+                "lieu": "Auray"
+            }
+        ]
+    },
+    "SEGALEN Nore": {
+        "nom": "SEGALEN",
+        "prenom": "Nore",
+        "genre": "Hommes",
+        "naissance": "13/09/2009",
+        "categorie": "HJU",
+        "performances": [
+            {
+                "epreuve": "50BI",
+                "temps": "00:24.73",
+                "date": "25/01/2026",
+                "lieu": "Angers"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "00:58.08",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            },
+            {
+                "epreuve": "200BI",
+                "temps": "02:22.19",
+                "date": "14/03/2026",
+                "lieu": "Rennes"
+            }
+        ]
+    },
+    "MAO Joseph": {
+        "nom": "MAO",
+        "prenom": "Joseph",
+        "genre": "Hommes",
+        "naissance": "02/04/1949",
+        "categorie": "",
+        "performances": [
+            {
+                "epreuve": "50BI",
+                "temps": "00:50.72",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            },
+            {
+                "epreuve": "100BI",
+                "temps": "02:05.45",
+                "date": "16/11/2025",
+                "lieu": "Brest"
+            }
+        ]
+    }
+}
