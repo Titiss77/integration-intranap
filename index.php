@@ -73,20 +73,10 @@
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
     }
 
-    /* --- TABLEAUX --- */
-    .category-title {
-        background-color: #f8f9fa;
-        padding: 10px 15px;
-        border-left: 5px solid var(--secondary);
-        color: #333;
-        margin-top: 30px;
-        font-size: 1.4em;
-        border-radius: 4px;
-    }
-
+    /* --- TABLEAU UNIQUE --- */
     .table-responsive {
         overflow-x: auto;
-        max-height: 65vh;
+        max-height: 70vh;
         margin-top: 15px;
         border-radius: 8px;
         border: 1px solid #dee2e6;
@@ -114,7 +104,7 @@
         color: white;
         position: sticky;
         top: 0;
-        z-index: 2;
+        z-index: 3;
     }
 
     td:nth-child(1),
@@ -136,7 +126,7 @@
 
     th:nth-child(1),
     th:nth-child(2) {
-        z-index: 3;
+        z-index: 4;
         left: 0;
     }
 
@@ -153,18 +143,34 @@
         font-size: 0.9em;
     }
 
-    /* --- NOUVEAU : REMPLACEMENT DU TEXTE AU SURVOL --- */
+    /* --- NOUVEAU : SÉPARATEUR DE CATÉGORIE SUBTIL --- */
+    .category-separator td {
+        background-color: #fafafa !important;
+        /* Fond très légèrement grisé */
+        color: #555;
+        font-weight: bold;
+        font-style: italic;
+        text-align: left;
+        /* La fameuse ligne fine et grise en haut de la cellule */
+        border-top: 2px solid #aaa;
+        border-bottom: 1px solid #ddd;
+        padding: 8px 15px;
+        /* On s'assure qu'il reste collé à gauche au scroll horizontal */
+        position: sticky;
+        left: 0;
+        z-index: 2;
+    }
+
+    /* --- REMPLACEMENT DU TEXTE AU SURVOL (CHRONOS) --- */
     .cell-temps {
         position: relative;
         cursor: pointer;
         min-width: 100px;
-        /* Donne un peu d'espace pour que le texte de remplacement rentre bien */
         transition: background-color 0.2s;
     }
 
     .cell-temps:hover {
         background-color: #e9ecef !important;
-        /* Petit effet visuel pour savoir quelle case on survole */
     }
 
     .chrono-val {
@@ -175,7 +181,6 @@
         display: block;
     }
 
-    /* Les informations cachées par défaut */
     .chrono-info {
         display: none;
         font-size: 0.85em;
@@ -183,10 +188,8 @@
         font-weight: normal;
         line-height: 1.3;
         white-space: normal;
-        /* Permet au texte du lieu de revenir à la ligne s'il est long */
     }
 
-    /* Au survol : on cache le temps et on affiche les infos */
     .cell-temps:hover .chrono-val {
         display: none;
     }
@@ -214,32 +217,27 @@
         <h1>🏆 Meilleurs Temps du Club 🏆</h1>
 
         <?php
-    $host = 'localhost';
-    $db   = 'ffessm_nap';
-    $user = 'root';
-    $pass = '';
+    $host = 'localhost'; $db = 'ffessm_nap'; $user = 'root'; $pass = '';
 
     try {
         $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Récupération des années
+        // --- FILTRE SAISON ---
         $stmt_saisons = $pdo->query("SELECT DISTINCT saison FROM performances ORDER BY saison DESC");
         $annees_disponibles = $stmt_saisons->fetchAll(PDO::FETCH_COLUMN);
         $annee_selectionnee = isset($_GET['saison']) ? $_GET['saison'] : 'all';
 
-        $condition_saison = "";
-        $params = [];
+        $condition_saison = ""; $params = [];
         if ($annee_selectionnee !== 'all') {
             $condition_saison = "AND p.saison = :saison";
             $params[':saison'] = $annee_selectionnee;
         }
 
-        // Requête SQL
+        // --- REQUÊTE SQL ---
         $sql = "
-            SELECT 
-                n.nom, n.prenom, c.nom_categorie AS categorie, e.nom_epreuve AS epreuve, 
-                p1.temps, p1.date_perf, l.nom_lieu AS lieu
+            SELECT n.nom, n.prenom, c.nom_categorie AS categorie, e.nom_epreuve AS epreuve, 
+                   p1.temps, p1.date_perf, l.nom_lieu AS lieu
             FROM performances p1
             JOIN nageurs n ON p1.nageur_id = n.id
             JOIN epreuves e ON p1.epreuve_id = e.id
@@ -261,9 +259,7 @@
 
         // --- PANNEAU DE CONTRÔLE ---
         echo "<div class='controls'>";
-        echo "<form method='GET' class='control-item'>";
-        echo "<label>📅 <strong>Année :</strong></label>";
-        echo "<select name='saison' onchange='this.form.submit()'>";
+        echo "<form method='GET' class='control-item'><label>📅 <strong>Année :</strong></label><select name='saison' onchange='this.form.submit()'>";
         echo "<option value='all' " . ($annee_selectionnee === 'all' ? 'selected' : '') . ">Toutes les saisons</option>";
         foreach ($annees_disponibles as $annee) {
             $selected = ($annee_selectionnee == $annee) ? 'selected' : '';
@@ -299,30 +295,35 @@
 
             $ordre_officiel = ["25SF", "50SF", "100SF", "200SF", "400SF", "800SF", "1500SF", "1850SF", "25AP", "50AP", "100IS", "800IS", "200IS", "400IS", "50BI", "100BI", "200BI", "400BI"];
             $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
+            $total_colonnes = 2 + count($colonnes_epreuves); // Nom + Prénom + le nombre d'épreuves
 
             $options_js = "";
             foreach (array_keys($profils_par_categorie) as $cat) { $options_js .= "<option value='" . htmlspecialchars($cat, ENT_QUOTES) . "'>" . htmlspecialchars($cat, ENT_QUOTES) . "</option>"; }
             echo "<script>document.getElementById('categoryFilter').innerHTML += `$options_js`;</script>";
 
-            // --- AFFICHAGE DES TABLEAUX ---
-            foreach ($profils_par_categorie as $categorie => $nageurs) {
-                echo "<div class='category-section' data-category='" . htmlspecialchars($categorie, ENT_QUOTES) . "'>";
-                echo "<h2 class='category-title'>" . htmlspecialchars($categorie) . "</h2>";
-                echo "<div class='table-responsive'><table>";
-                echo "<thead><tr><th>Nom</th><th>Prénom</th>";
-                foreach ($colonnes_epreuves as $epreuve) echo "<th>" . htmlspecialchars($epreuve) . "</th>";
-                echo "</tr></thead><tbody>";
+            // --- NOUVEAU : UN SEUL TABLEAU GLOBAL ---
+            echo "<div class='table-responsive'><table id='mainTable'>";
+            echo "<thead><tr><th>Nom</th><th>Prénom</th>";
+            foreach ($colonnes_epreuves as $epreuve) echo "<th>" . htmlspecialchars($epreuve) . "</th>";
+            echo "</tr></thead><tbody>";
 
+            // Boucle sur les catégories pour insérer la ligne de séparation, puis les nageurs
+            foreach ($profils_par_categorie as $categorie => $nageurs) {
+                
+                // LIGNE DE SÉPARATION SUBTILE
+                echo "<tr class='category-separator' data-category='" . htmlspecialchars($categorie, ENT_QUOTES) . "'>";
+                echo "<td colspan='$total_colonnes'>" . htmlspecialchars($categorie) . "</td>";
+                echo "</tr>";
+
+                // LIGNES DES NAGEURS
                 foreach ($nageurs as $infos) {
-                    echo "<tr class='nageur-row'>";
+                    echo "<tr class='nageur-row' data-category='" . htmlspecialchars($categorie, ENT_QUOTES) . "'>";
                     echo "<td><strong>" . htmlspecialchars($infos['nom']) . "</strong></td>";
                     echo "<td>" . htmlspecialchars($infos['prenom']) . "</td>";
 
                     foreach ($colonnes_epreuves as $epreuve) {
                         if (isset($infos['chronos'][$epreuve])) {
                             $perf = $infos['chronos'][$epreuve];
-                            
-                            // NOUVEAU : La case affiche le chrono par défaut, et les infos (lieu/date) quand survolée
                             echo "<td class='cell-temps'>";
                             echo "<span class='chrono-val'>" . htmlspecialchars($perf['temps']) . "</span>";
                             echo "<span class='chrono-info'>📍 " . htmlspecialchars($perf['lieu']) . "<br>📅 " . htmlspecialchars($perf['date']) . "</span>";
@@ -333,8 +334,8 @@
                     }
                     echo "</tr>";
                 }
-                echo "</tbody></table></div></div>";
             }
+            echo "</tbody></table></div>"; // Fin de l'unique tableau
         }
     } catch (PDOException $e) { echo "<p style='color:red;'>❌ Erreur de connexion à la BDD : " . $e->getMessage() . "</p>"; }
     ?>
@@ -344,30 +345,40 @@
     function filterData() {
         let searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
         let categoryValue = document.getElementById('categoryFilter').value;
-        let sections = document.querySelectorAll('.category-section');
 
-        sections.forEach(section => {
-            let matchCategory = (categoryValue === 'all' || section.getAttribute('data-category') ===
-                categoryValue);
-            let hasVisibleRows = false;
+        let rows = document.querySelectorAll('.nageur-row');
+        let separators = document.querySelectorAll('.category-separator');
 
-            let rows = section.querySelectorAll('.nageur-row');
-            rows.forEach(row => {
-                let nom = row.cells[0].textContent.toLowerCase();
-                let prenom = row.cells[1].textContent.toLowerCase();
-                let fullName = nom + " " + prenom;
-                let reversedName = prenom + " " + nom;
-                let matchText = fullName.includes(searchValue) || reversedName.includes(searchValue);
+        // On garde en mémoire quelles catégories ont au moins un nageur visible
+        let categoriesVisibles = new Set();
 
-                if (matchText && matchCategory) {
-                    row.style.display = '';
-                    hasVisibleRows = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+        // 1. On gère les nageurs
+        rows.forEach(row => {
+            let rowCat = row.getAttribute('data-category');
+            let nom = row.cells[0].textContent.toLowerCase();
+            let prenom = row.cells[1].textContent.toLowerCase();
 
-            section.style.display = hasVisibleRows ? 'block' : 'none';
+            let matchText = (nom + " " + prenom).includes(searchValue) || (prenom + " " + nom).includes(
+                searchValue);
+            let matchCategory = (categoryValue === 'all' || rowCat === categoryValue);
+
+            if (matchText && matchCategory) {
+                row.style.display = '';
+                categoriesVisibles.add(rowCat); // On note que cette catégorie est active
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // 2. On gère les lignes séparatrices
+        separators.forEach(sep => {
+            let sepCat = sep.getAttribute('data-category');
+            // Si la catégorie a des nageurs visibles, on affiche la ligne grise, sinon on la cache
+            if (categoriesVisibles.has(sepCat)) {
+                sep.style.display = '';
+            } else {
+                sep.style.display = 'none';
+            }
         });
     }
     </script>
