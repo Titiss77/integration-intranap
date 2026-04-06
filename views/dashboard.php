@@ -55,8 +55,10 @@
 
             <select id='categoryFilter' onchange='filterData()'>
                 <option value='all'>Toutes les catégories</option>
-                <?php foreach ($categories_disponibles as $cat) { ?>
-                <option value="<?php echo htmlspecialchars($cat, ENT_QUOTES); ?>"><?php echo htmlspecialchars($cat); ?>
+                <?php foreach ($categories_disponibles as $cat_code => $cat_libelle) { ?>
+                <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
+                    <?php echo htmlspecialchars($cat_code); ?>
+                    <?php echo !empty($cat_libelle) ? ' - ' . htmlspecialchars($cat_libelle) : ''; ?>
                 </option>
                 <?php } ?>
             </select>
@@ -91,9 +93,16 @@
                         <td style="text-align: center; white-space: nowrap;">
                             <?php echo htmlspecialchars($infos['date_naissance_str']); ?>
                             <?php echo htmlspecialchars($infos['age_str']); ?><br>
+
+                            <?php if (!empty($infos['categorie_libelle'])): ?>
+                            <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
+                                <?php echo htmlspecialchars($infos['categorie_libelle']); ?>
+                            </span>
+                            <?php else: ?>
                             <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
                                 <?php echo htmlspecialchars($infos['categorie']); ?>
                             </span>
+                            <?php endif; ?>
                         </td>
 
                         <?php foreach ($colonnes_epreuves as $epreuve) { ?>
