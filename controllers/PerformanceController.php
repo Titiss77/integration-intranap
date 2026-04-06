@@ -33,11 +33,30 @@ class PerformanceController
 
                 // On crée le nageur s'il n'existe pas encore dans notre tableau plat
                 if (!isset($profils_nageurs[$nageur_id])) {
+                    // --- NOUVEAU : Calcul de l'âge et formatage de la date ---
+                    $date_naissance_str = '-';
+                    $age_str = '';
+
+                    if (!empty($ligne['date_naissance'])) {
+                        try {
+                            $dob = new DateTime($ligne['date_naissance']);
+                            $now = new DateTime();
+                            $age = $now->diff($dob)->y;  // Différence en années
+                            $date_naissance_str = $dob->format('d/m/Y');  // Format FR
+                            $age_str = "({$age} ans)";
+                        } catch (Exception $e) {
+                            $date_naissance_str = $ligne['date_naissance'];
+                        }
+                    }
+                    // ---------------------------------------------------------
+
                     $profils_nageurs[$nageur_id] = [
                         'nageur_id' => $nageur_id,
                         'nom' => $ligne['nom'],
                         'prenom' => $ligne['prenom'],
-                        'categorie' => $categorie,  // Sauvegardé pour le filtre JS
+                        'categorie' => $categorie,  // Sauvegardé pour le filtre JS et l'affichage
+                        'date_naissance_str' => $date_naissance_str,
+                        'age_str' => $age_str,
                         'chronos' => []
                     ];
                 }

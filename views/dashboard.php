@@ -72,7 +72,7 @@
                     <tr>
                         <th>Nom</th>
                         <th>Prénom</th>
-                        <?php foreach ($colonnes_epreuves as $epreuve): ?>
+                        <th>Profil</th> <?php foreach ($colonnes_epreuves as $epreuve): ?>
                         <th><?= htmlspecialchars($epreuve) ?></th>
                         <?php endforeach; ?>
                     </tr>
@@ -82,6 +82,14 @@
                     <tr class='nageur-row' data-category='<?= htmlspecialchars($infos['categorie'], ENT_QUOTES) ?>'>
                         <td><strong><?= htmlspecialchars($infos['nom']) ?></strong></td>
                         <td><?= htmlspecialchars($infos['prenom']) ?></td>
+
+                        <td style="text-align: center; white-space: nowrap;">
+                            <?= htmlspecialchars($infos['date_naissance_str']) ?>
+                            <?= htmlspecialchars($infos['age_str']) ?><br>
+                            <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
+                                <?= htmlspecialchars($infos['categorie']) ?>
+                            </span>
+                        </td>
 
                         <?php foreach ($colonnes_epreuves as $epreuve): ?>
                         <?php if (isset($infos['chronos'][$epreuve])): ?>
@@ -99,6 +107,7 @@
                         <?php endif; ?>
                         <?php endforeach; ?>
                     </tr>
+
                     <?php endforeach; ?>
                 </tbody>
             </table>
