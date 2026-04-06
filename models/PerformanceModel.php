@@ -4,7 +4,10 @@ class PerformanceModel {
 
     public function __construct($pdo) { $this->pdo = $pdo; }
 
-    public function getSaisons() { /* Reste inchangé */ }
+    public function getSaisons() {
+        $stmt = $this->pdo->query("SELECT DISTINCT saison FROM performances ORDER BY saison DESC");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 
     public function getPerformances($saison) {
         // [!] MODIFICATION : J'ai ajouté n.id AS nageur_id au début du SELECT
