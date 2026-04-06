@@ -58,7 +58,7 @@
                 <?php foreach ($categories_disponibles as $cat_code => $cat_libelle) { ?>
                 <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
                     <?php if (!empty($cat_libelle)) { ?>
-                    <?php echo htmlspecialchars($cat_libelle) . " (" . htmlspecialchars($cat_code) . ")"; ?>
+                    <?php echo htmlspecialchars($cat_libelle) . ' (' . htmlspecialchars($cat_code) . ')'; ?>
                     <?php } else { ?>
                     <?php echo htmlspecialchars($cat_code); ?>
                     <?php } ?>
@@ -113,7 +113,18 @@
                         <?php $perf = $infos['chronos'][$epreuve]; ?>
                         <td class='cell-temps'
                             onclick='showChart(<?php echo $infos['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']); ?>")'>
-                            <span class='chrono-val'><?php echo htmlspecialchars($perf['temps']); ?></span>
+                            <?php
+                            $color_style = '';
+                            if ($perf['est_qualifie'] === true) {
+                                $color_style = 'color: #28a745; font-weight: bold;';  // Vert (Qualifié)
+                            } elseif ($perf['est_qualifie'] === false) {
+                                $color_style = 'color: #dc3545;';  // Rouge (Non qualifié)
+                            }
+                            // Si $perf['est_qualifie'] === null, ça garde la couleur par défaut (Noir)
+                            ?>
+                            <span class='chrono-val' style='<?php echo $color_style; ?>'>
+                                <?php echo htmlspecialchars($perf['temps']); ?>
+                            </span>
                             <span class='chrono-info'>
                                 📍 <?php echo htmlspecialchars($perf['lieu']); ?><br>
                                 📅 <?php echo htmlspecialchars($perf['date']); ?>

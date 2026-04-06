@@ -91,4 +91,23 @@ class PerformanceModel
         
         return $result;
     }
+
+    // NOUVELLE MÉTHODE : Récupérer la grille des qualifications
+    public function getGrilleQualifs()
+    {
+        $sql = 'SELECT c.nom_categorie, e.nom_epreuve, g.temps_de_ref
+                FROM grille_qualifs g
+                JOIN categories c ON g.categorie_id = c.id
+                JOIN epreuves e ON g.epreuve_id = e.id';
+        
+        $stmt = $this->pdo->query($sql);
+        $result = [];
+        
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            // Structure : $result['F35+']['50SF'] = '00:23.50'
+            $result[$row['nom_categorie']][$row['nom_epreuve']] = $row['temps_de_ref'];
+        }
+        
+        return $result;
+    }
 }

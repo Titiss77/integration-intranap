@@ -18,6 +18,9 @@ class PerformanceController
         // 2. Récupération des données brutes
         $lignes_bdd = $model->getPerformances($annee_selectionnee);
 
+        // Récupération de la grille des qualifications
+        $grille_qualifs = $model->getGrilleQualifs();
+
         // Récupérer les catégories actuelles si on est sur "Toutes les saisons"
         $categories_actuelles = [];
         if ($annee_selectionnee === 'all') {
@@ -39,7 +42,7 @@ class PerformanceController
                     $libelle_a_afficher = $categories_actuelles[$nageur_id]['libelle'];
                 } else {
                     $categorie_a_afficher = $ligne['categorie'];
-                    $libelle_a_afficher = $ligne['categorie_libelle']." (en ".$annee_selectionnee.")";
+                    $libelle_a_afficher = $ligne['categorie_libelle'] . ' (en ' . $annee_selectionnee . ')';
                 }
 
                 // On liste les catégories uniques (Code => Libelle) pour le menu déroulant
@@ -76,10 +79,27 @@ class PerformanceController
                     ];
                 }
 
+                // --- NOUVEAU : Vérification de la qualification ---
+                $temps_nageur = $ligne['temps'];
+                $est_qualifie = null;  // null = pas de temps de ref défini
+
+                // On vérifie si un temps de référence existe pour cette catégorie et cette épreuve
+                if (isset($grille_qualifs[$categorie_a_afficher][$ligne['epreuve']])) {
+                    $temps_ref = $grille_qualifs[$categorie_a_afficher][$ligne['epreuve']];
+
+                    $sec_nageur = $this->timeToSeconds($temps_nageur);
+                    $sec_ref = $this->timeToSeconds($temps_ref);
+
+                    // Si le temps du nageur est inférieur ou égal au temps de référence, il est qualifié
+                    $est_qualifie = ($sec_nageur <= $sec_ref);
+                }
+                // --------------------------------------------------
+
                 $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
-                    'temps' => $ligne['temps'],
+                    'temps' => $temps_nageur,
                     'date' => $ligne['date_perf'],
                     'lieu' => $ligne['lieu'],
+                    'est_qualifie' => $est_qualifie  // On stocke l'état
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -123,6 +143,16 @@ class PerformanceController
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
 
         require_once __DIR__ . '/../views/dashboard.php';
+    }
+
+    // Fonction utilitaire pour convertir un chrono "MM:SS.ms" ou "SS.ms" en secondes
+    private function timeToSeconds($timeStr)
+    {
+        $parts = explode(':', str_replace(',', '.', $timeStr));
+        if (count($parts) === 2) {
+            return ($parts[0] * 60) + (float) $parts[1];
+        }
+        return (float) $parts[0];
     }
 
     // NOUVELLE MÉTHODE : Appelée via AJAX pour générer le graphique
