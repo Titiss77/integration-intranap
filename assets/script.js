@@ -80,13 +80,19 @@
             }
         };
     
-        // Gestion des erreurs de connexion au serveur
-        evtSource.onerror = function() {
-            progressBar.style.backgroundColor = '#d9534f';
-            progressText.innerText = "❌ Connexion perdue avec le serveur.";
-            evtSource.close();
-            btn.disabled = false;
-            btn.style.backgroundColor = "var(--secondary)";
+        // Gestion des erreurs de connexion au serveur (Bien placée à l'intérieur de lancerSync)
+        evtSource.onerror = function(event) {
+            // Si la connexion est définitivement fermée par le serveur
+            if (evtSource.readyState === EventSource.CLOSED) {
+                progressBar.style.backgroundColor = '#d9534f';
+                progressText.innerText = "❌ Connexion perdue avec le serveur.";
+                evtSource.close();
+                btn.disabled = false;
+                btn.style.backgroundColor = "var(--secondary)";
+            } else {
+                // Si la connexion vacille
+                progressText.innerText = "⚠️ Reconnexion en cours...";
+            }
         };
     }
 
@@ -179,3 +185,18 @@ function filterData() {
         }
     });
 }
+
+// Gestion des erreurs de connexion au serveur
+        evtSource.onerror = function(event) {
+            // Si la connexion est définitivement fermée par le serveur
+            if (evtSource.readyState === EventSource.CLOSED) {
+                progressBar.style.backgroundColor = '#d9534f';
+                progressText.innerText = "❌ Connexion perdue avec le serveur.";
+                evtSource.close();
+                btn.disabled = false;
+                btn.style.backgroundColor = "var(--secondary)";
+            } else {
+                // Si la connexion vacille, on indique que le navigateur tente de se reconnecter
+                progressText.innerText = "⚠️ Reconnexion en cours...";
+            }
+        };
