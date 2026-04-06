@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__.'/../config/Database.php';
+require_once __DIR__ . '/../config/Database.php';
 
-require_once __DIR__.'/../models/PerformanceModel.php';
+require_once __DIR__ . '/../models/PerformanceModel.php';
 
 class PerformanceController
 {
@@ -18,6 +18,13 @@ class PerformanceController
         // 2. Récupération des données brutes
         $lignes_bdd = $model->getPerformances($annee_selectionnee);
 
+        // --- NOUVEAU : Récupérer les catégories actuelles si on est sur "Toutes les saisons" ---
+        $categories_actuelles = [];
+        if ($annee_selectionnee === 'all') {
+            $categories_actuelles = $model->getCategoriesActuelles();
+        }
+        // --------------------------------------------------------------------------------------
+
         // 3. Traitement et formatage pour un tableau plat (sans accordéon)
         $profils_nageurs = [];
         $epreuves_trouvees = [];
@@ -25,17 +32,26 @@ class PerformanceController
 
         if (!empty($lignes_bdd)) {
             foreach ($lignes_bdd as $ligne) {
-                $categorie = $ligne['categorie'];
                 $nageur_id = $ligne['nageur_id'];
 
+                // --- NOUVEAU : Détermination de la bonne catégorie à afficher ---
+                if ($annee_selectionnee === 'all' && isset($categories_actuelles[$nageur_id])) {
+                    // Si "Toutes saisons", on force sa catégorie de la saison la plus récente
+                    $categorie_a_afficher = $categories_actuelles[$nageur_id];
+                } else {
+                    // Sinon (une année spécifique est choisie), on garde la catégorie de sa perf cette année-là
+                    $categorie_a_afficher = $ligne['categorie']." (en ".$annee_selectionnee.")";  // Ex: "Minime (en 2023)"
+                }
+                // ----------------------------------------------------------------
+
                 // On liste les catégories uniques pour le menu déroulant
-                if (!in_array($categorie, $categories_disponibles)) {
-                    $categories_disponibles[] = $categorie;
+                if (!in_array($categorie_a_afficher, $categories_disponibles)) {
+                    $categories_disponibles[] = $categorie_a_afficher;
                 }
 
                 // On crée le nageur s'il n'existe pas encore dans notre tableau plat
                 if (!isset($profils_nageurs[$nageur_id])) {
-                    // --- NOUVEAU : Calcul de l'âge et formatage de la date ---
+                    // Calcul de l'âge et formatage de la date
                     $date_naissance_str = '-';
                     $age_str = '';
 
@@ -50,13 +66,12 @@ class PerformanceController
                             $date_naissance_str = $ligne['date_naissance'];
                         }
                     }
-                    // ---------------------------------------------------------
 
                     $profils_nageurs[$nageur_id] = [
                         'nageur_id' => $nageur_id,
                         'nom' => $ligne['nom'],
                         'prenom' => $ligne['prenom'],
-                        'categorie' => $categorie,  // Sauvegardé pour le filtre JS et l'affichage
+                        'categorie' => $categorie_a_afficher,  // MODIFIÉ : On utilise la catégorie corrigée
                         'date_naissance_str' => $date_naissance_str,
                         'age_str' => $age_str,
                         'chronos' => [],
@@ -64,7 +79,9 @@ class PerformanceController
                 }
 
                 $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
-                    'temps' => $ligne['temps'], 'date' => $ligne['date_perf'], 'lieu' => $ligne['lieu'],
+                    'temps' => $ligne['temps'],
+                    'date' => $ligne['date_perf'],
+                    'lieu' => $ligne['lieu'],
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -79,10 +96,9 @@ class PerformanceController
         // Tri des épreuves selon l'ordre officiel
         $ordre_officiel = ['25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF', '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
-        $total_colonnes = 2 + count($colonnes_epreuves);
 
         // 4. Inclusion de la Vue
-        require_once __DIR__.'/../views/dashboard.php';
+        require_once __DIR__ . '/../views/dashboard.php';
     }
 
     // NOUVELLE MÉTHODE : Appelée via AJAX pour générer le graphique

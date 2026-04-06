@@ -63,4 +63,28 @@ class PerformanceModel
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // NOUVELLE MÉTHODE : Récupérer la catégorie actuelle (la plus récente) de chaque nageur
+    public function getCategoriesActuelles()
+    {
+        $sql = '
+            SELECT DISTINCT p.nageur_id, c.nom_categorie
+            FROM performances p
+            JOIN categories c ON p.categorie_id = c.id
+            INNER JOIN (
+                SELECT nageur_id, MAX(saison) AS max_saison
+                FROM performances
+                GROUP BY nageur_id
+            ) p_max ON p.nageur_id = p_max.nageur_id AND p.saison = p_max.max_saison
+        ';
+        
+        $stmt = $this->pdo->query($sql);
+        $result = [];
+        
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $result[$row['nageur_id']] = $row['nom_categorie'];
+        }
+        
+        return $result;
+    }
 }
