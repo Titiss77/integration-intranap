@@ -155,3 +155,27 @@ window.onclick = function(event) {
     let modal = document.getElementById('chartModal');
     if (event.target == modal) { closeChart(); }
 }
+
+// On supprime les variables d'accordéon et on garde juste le filtre pur
+function filterData() {
+    let searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
+    let categoryValue = document.getElementById('categoryFilter').value;
+
+    let rows = document.querySelectorAll('.nageur-row');
+
+    rows.forEach(row => {
+        let rowCat = row.getAttribute('data-category');
+        let nom = row.cells[0].textContent.toLowerCase();
+        let prenom = row.cells[1].textContent.toLowerCase();
+
+        let matchText = (nom + " " + prenom).includes(searchValue) || (prenom + " " + nom).includes(searchValue);
+        let matchCategory = (categoryValue === 'all' || rowCat === categoryValue);
+
+        // Si le nageur correspond à la recherche ET à la catégorie choisie dans le menu, on l'affiche
+        if (matchText && matchCategory) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}

@@ -16,30 +16,33 @@ class PerformanceController
         // 2. Récupération des données brutes
         $lignes_bdd = $model->getPerformances($annee_selectionnee);
 
-        // 3. Traitement et formatage des données pour la vue
-        $profils_par_categorie = [];
+        // 3. Traitement et formatage pour un tableau plat (sans accordéon)
+        $profils_nageurs = [];
         $epreuves_trouvees = [];
+        $categories_disponibles = [];  // Pour remplir la liste déroulante
 
         if (!empty($lignes_bdd)) {
             foreach ($lignes_bdd as $ligne) {
                 $categorie = $ligne['categorie'];
-                $nom_complet = $ligne['nom'] . ' ' . $ligne['prenom'];
+                $nageur_id = $ligne['nageur_id'];
 
-                if (!isset($profils_par_categorie[$categorie])) {
-                    $profils_par_categorie[$categorie] = [];
+                // On liste les catégories uniques pour le menu déroulant
+                if (!in_array($categorie, $categories_disponibles)) {
+                    $categories_disponibles[] = $categorie;
                 }
 
-                // [!] NOUVEAU : On sauvegarde l'ID du nageur
-                if (!isset($profils_par_categorie[$categorie][$nom_complet])) {
-                    $profils_par_categorie[$categorie][$nom_complet] = [
-                        'nageur_id' => $ligne['nageur_id'],  // <- ICI
+                // On crée le nageur s'il n'existe pas encore dans notre tableau plat
+                if (!isset($profils_nageurs[$nageur_id])) {
+                    $profils_nageurs[$nageur_id] = [
+                        'nageur_id' => $nageur_id,
                         'nom' => $ligne['nom'],
                         'prenom' => $ligne['prenom'],
+                        'categorie' => $categorie,  // Sauvegardé pour le filtre JS
                         'chronos' => []
                     ];
                 }
 
-                $profils_par_categorie[$categorie][$nom_complet]['chronos'][$ligne['epreuve']] = [
+                $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
                     'temps' => $ligne['temps'], 'date' => $ligne['date_perf'], 'lieu' => $ligne['lieu']
                 ];
 
@@ -49,12 +52,15 @@ class PerformanceController
             }
         }
 
+        // Trier les catégories par ordre alphabétique pour le menu
+        sort($categories_disponibles);
+
         // Tri des épreuves selon l'ordre officiel
         $ordre_officiel = ['25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF', '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
         $total_colonnes = 2 + count($colonnes_epreuves);
 
-        // 4. Inclusion de la Vue (en lui passant les variables préparées implicitement)
+        // 4. Inclusion de la Vue
         require_once __DIR__ . '/../views/dashboard.php';
     }
 

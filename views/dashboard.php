@@ -50,15 +50,12 @@
                 </select>
             </form>
 
-            <div class='control-item'>
-                <label>🎯 <strong>Catégorie :</strong></label>
-                <select id='categoryFilter' onchange='filterData()'>
-                    <option value='all'>Toutes les catégories</option>
-                    <?php foreach (array_keys($profils_par_categorie) as $cat): ?>
-                    <option value="<?= htmlspecialchars($cat, ENT_QUOTES) ?>"><?= htmlspecialchars($cat) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+            <select id='categoryFilter' onchange='filterData()'>
+                <option value='all'>Toutes les catégories</option>
+                <?php foreach ($categories_disponibles as $cat): ?>
+                <option value="<?= htmlspecialchars($cat, ENT_QUOTES) ?>"><?= htmlspecialchars($cat) ?></option>
+                <?php endforeach; ?>
+            </select>
             <div class='control-item'>
                 <input type='text' id='searchInput' onkeyup='filterData()' placeholder='🔍 Rechercher...'>
             </div>
@@ -81,14 +78,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($profils_par_categorie as $categorie => $nageurs): ?>
-
-                    <tr class='category-separator' data-category='<?= htmlspecialchars($categorie, ENT_QUOTES) ?>'>
-                        <td colspan='<?= $total_colonnes ?>'><?= htmlspecialchars($categorie) ?></td>
-                    </tr>
-
-                    <?php foreach ($nageurs as $infos): ?>
-                    <tr class='nageur-row' data-category='<?= htmlspecialchars($categorie, ENT_QUOTES) ?>'>
+                    <?php foreach ($profils_nageurs as $infos): ?>
+                    <tr class='nageur-row' data-category='<?= htmlspecialchars($infos['categorie'], ENT_QUOTES) ?>'>
                         <td><strong><?= htmlspecialchars($infos['nom']) ?></strong></td>
                         <td><?= htmlspecialchars($infos['prenom']) ?></td>
 
@@ -108,8 +99,6 @@
                         <?php endif; ?>
                         <?php endforeach; ?>
                     </tr>
-                    <?php endforeach; ?>
-
                     <?php endforeach; ?>
                 </tbody>
             </table>
