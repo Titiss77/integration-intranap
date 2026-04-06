@@ -69,7 +69,7 @@ class PerformanceController
                         'nom' => $ligne['nom'],
                         'prenom' => $ligne['prenom'],
                         'categorie' => $categorie_a_afficher,
-                        'categorie_libelle' => $libelle_a_afficher, // Nouveau champ
+                        'categorie_libelle' => $libelle_a_afficher,  // Nouveau champ
                         'date_naissance_str' => $date_naissance_str,
                         'age_str' => $age_str,
                         'chronos' => [],
@@ -77,7 +77,9 @@ class PerformanceController
                 }
 
                 $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
-                    'temps' => $ligne['temps'], 'date' => $ligne['date_perf'], 'lieu' => $ligne['lieu'],
+                    'temps' => $ligne['temps'],
+                    'date' => $ligne['date_perf'],
+                    'lieu' => $ligne['lieu'],
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -86,13 +88,41 @@ class PerformanceController
             }
         }
 
-        // Trier le tableau associatif des catégories par leurs clés (ordre alphabétique des codes courts)
-        ksort($categories_disponibles);
+        // 1. Définir l'ordre officiel souhaité (du plus jeune au plus âgé par exemple)
+        $ordre_categories_officiel = [
+            'FPO', 'HPO',  // Poussins
+            'FBE', 'HBE',  // Benjamins
+            'FMI', 'HMI',  // Minimes
+            'FCA', 'HCA',  // Cadets
+            'FJU', 'HJU',  // Juniors
+            'FSE', 'HSE',  // Seniors
+            'F35+', 'H35+',  // Masters 35+
+            'F45+', 'H45+',  // Masters 45+
+            'F55+', 'H55+'  // Masters 55+
+        ];
+
+        // 2. Créer un nouveau tableau trié selon cet ordre
+        $categories_triees = [];
+        foreach ($ordre_categories_officiel as $code_cat) {
+            if (isset($categories_disponibles[$code_cat])) {
+                $categories_triees[$code_cat] = $categories_disponibles[$code_cat];
+            }
+        }
+
+        // 3. Ajouter à la fin les éventuelles catégories qui ne seraient pas dans la liste officielle
+        foreach ($categories_disponibles as $code_cat => $libelle) {
+            if (!isset($categories_triees[$code_cat])) {
+                $categories_triees[$code_cat] = $libelle;
+            }
+        }
+
+        // 4. Remplacer l'ancien tableau par le tableau trié
+        $categories_disponibles = $categories_triees;
 
         $ordre_officiel = ['25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF', '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
 
-        require_once __DIR__.'/../views/dashboard.php';
+        require_once __DIR__ . '/../views/dashboard.php';
     }
 
     // NOUVELLE MÉTHODE : Appelée via AJAX pour générer le graphique
