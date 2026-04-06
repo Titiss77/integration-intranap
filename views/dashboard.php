@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:,">
-    <title>Performances du Club - Dashboard</title>
+    <title>Performances du Club</title>
+    <link rel="icon" type="image/x-icon" href="https://palmes-en-cornouailles.22web.org/favicon.ico">
     <link rel="stylesheet" href="assets/style.css">
     <script src="assets/script.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -40,7 +41,8 @@
             <form method='GET' class='control-item'>
                 <label>📅 <strong>Année :</strong></label>
                 <select name='saison' onchange='this.form.submit()'>
-                    <option value='all' <?php echo 'all' === $annee_selectionnee ? 'selected' : ''; ?>>Toutes les saisons
+                    <option value='all' <?php echo 'all' === $annee_selectionnee ? 'selected' : ''; ?>>Toutes les
+                        saisons
                     </option>
                     <?php foreach ($annees_disponibles as $annee) { ?>
                     <option value="<?php echo htmlspecialchars($annee); ?>"
@@ -54,7 +56,8 @@
             <select id='categoryFilter' onchange='filterData()'>
                 <option value='all'>Toutes les catégories</option>
                 <?php foreach ($categories_disponibles as $cat) { ?>
-                <option value="<?php echo htmlspecialchars($cat, ENT_QUOTES); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                <option value="<?php echo htmlspecialchars($cat, ENT_QUOTES); ?>"><?php echo htmlspecialchars($cat); ?>
+                </option>
                 <?php } ?>
             </select>
             <div class='control-item'>
@@ -80,7 +83,8 @@
                 </thead>
                 <tbody>
                     <?php foreach ($profils_nageurs as $infos) { ?>
-                    <tr class='nageur-row' data-category='<?php echo htmlspecialchars($infos['categorie'], ENT_QUOTES); ?>'>
+                    <tr class='nageur-row'
+                        data-category='<?php echo htmlspecialchars($infos['categorie'], ENT_QUOTES); ?>'>
                         <td><strong><?php echo htmlspecialchars($infos['nom']); ?></strong></td>
                         <td><?php echo htmlspecialchars($infos['prenom']); ?></td>
 
@@ -96,7 +100,7 @@
                         <?php if (isset($infos['chronos'][$epreuve])) { ?>
                         <?php $perf = $infos['chronos'][$epreuve]; ?>
                         <td class='cell-temps'
-                            onclick='showChart(<?php echo $infos['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($infos['nom'].' '.$infos['prenom']); ?>")'>
+                            onclick='showChart(<?php echo $infos['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']); ?>")'>
                             <span class='chrono-val'><?php echo htmlspecialchars($perf['temps']); ?></span>
                             <span class='chrono-info'>
                                 📍 <?php echo htmlspecialchars($perf['lieu']); ?><br>
