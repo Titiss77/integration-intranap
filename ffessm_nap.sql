@@ -147,7 +147,6 @@ INSERT INTO `epreuves` (`id`, `nom_epreuve`) VALUES
 (9, '50AP'),
 (14, '50BI'),
 (1, '50SF'),
-(11, '800IS'),
 (7, '800SF');
 
 INSERT INTO `grille_qualifs` (`epreuve_id`, `categorie_id`, `temps_de_ref`) VALUES
