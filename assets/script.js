@@ -82,7 +82,12 @@ async function showChart(nageurId, epreuve, nomComplet) {
     document.getElementById('chartTitle').innerText = "📈 Évolution de " + nomComplet + " sur " + epreuve;
     
     let response = await fetch('index.php?action=history&nageur_id=' + nageurId + '&epreuve=' + epreuve);
-    let data = await response.json();
+    let responseData = await response.json();
+    
+    // Extraction des données de la nouvelle structure JSON
+    let data = responseData.history;
+    let tempsRefSec = responseData.temps_ref_sec;
+    let tempsRefStr = responseData.temps_ref_str;
     
     const labels = data.map(d => d.date + " (" + d.lieu + ")");
     const values = data.map(d => d.temps_sec);
@@ -91,22 +96,53 @@ async function showChart(nageurId, epreuve, nomComplet) {
     const ctx = document.getElementById('evolutionChart').getContext('2d');
     if (myChart) { myChart.destroy(); }
     
+    // 1er Dataset : Les performances du nageur
+    let datasets = [{
+        label: 'Temps chronométré',
+        data: values,
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+        borderWidth: 3, pointRadius: 6, pointHoverRadius: 8,
+        pointBackgroundColor: '#0056b3', fill: true, tension: 0.2
+    }];
+
+    // 2ème Dataset : La ligne de qualification (si elle existe)
+    if (tempsRefSec !== null) {
+        datasets.push({
+            label: 'Objectif Qualif (' + tempsRefStr + ')',
+            // On crée un tableau avec la même valeur pour tracer une ligne droite
+            data: data.map(() => tempsRefSec),
+            borderColor: '#dc3545', // Rouge
+            borderWidth: 2,
+            borderDash: [5, 5], // Ligne en pointillés
+            pointRadius: 0, // Ne pas afficher de points sur cette ligne
+            fill: false,
+            tension: 0
+        });
+    }
+    
     myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Temps chronométré',
-                data: values,
-                borderColor: '#007bff',
-                backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                borderWidth: 3, pointRadius: 6, pointHoverRadius: 8,
-                pointBackgroundColor: '#0056b3', fill: true, tension: 0.2
-            }]
+            datasets: datasets
         },
         options: {
             responsive: true,
-            plugins: { tooltip: { callbacks: { label: function(c) { return " Chrono : " + tooltips[c.dataIndex]; } } } },
+            plugins: { 
+                tooltip: { 
+                    callbacks: { 
+                        label: function(c) { 
+                            // On adapte le texte du survol selon la ligne ciblée
+                            if (c.datasetIndex === 0) {
+                                return " Chrono : " + tooltips[c.dataIndex]; 
+                            } else {
+                                return " Objectif à atteindre : " + tempsRefStr;
+                            }
+                        } 
+                    } 
+                } 
+            },
             scales: { y: { reverse: true, title: { display: true, text: 'Plus rapide ⬆️' } } }
         }
     });

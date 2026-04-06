@@ -155,7 +155,7 @@ class PerformanceController
         return (float) $parts[0];
     }
 
-    // NOUVELLE MÉTHODE : Appelée via AJAX pour générer le graphique
+    // MÉTHODE APPELÉE VIA AJAX POUR GÉNÉRER LE GRAPHIQUE
     public function getHistoryApi()
     {
         $nageur_id = $_GET['nageur_id'] ?? 0;
@@ -167,18 +167,11 @@ class PerformanceController
 
         $data = [];
         foreach ($history as $h) {
-            // Conversion du temps (ex: "01:23.45") en secondes pour le graphique
-            $parts = explode(':', str_replace(',', '.', $h['temps']));
-            if (2 == count($parts)) {
-                $secondes = ($parts[0] * 60) + (float) $parts[1];
-            } else {
-                $secondes = (float) $parts[0];
-            }
-
+            // Conversion du temps en secondes
             $data[] = [
                 'date' => $h['date_perf'],
                 'temps_str' => $h['temps'],
-                'temps_sec' => $secondes,
+                'temps_sec' => $this->timeToSeconds($h['temps']),
                 'lieu' => $h['lieu'],
             ];
         }
@@ -187,11 +180,32 @@ class PerformanceController
         usort($data, function ($a, $b) {
             $da = implode('', array_reverse(explode('/', $a['date'])));
             $db = implode('', array_reverse(explode('/', $b['date'])));
-
             return strcmp($da, $db);
         });
 
+        // --- NOUVEAU : Récupération du temps de référence ---
+        $temps_ref_sec = null;
+        $temps_ref_str = null;
+
+        $categories_actuelles = $model->getCategoriesActuelles();
+        if (isset($categories_actuelles[$nageur_id])) {
+            $categorie_actuelle = $categories_actuelles[$nageur_id]['nom_categorie'];
+            $grille = $model->getGrilleQualifs();
+            
+            if (isset($grille[$categorie_actuelle][$epreuve])) {
+                $temps_ref_str = $grille[$categorie_actuelle][$epreuve];
+                $temps_ref_sec = $this->timeToSeconds($temps_ref_str);
+            }
+        }
+        // ----------------------------------------------------
+
         header('Content-Type: application/json');
-        echo json_encode($data);
+        
+        // On modifie la structure du JSON envoyé au JavaScript
+        echo json_encode([
+            'history' => $data,
+            'temps_ref_sec' => $temps_ref_sec,
+            'temps_ref_str' => $temps_ref_str
+        ]);
     }
 }
