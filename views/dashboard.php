@@ -40,80 +40,80 @@
             <form method='GET' class='control-item'>
                 <label>📅 <strong>Année :</strong></label>
                 <select name='saison' onchange='this.form.submit()'>
-                    <option value='all' <?= ($annee_selectionnee === 'all' ? 'selected' : '') ?>>Toutes les saisons
+                    <option value='all' <?php echo 'all' === $annee_selectionnee ? 'selected' : ''; ?>>Toutes les saisons
                     </option>
-                    <?php foreach ($annees_disponibles as $annee): ?>
-                    <option value="<?= htmlspecialchars($annee) ?>"
-                        <?= ($annee_selectionnee == $annee ? 'selected' : '') ?>>
-                        <?= htmlspecialchars($annee) ?>
+                    <?php foreach ($annees_disponibles as $annee) { ?>
+                    <option value="<?php echo htmlspecialchars($annee); ?>"
+                        <?php echo $annee_selectionnee == $annee ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($annee); ?>
                     </option>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </select>
             </form>
 
             <select id='categoryFilter' onchange='filterData()'>
                 <option value='all'>Toutes les catégories</option>
-                <?php foreach ($categories_disponibles as $cat): ?>
-                <option value="<?= htmlspecialchars($cat, ENT_QUOTES) ?>"><?= htmlspecialchars($cat) ?></option>
-                <?php endforeach; ?>
+                <?php foreach ($categories_disponibles as $cat) { ?>
+                <option value="<?php echo htmlspecialchars($cat, ENT_QUOTES); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                <?php } ?>
             </select>
             <div class='control-item'>
                 <input type='text' id='searchInput' onkeyup='filterData()' placeholder='🔍 Rechercher...'>
             </div>
         </div>
 
-        <?php if (empty($lignes_bdd)): ?>
+        <?php if (empty($lignes_bdd)) { ?>
         <p style='text-align:center; color:#ff9800; font-size:1.2em;'>
-            ⚠️ Aucun record trouvé pour l'année <?= htmlspecialchars($annee_selectionnee) ?>.
+            ⚠️ Aucun record trouvé pour l'année <?php echo htmlspecialchars($annee_selectionnee); ?>.
         </p>
-        <?php else: ?>
+        <?php } else { ?>
         <div class='table-responsive'>
             <table id='mainTable'>
                 <thead>
                     <tr>
                         <th>Nom</th>
                         <th>Prénom</th>
-                        <th>Profil</th> <?php foreach ($colonnes_epreuves as $epreuve): ?>
-                        <th><?= htmlspecialchars($epreuve) ?></th>
-                        <?php endforeach; ?>
+                        <th>Profil</th> <?php foreach ($colonnes_epreuves as $epreuve) { ?>
+                        <th><?php echo htmlspecialchars($epreuve); ?></th>
+                        <?php } ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($profils_nageurs as $infos): ?>
-                    <tr class='nageur-row' data-category='<?= htmlspecialchars($infos['categorie'], ENT_QUOTES) ?>'>
-                        <td><strong><?= htmlspecialchars($infos['nom']) ?></strong></td>
-                        <td><?= htmlspecialchars($infos['prenom']) ?></td>
+                    <?php foreach ($profils_nageurs as $infos) { ?>
+                    <tr class='nageur-row' data-category='<?php echo htmlspecialchars($infos['categorie'], ENT_QUOTES); ?>'>
+                        <td><strong><?php echo htmlspecialchars($infos['nom']); ?></strong></td>
+                        <td><?php echo htmlspecialchars($infos['prenom']); ?></td>
 
                         <td style="text-align: center; white-space: nowrap;">
-                            <?= htmlspecialchars($infos['date_naissance_str']) ?>
-                            <?= htmlspecialchars($infos['age_str']) ?><br>
+                            <?php echo htmlspecialchars($infos['date_naissance_str']); ?>
+                            <?php echo htmlspecialchars($infos['age_str']); ?><br>
                             <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
-                                <?= htmlspecialchars($infos['categorie']) ?>
+                                <?php echo htmlspecialchars($infos['categorie']); ?>
                             </span>
                         </td>
 
-                        <?php foreach ($colonnes_epreuves as $epreuve): ?>
-                        <?php if (isset($infos['chronos'][$epreuve])): ?>
+                        <?php foreach ($colonnes_epreuves as $epreuve) { ?>
+                        <?php if (isset($infos['chronos'][$epreuve])) { ?>
                         <?php $perf = $infos['chronos'][$epreuve]; ?>
                         <td class='cell-temps'
-                            onclick='showChart(<?= $infos['nageur_id'] ?>, "<?= htmlspecialchars($epreuve) ?>", "<?= htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']) ?>")'>
-                            <span class='chrono-val'><?= htmlspecialchars($perf['temps']) ?></span>
+                            onclick='showChart(<?php echo $infos['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($infos['nom'].' '.$infos['prenom']); ?>")'>
+                            <span class='chrono-val'><?php echo htmlspecialchars($perf['temps']); ?></span>
                             <span class='chrono-info'>
-                                📍 <?= htmlspecialchars($perf['lieu']) ?><br>
-                                📅 <?= htmlspecialchars($perf['date']) ?>
+                                📍 <?php echo htmlspecialchars($perf['lieu']); ?><br>
+                                📅 <?php echo htmlspecialchars($perf['date']); ?>
                             </span>
                         </td>
-                        <?php else: ?>
+                        <?php } else { ?>
                         <td class='vide'>-</td>
-                        <?php endif; ?>
-                        <?php endforeach; ?>
+                        <?php } ?>
+                        <?php } ?>
                     </tr>
 
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </tbody>
             </table>
         </div>
-        <?php endif; ?>
+        <?php } ?>
     </div>
     <div id="chartModal" class="modal">
         <div class="modal-content">

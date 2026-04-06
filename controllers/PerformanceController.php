@@ -1,6 +1,8 @@
 <?php
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/../models/PerformanceModel.php';
+
+require_once __DIR__.'/../config/Database.php';
+
+require_once __DIR__.'/../models/PerformanceModel.php';
 
 class PerformanceController
 {
@@ -57,12 +59,12 @@ class PerformanceController
                         'categorie' => $categorie,  // Sauvegardé pour le filtre JS et l'affichage
                         'date_naissance_str' => $date_naissance_str,
                         'age_str' => $age_str,
-                        'chronos' => []
+                        'chronos' => [],
                     ];
                 }
 
                 $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
-                    'temps' => $ligne['temps'], 'date' => $ligne['date_perf'], 'lieu' => $ligne['lieu']
+                    'temps' => $ligne['temps'], 'date' => $ligne['date_perf'], 'lieu' => $ligne['lieu'],
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -80,7 +82,7 @@ class PerformanceController
         $total_colonnes = 2 + count($colonnes_epreuves);
 
         // 4. Inclusion de la Vue
-        require_once __DIR__ . '/../views/dashboard.php';
+        require_once __DIR__.'/../views/dashboard.php';
     }
 
     // NOUVELLE MÉTHODE : Appelée via AJAX pour générer le graphique
@@ -97,7 +99,7 @@ class PerformanceController
         foreach ($history as $h) {
             // Conversion du temps (ex: "01:23.45") en secondes pour le graphique
             $parts = explode(':', str_replace(',', '.', $h['temps']));
-            if (count($parts) == 2) {
+            if (2 == count($parts)) {
                 $secondes = ($parts[0] * 60) + (float) $parts[1];
             } else {
                 $secondes = (float) $parts[0];
@@ -107,7 +109,7 @@ class PerformanceController
                 'date' => $h['date_perf'],
                 'temps_str' => $h['temps'],
                 'temps_sec' => $secondes,
-                'lieu' => $h['lieu']
+                'lieu' => $h['lieu'],
             ];
         }
 
@@ -115,6 +117,7 @@ class PerformanceController
         usort($data, function ($a, $b) {
             $da = implode('', array_reverse(explode('/', $a['date'])));
             $db = implode('', array_reverse(explode('/', $b['date'])));
+
             return strcmp($da, $db);
         });
 

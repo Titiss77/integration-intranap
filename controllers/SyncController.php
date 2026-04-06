@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../config/Database.php';
+
+require_once __DIR__.'/../config/Database.php';
 
 class SyncController
 {
@@ -25,7 +26,7 @@ class SyncController
         header('Connection: keep-alive');
         header('X-Accel-Buffering: no');
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
+        if (PHP_SESSION_ACTIVE === session_status()) {
             session_write_close();
         }
         while (ob_get_level() > 0) {
@@ -46,13 +47,13 @@ class SyncController
                     $epreuve_id = $this->getOrCreateSimple('epreuves', 'nom_epreuve', $epreuve);
 
                     foreach ($categories_genre as $cat_code => $cat_nom) {
-                        $current_step++;
-                        $this->sendSSE(round(($current_step / $total_steps) * 100), "Recherche : $epreuve ($cat_nom)");
+                        ++$current_step;
+                        $this->sendSSE(round(($current_step / $total_steps) * 100), "Recherche : {$epreuve} ({$cat_nom})");
 
                         $params = ['action' => 'gettop', 'course' => $epreuve, 'bassin' => '0', 'cid' => '0', 'order' => 'tps', 'clubid' => '0', 'saison' => $saison, 'category' => $cat_code, 'token' => $this->token];
 
                         $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, $this->url . '?' . http_build_query($params));
+                        curl_setopt($ch, CURLOPT_URL, $this->url.'?'.http_build_query($params));
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -70,10 +71,10 @@ class SyncController
 
                                         if (!empty($raw_date)) {
                                             if (preg_match('/^\d{4}$/', $raw_date)) {
-                                                $date_formatee = $raw_date . '-01-01';  // ex: "1995" devient "1995-01-01"
+                                                $date_formatee = $raw_date.'-01-01';  // ex: "1995" devient "1995-01-01"
                                             } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $raw_date)) {
                                                 $p = explode('/', $raw_date);
-                                                $date_formatee = $p[2] . '-' . $p[1] . '-' . $p[0];  // JJ/MM/AAAA devient AAAA-MM-JJ
+                                                $date_formatee = $p[2].'-'.$p[1].'-'.$p[0];  // JJ/MM/AAAA devient AAAA-MM-JJ
                                             } else {
                                                 $date_formatee = $raw_date;  // On suppose que c'est déjà AAAA-MM-JJ
                                             }
@@ -101,19 +102,21 @@ class SyncController
 
     private function sendSSE($progress, $message, $is_done = false, $is_error = false)
     {
-        echo 'data: ' . json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error]) . "\n\n";
-        echo str_pad('', 4096) . "\n";
-        if (ob_get_level() > 0)
+        echo 'data: '.json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error])."\n\n";
+        echo str_pad('', 4096)."\n";
+        if (ob_get_level() > 0) {
             ob_flush();
+        }
         flush();
     }
 
     private function getOrCreateSimple($table, $column, $value)
     {
-        $stmt = $this->pdo->prepare("INSERT IGNORE INTO $table ($column) VALUES (?)");
+        $stmt = $this->pdo->prepare("INSERT IGNORE INTO {$table} ({$column}) VALUES (?)");
         $stmt->execute([$value]);
-        $stmt = $this->pdo->prepare("SELECT id FROM $table WHERE $column = ?");
+        $stmt = $this->pdo->prepare("SELECT id FROM {$table} WHERE {$column} = ?");
         $stmt->execute([$value]);
+
         return $stmt->fetchColumn();
     }
 
@@ -128,12 +131,13 @@ class SyncController
                 $updateStmt = $this->pdo->prepare('UPDATE nageurs SET date_naissance = ? WHERE id = ?');
                 $updateStmt->execute([$date_naissance, $nageur['id']]);
             }
+
             return $nageur['id'];
-        } else {
-            $stmt = $this->pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
-            $stmt->execute([$nom, $prenom, $genre, $date_naissance]);
-            return $this->pdo->lastInsertId();
         }
+        $stmt = $this->pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
+        $stmt->execute([$nom, $prenom, $genre, $date_naissance]);
+
+        return $this->pdo->lastInsertId();
     }
 
     private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf)
