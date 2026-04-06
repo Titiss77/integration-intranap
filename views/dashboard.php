@@ -57,8 +57,11 @@
                 <option value='all'>Toutes les catégories</option>
                 <?php foreach ($categories_disponibles as $cat_code => $cat_libelle) { ?>
                 <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
+                    <?php if (!empty($cat_libelle)) { ?>
+                    <?php echo htmlspecialchars($cat_libelle) . " (" . htmlspecialchars($cat_code) . ")"; ?>
+                    <?php } else { ?>
                     <?php echo htmlspecialchars($cat_code); ?>
-                    <?php echo !empty($cat_libelle) ? ' - ' . htmlspecialchars($cat_libelle) : ''; ?>
+                    <?php } ?>
                 </option>
                 <?php } ?>
             </select>
