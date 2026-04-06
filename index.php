@@ -1,8 +1,14 @@
 <?php
+// --- 1. CHARGEMENT DES VARIABLES D'ENVIRONNEMENT ---
+require_once __DIR__ . '/config/Env.php';
+Env::load(__DIR__ . '/.env');
+
+// ---------------------------------------------------
+
 require_once __DIR__ . '/controllers/PerformanceController.php';
 $controller = new PerformanceController();
 
-// 1. Interception pour la SYNCHRONISATION (Celle qui manquait !)
+// Interception pour la SYNCHRONISATION
 if (isset($_GET['action']) && $_GET['action'] === 'sync') {
     require_once __DIR__ . '/controllers/SyncController.php';
     $sync = new SyncController();
@@ -10,11 +16,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'sync') {
     exit;
 }
 
-// 2. Interception pour l'API du GRAPHIQUE
+// Interception pour l'API du GRAPHIQUE
 if (isset($_GET['action']) && $_GET['action'] === 'history') {
     $controller->getHistoryApi();
     exit;
 }
 
-// 3. Sinon, on charge la page normale
+// Sinon, on charge la page normale
 $controller->index();

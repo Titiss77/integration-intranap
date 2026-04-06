@@ -3,12 +3,17 @@ require_once __DIR__ . '/../config/Database.php';
 
 class SyncController {
     private $pdo;
-    private $token = "15e86f224cf5f9737247328e34a456ca";
-    private $url = "https://nap.ffessm.fr/request.php";
-    private $club_cible = "PEC";
+    private $token;
+    private $url;
+    private $club_cible;
 
     public function __construct() {
         $this->pdo = Database::getConnection();
+        
+        // On récupère les valeurs depuis le .env
+        $this->url = $_ENV['API_URL'] ?? '';
+        $this->token = $_ENV['API_TOKEN'] ?? '';
+        $this->club_cible = $_ENV['API_CLUB'] ?? '';
     }
 
     public function syncData() {
