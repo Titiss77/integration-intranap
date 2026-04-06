@@ -42,7 +42,7 @@ class PerformanceModel
             GROUP BY p.nageur_id, p.epreuve_id
         ) p2 ON p1.nageur_id = p2.nageur_id AND p1.epreuve_id = p2.epreuve_id AND p1.temps = p2.min_temps
         WHERE 1=1 ".str_replace('p.', 'p1.', $condition_saison)."
-        ORDER BY categorie_libelle DESC, epreuve ASC, p1.temps ASC
+        ORDER BY epreuve ASC, p1.temps ASC
         ";
 
         $stmt = $this->pdo->prepare($sql);
