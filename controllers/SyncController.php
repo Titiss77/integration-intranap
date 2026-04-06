@@ -12,7 +12,13 @@ class SyncController {
     }
 
     public function syncData() {
-        // Optionnel : Permet au script de s'exécuter plus longtemps sans timeout
+        // 1. En-têtes indispensables pour le streaming en temps réel (SSE)
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+
+        // Désactiver la mise en cache de la sortie PHP
+        if (ob_get_level() > 0) { ob_end_clean(); }
         set_time_limit(300); 
 
         $saisons = ["2026"];
@@ -22,12 +28,23 @@ class SyncController {
         ];
         $categories_genre = ["F" => "Femmes", "M" => "Hommes"];
 
+        // Calcul du nombre total d'appels API pour la progression
+        $total_steps = count($saisons) * count($liste_epreuves) * count($categories_genre);
+        $current_step = 0;
+
         try {
             foreach ($saisons as $saison) {
                 foreach ($liste_epreuves as $epreuve) {
                     $epreuve_id = $this->getOrCreateSimple("epreuves", "nom_epreuve", $epreuve);
 
                     foreach ($categories_genre as $cat_code => $cat_nom) {
+                        
+                        // --- ENVOI DE LA PROGRESSION AU NAVIGATEUR ---
+                        $current_step++;
+                        $percentage = round(($current_step / $total_steps) * 100);
+                        $this->sendSSE($percentage, "Recherche : $epreuve ($cat_nom)");
+                        // ---------------------------------------------
+
                         $params = [
                             "action" => "gettop", "course" => $epreuve, "bassin" => "0",
                             "cid" => "0", "order" => "tps", "clubid" => "0",
@@ -36,7 +53,6 @@ class SyncController {
 
                         $apiUrl = $this->url . '?' . http_build_query($params);
                         
-                        // Requête HTTP avec cURL
                         $ch = curl_init();
                         curl_setopt($ch, CURLOPT_URL, $apiUrl);
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -50,31 +66,36 @@ class SyncController {
                                 foreach ($donnees as $n) {
                                     if (isset($n['club']) && $n['club'] === $this->club_cible) {
                                         $nageur_id = $this->getOrCreateNageur($n['nom'], $n['prenom'], $cat_nom);
-                                        
-                                        $nom_categorie = !empty($n['categorie']) ? $n['categorie'] : 'Non renseigné';
-                                        $categorie_id = $this->getOrCreateSimple("categories", "nom_categorie", $nom_categorie);
-                                        
-                                        $nom_lieu = !empty($n['lieu']) ? $n['lieu'] : 'Non renseigné';
-                                        $lieu_id = $this->getOrCreateSimple("lieux", "nom_lieu", $nom_lieu);
+                                        $categorie_id = $this->getOrCreateSimple("categories", "nom_categorie", $n['categorie'] ?? 'Non renseigné');
+                                        $lieu_id = $this->getOrCreateSimple("lieux", "nom_lieu", $n['lieu'] ?? 'Non renseigné');
 
-                                        $this->insertPerformance(
-                                            $nageur_id, $epreuve_id, $categorie_id, $lieu_id,
-                                            $saison, $n['temps'], $n['date'] ?? ''
-                                        );
+                                        $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '');
                                     }
                                 }
                             }
                         }
-                        // Pause de 0.5s pour ne pas spammer l'API de la fédé (500 000 microsecondes)
-                        usleep(500000); 
+                        usleep(500000); // Pause de 0.5s
                     }
                 }
             }
-            echo json_encode(["status" => "success", "message" => "Données synchronisées avec succès !"]);
+            // Fin du traitement
+            $this->sendSSE(100, "Synchronisation terminée avec succès !", true);
+
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["status" => "error", "message" => "Erreur : " . $e->getMessage()]);
+            $this->sendSSE(0, "Erreur interne de synchronisation.", true, true);
         }
+    }
+
+    // Fonction utilitaire pour envoyer les données en temps réel (SSE)
+    private function sendSSE($progress, $message, $is_done = false, $is_error = false) {
+        $data = json_encode([
+            'progress' => $progress,
+            'message' => $message,
+            'done' => $is_done,
+            'error' => $is_error
+        ]);
+        echo "data: $data\n\n";
+        flush(); // Force PHP à envoyer le paquet immédiatement
     }
 
     private function getOrCreateSimple($table, $column, $value) {

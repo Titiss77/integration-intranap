@@ -16,9 +16,22 @@
 
         <div class="control-item">
             <button id="btnSync" onclick="lancerSync()"
-                style="background-color: var(--secondary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                style="background-color: var(--secondary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;">
                 🔄 Synchroniser avec la FFESSM
             </button>
+        </div>
+
+        <div id="progressContainer"
+            style="display: none; width: 100%; max-width: 600px; margin: 15px auto; text-align: center;">
+            <div
+                style="background-color: #e9ecef; border-radius: 8px; overflow: hidden; height: 25px; width: 100%; border: 1px solid #ccc;">
+                <div id="progressBar"
+                    style="height: 100%; width: 0%; background-color: #28a745; transition: width 0.3s; color: white; font-weight: bold; line-height: 25px;">
+                    0%
+                </div>
+            </div>
+            <p id="progressText" style="margin-top: 8px; font-size: 0.9em; color: #555; font-style: italic;">
+                Démarrage...</p>
         </div>
 
         <div class='controls'>

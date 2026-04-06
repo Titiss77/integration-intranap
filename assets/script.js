@@ -30,32 +30,62 @@
         });
     }
 
-    async function lancerSync() {
+    function lancerSync() {
         const btn = document.getElementById('btnSync');
-        
-        // Changement d'état du bouton pendant le chargement
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+    
+        // Désactiver le bouton et afficher la barre
         btn.disabled = true;
-        btn.innerHTML = "⏳ Synchronisation en cours... (patientez)";
         btn.style.backgroundColor = "#ccc";
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.style.backgroundColor = '#28a745';
+        progressBar.innerText = '0%';
+        progressText.innerText = 'Connexion à la base FFESSM...';
     
-        try {
-            // On appelle notre index.php avec le paramètre action=sync
-            let response = await fetch('index.php?action=sync');
-            let data = await response.json();
+        // Ouvrir une connexion Server-Sent Events (SSE)
+        const evtSource = new EventSource("index.php?action=sync");
     
-            if (response.ok) {
-                alert(data.message);
-                location.reload(); // On recharge la page pour voir les nouvelles données
-            } else {
-                alert("Erreur: " + data.message);
+        // À chaque fois que PHP fait un "echo", cet événement se déclenche
+        evtSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+    
+            // Si erreur
+            if (data.error) {
+                progressBar.style.backgroundColor = '#d9534f'; // Rouge
+                progressText.innerText = data.message;
+                evtSource.close();
+                btn.disabled = false;
+                btn.style.backgroundColor = "var(--secondary)";
+                return;
             }
-        } catch (error) {
-            alert("Une erreur de communication est survenue.");
-            console.error(error);
-        } finally {
-            // Restauration du bouton (si la page ne se recharge pas)
+    
+            // Mise à jour visuelle de la barre et du texte
+            progressBar.style.width = data.progress + '%';
+            progressBar.innerText = data.progress + '%';
+            progressText.innerText = data.message;
+    
+            // Si terminé
+            if (data.done) {
+                evtSource.close(); // Fermer la connexion
+                progressBar.style.backgroundColor = '#28a745'; // S'assurer que c'est vert
+                progressText.innerHTML = "<strong>✅ " + data.message + " La page va se recharger.</strong>";
+                
+                // Recharger la page après 2 secondes pour afficher les nouvelles données
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            }
+        };
+    
+        // Gestion des erreurs de connexion au serveur
+        evtSource.onerror = function() {
+            progressBar.style.backgroundColor = '#d9534f';
+            progressText.innerText = "❌ Connexion perdue avec le serveur.";
+            evtSource.close();
             btn.disabled = false;
-            btn.innerHTML = "🔄 Synchroniser avec la FFESSM";
             btn.style.backgroundColor = "var(--secondary)";
-        }
+        };
     }
