@@ -14,6 +14,13 @@
     <div class="container">
         <h1>🏆 Meilleurs Temps du Club 🏆</h1>
 
+        <div class="control-item">
+            <button id="btnSync" onclick="lancerSync()"
+                style="background-color: var(--secondary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                🔄 Synchroniser avec la FFESSM
+            </button>
+        </div>
+
         <div class='controls'>
             <form method='GET' class='control-item'>
                 <label>📅 <strong>Année :</strong></label>

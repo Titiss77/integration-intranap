@@ -29,3 +29,33 @@
             sep.style.display = categoriesVisibles.has(sepCat) ? '' : 'none';
         });
     }
+
+    async function lancerSync() {
+        const btn = document.getElementById('btnSync');
+        
+        // Changement d'état du bouton pendant le chargement
+        btn.disabled = true;
+        btn.innerHTML = "⏳ Synchronisation en cours... (patientez)";
+        btn.style.backgroundColor = "#ccc";
+    
+        try {
+            // On appelle notre index.php avec le paramètre action=sync
+            let response = await fetch('index.php?action=sync');
+            let data = await response.json();
+    
+            if (response.ok) {
+                alert(data.message);
+                location.reload(); // On recharge la page pour voir les nouvelles données
+            } else {
+                alert("Erreur: " + data.message);
+            }
+        } catch (error) {
+            alert("Une erreur de communication est survenue.");
+            console.error(error);
+        } finally {
+            // Restauration du bouton (si la page ne se recharge pas)
+            btn.disabled = false;
+            btn.innerHTML = "🔄 Synchroniser avec la FFESSM";
+            btn.style.backgroundColor = "var(--secondary)";
+        }
+    }
