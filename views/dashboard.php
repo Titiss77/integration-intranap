@@ -7,6 +7,7 @@
     <title>Performances du Club - Dashboard</title>
     <link rel="stylesheet" href="assets/style.css">
     <script src="assets/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -94,7 +95,8 @@
                         <?php foreach ($colonnes_epreuves as $epreuve): ?>
                         <?php if (isset($infos['chronos'][$epreuve])): ?>
                         <?php $perf = $infos['chronos'][$epreuve]; ?>
-                        <td class='cell-temps'>
+                        <td class='cell-temps'
+                            onclick='showChart(<?= $infos['nageur_id'] ?>, "<?= htmlspecialchars($epreuve) ?>", "<?= htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']) ?>")'>
                             <span class='chrono-val'><?= htmlspecialchars($perf['temps']) ?></span>
                             <span class='chrono-info'>
                                 📍 <?= htmlspecialchars($perf['lieu']) ?><br>
@@ -113,6 +115,13 @@
             </table>
         </div>
         <?php endif; ?>
+    </div>
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeChart()">&times;</span>
+            <h2 id="chartTitle">Évolution</h2>
+            <canvas id="evolutionChart"></canvas>
+        </div>
     </div>
 
 </body>

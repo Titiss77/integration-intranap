@@ -15,7 +15,7 @@ db_config = {
 url = "https://nap.ffessm.fr/request.php"
 token = "15e86f224cf5f9737247328e34a456ca"
 club_cible = "PEC"
-saisons = ["2026"]  # Vous pouvez ajouter d'autres saisons si besoin
+saisons = ["2025"]  # Vous pouvez ajouter d'autres saisons si besoin
 liste_epreuves = [
     "50SF", "100SF", "200SF", "400SF", "800SF", "1500SF",
     "50AP", "100IS", "800IS", "200IS", "400IS", "50BI", "100BI", "200BI", "400BI"

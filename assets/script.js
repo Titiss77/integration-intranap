@@ -89,3 +89,69 @@
             btn.style.backgroundColor = "var(--secondary)";
         };
     }
+
+    let myChart = null;
+
+async function showChart(nageurId, epreuve, nomComplet) {
+    document.getElementById('chartModal').style.display = 'block';
+    document.getElementById('chartTitle').innerText = "📈 Évolution de " + nomComplet + " sur " + epreuve;
+    
+    // Appel au contrôleur PHP pour récupérer l'historique
+    let response = await fetch('index.php?action=history&nageur_id=' + nageurId + '&epreuve=' + epreuve);
+    let data = await response.json();
+    
+    const labels = data.map(d => d.date + " (" + d.lieu + ")");
+    const values = data.map(d => d.temps_sec);
+    const tooltips = data.map(d => d.temps_str);
+    
+    const ctx = document.getElementById('evolutionChart').getContext('2d');
+    if (myChart) { myChart.destroy(); } // Détruire l'ancien graphique s'il existe
+    
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Temps chronométré',
+                data: values,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                borderWidth: 3,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: '#0056b3',
+                fill: true,
+                tension: 0.2 // Courbe légèrement arrondie
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            // On affiche le chrono au format MM:SS.ms au survol
+                            return " Chrono : " + tooltips[context.dataIndex];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: { 
+                    reverse: true, // IMPORTANT : Inverse l'axe Y (plus le temps est bas, plus la courbe monte !)
+                    title: { display: true, text: 'Plus rapide ⬆️' }
+                }
+            }
+        }
+    });
+}
+
+function closeChart() {
+    document.getElementById('chartModal').style.display = 'none';
+}
+
+// Fermer la modale si on clique à côté
+window.onclick = function(event) {
+    let modal = document.getElementById('chartModal');
+    if (event.target == modal) { closeChart(); }
+}
