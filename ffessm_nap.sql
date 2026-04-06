@@ -64,8 +64,7 @@ ALTER TABLE `epreuves`
   ADD UNIQUE KEY `nom_epreuve` (`nom_epreuve`);
 
   ALTER TABLE `grille_qualifs`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `temps_de_ref` (`temps_de_ref`);
+  ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `lieux`
   ADD PRIMARY KEY (`id`),
