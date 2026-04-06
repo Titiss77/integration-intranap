@@ -39,7 +39,7 @@ class PerformanceController
                     $libelle_a_afficher = $categories_actuelles[$nageur_id]['libelle'];
                 } else {
                     $categorie_a_afficher = $ligne['categorie'];
-                    $libelle_a_afficher = $ligne['categorie_libelle'];
+                    $libelle_a_afficher = $ligne['categorie_libelle']." (en ".$annee_selectionnee.")";
                 }
 
                 // On liste les catégories uniques (Code => Libelle) pour le menu déroulant
