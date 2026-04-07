@@ -150,6 +150,13 @@
         </div>
     </div>
 
+    <div class='control-item'>
+                <button type="button" onclick="exporterCsv()" 
+                    style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
+                    📥 Exporter la sélection en CSV
+                </button>
+            </div>
+
 </body>
 
 </html>

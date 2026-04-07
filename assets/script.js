@@ -153,3 +153,19 @@ window.onclick = function(event) {
     let modal = document.getElementById('chartModal');
     if (event.target == modal) { closeChart(); }
 }
+
+// --- 4. FONCTION POUR EXPORTER EN CSV ---
+function exporterCsv() {
+    // On récupère l'année actuellement sélectionnée dans la liste déroulante
+    let saisonSelect = document.getElementById('saisonSelect');
+    
+    // Si l'ID n'est pas trouvé, on tente de le récupérer par son nom
+    if (!saisonSelect) {
+        saisonSelect = document.querySelector('select[name="saison"]');
+    }
+
+    let saison = saisonSelect ? saisonSelect.value : 'all';
+
+    // On redirige vers la nouvelle route PHP pour lancer le téléchargement
+    window.location.href = 'index.php?action=export&saison=' + encodeURIComponent(saison);
+}

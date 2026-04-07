@@ -208,4 +208,65 @@ class PerformanceController
             'temps_ref_str' => $temps_ref_str
         ]);
     }
+
+    // MÉTHODE POUR L'EXPORT CSV
+    public function exportCsv()
+    {
+        $pdo = Database::getConnection();
+        $model = new PerformanceModel($pdo);
+
+        // On récupère l'année demandée depuis l'URL (ou 'all' par défaut)
+        $annee_selectionnee = isset($_GET['saison']) ? $_GET['saison'] : 'all';
+        $lignes_bdd = $model->getPerformances($annee_selectionnee);
+
+        // On définit le nom du fichier dynamiquement
+        $nom_saison = ($annee_selectionnee === 'all') ? 'toutes_saisons' : $annee_selectionnee;
+        $filename = "export_performances_{$nom_saison}_" . date('Ymd_His') . ".csv";
+
+        // Headers pour forcer le téléchargement du fichier CSV
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        // Ouverture de la sortie standard de PHP en écriture
+        $output = fopen('php://output', 'w');
+
+        // Ajout du BOM UTF-8 pour la compatibilité Excel (pour les accents)
+        fputs($output, "\xEF\xBB\xBF");
+
+        // Écriture de la ligne d'en-tête (on utilise le point-virgule comme séparateur pour Excel FR)
+        fputcsv($output, ['Nom', 'Prénom', 'Date de naissance', 'Catégorie', 'Épreuve', 'Temps', 'Date', 'Lieu'], ';');
+
+        // Si on exporte "Toutes les saisons", on a besoin des catégories les plus récentes
+        $categories_actuelles = [];
+        if ($annee_selectionnee === 'all') {
+            $categories_actuelles = $model->getCategoriesActuelles();
+        }
+
+        // Écriture des données
+        if (!empty($lignes_bdd)) {
+            foreach ($lignes_bdd as $ligne) {
+                // Gestion de la catégorie selon la sélection
+                $nageur_id = $ligne['nageur_id'];
+                if ($annee_selectionnee === 'all' && isset($categories_actuelles[$nageur_id])) {
+                    $categorie = $categories_actuelles[$nageur_id]['nom_categorie'];
+                } else {
+                    $categorie = $ligne['categorie'];
+                }
+
+                // Insertion de la ligne dans le CSV
+                fputcsv($output, [
+                    $ligne['nom'],
+                    $ligne['prenom'],
+                    $ligne['date_naissance'],
+                    $categorie,
+                    $ligne['epreuve'],
+                    $ligne['temps'],
+                    $ligne['date_perf'],
+                    $ligne['lieu']
+                ], ';');
+            }
+        }
+
+        fclose($output);
+    }
 }
