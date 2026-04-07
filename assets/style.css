@@ -1,257 +1,222 @@
 /* ==========================================================================
-   1. VARIABLES & BASE (Style Humain, Organique et Chaleureux)
+   1. VARIABLES & BASE (Style Intranet Entreprise Années 90/00)
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
-
-:root {
-    /* Palette organique et chaleureuse */
-    --couleur-principale: #4a8b9e;
-    /* Bleu océan doux */
-    --couleur-secondaire: #3a6f7e;
-    --couleur-succes: #7dae8b;
-    /* Vert sauge */
-    --couleur-succes-hover: #659272;
-    --couleur-info: #e09074;
-    /* Pêche / Terracotta doux */
-    --couleur-info-hover: #c4765c;
-
-    --fond-page: #fcfaf8;
-    /* Blanc cassé / Crème très léger */
-    --fond-carte: #ffffff;
-    --fond-controles: #f4f1ea;
-    /* Beige doux pour les zones de filtres */
-
-    --texte-principal: #3d3835;
-    /* Gris anthracite chaud (moins agressif que le noir) */
-    --texte-secondaire: #8a827c;
-    --bordure: #e8e4db;
-    /* Bordure très douce */
-}
-
 * {
     box-sizing: border-box;
+    border-radius: 0 !important;
+    /* Aucune rondeur */
+    box-shadow: none !important;
+    /* Aucune ombre douce */
 }
 
 body {
-    /* Police plus ronde et amicale (Nunito si dispo, sinon system-ui) */
-    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
-    background-color: var(--fond-page);
-    color: var(--texte-principal);
-    line-height: 1.6;
-    padding: 30px 20px;
+    font-family: Tahoma, Arial, Verdana, sans-serif;
+    font-size: 12px;
+    background-color: #d4d0c8;
+    /* Gris classique Windows */
+    color: #000000;
     margin: 0;
+    padding: 15px;
+    line-height: 1.2;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 98%;
     margin: 0 auto;
-    background-color: var(--fond-carte);
-    padding: 35px;
-    border-radius: 24px;
-    /* Bords bien arrondis, très doux */
-    box-shadow: 0 12px 40px rgba(61, 56, 53, 0.06);
-    /* Ombre très diffuse */
-    border: 1px solid var(--bordure);
+    background-color: #ffffff;
+    padding: 15px;
+    border: 1px solid #000000;
+    border-right: 2px solid #ffffff;
+    border-bottom: 2px solid #ffffff;
 }
 
 h1 {
-    text-align: center;
-    color: var(--couleur-principale);
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin-bottom: 35px;
-    letter-spacing: -0.5px;
+    text-align: left;
+    color: #000080;
+    /* Bleu marine très institutionnel */
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 20px;
+    font-family: "Times New Roman", Times, serif;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 5px;
 }
 
 /* ==========================================================================
-      2. CONTRÔLES & FORMULAIRES (Formes douces et boutons tactiles)
-      ========================================================================== */
+   2. CONTRÔLES & FORMULAIRES (Boutons 3D et champs creusés)
+   ========================================================================== */
 .controls {
-    background-color: var(--fond-controles);
-    padding: 20px 25px;
-    border-radius: 16px;
-    margin-bottom: 25px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: flex-end;
-    border: 1px solid var(--bordure);
+    display: block;
+    background-color: #ece9d8;
+    /* Beige/Gris des vieux formulaires */
+    padding: 10px;
+    border: 2px outset #ffffff;
+    border-bottom-color: #808080;
+    border-right-color: #808080;
+    margin-bottom: 15px;
 }
 
 .control-item {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 200px;
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 15px;
+    margin-bottom: 10px;
 }
 
 .control-item label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--texte-principal);
-    margin-bottom: 8px;
-    padding-left: 5px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #000000;
+    display: inline-block;
+    margin-bottom: 3px;
+    text-transform: none;
 }
 
 input[type="text"],
 select {
-    width: 100%;
-    padding: 12px 18px;
-    font-size: 1rem;
-    font-family: inherit;
-    color: var(--texte-principal);
-    background-color: var(--fond-carte);
-    border: 2px solid transparent;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-    transition: all 0.3s ease;
+    padding: 3px 5px;
+    border: 2px inset #ffffff;
+    border-top-color: #808080;
+    border-left-color: #808080;
+    font-size: 12px;
+    font-family: Tahoma, Arial, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    height: 22px;
 }
 
 input[type="text"]:focus,
 select:focus {
     outline: none;
-    border-color: var(--couleur-principale);
-    box-shadow: 0 0 0 4px rgba(74, 139, 158, 0.15);
+    background-color: #ffffcc;
+    /* Surlignage jaune clair des vieux ERP */
 }
 
-/* BOUTONS : Effet rebond et formes organiques */
+/* Forcer le style de tous les boutons (écrasement des couleurs HTML) */
 button,
 .control-item button {
-    font-family: inherit !important;
-    font-size: 1rem !important;
-    font-weight: 700 !important;
-    padding: 12px 24px !important;
-    border: none !important;
-    border-radius: 30px !important;
-    /* Forme de pilule très amicale */
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+    background-color: #d4d0c8 !important;
+    color: #000000 !important;
+    border: 2px outset #ffffff !important;
+    border-bottom-color: #404040 !important;
+    border-right-color: #404040 !important;
+    padding: 3px 15px !important;
+    font-family: Tahoma, Arial, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: normal !important;
+    cursor: default !important;
+    /* Pas de main au survol, juste la flèche */
+    height: 25px !important;
 }
 
-/* Surcharge des couleurs pour tuer l'aspect "Template" */
-button#btnSync {
-    background-color: var(--couleur-principale) !important;
-    color: white !important;
-}
-
-button[onclick="exporterCsv()"] {
-    background-color: var(--couleur-succes) !important;
-    color: white !important;
-}
-
-button#btnToggleStats {
-    background-color: var(--couleur-info) !important;
-    color: white !important;
-}
-
-/* Animation "vivante" au survol */
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12) !important;
-}
-
-button:active {
-    transform: translateY(1px);
+button:active,
+.control-item button:active {
+    border-style: inset !important;
+    padding: 4px 14px 2px 16px !important;
+    /* Effet de bouton enfoncé */
+    background-color: #c0c0c0 !important;
 }
 
 /* ==========================================================================
-      3. TABLEAU DES PERFORMANCES (Épuré et aéré)
-      ========================================================================== */
+   3. TABLEAU DES PERFORMANCES (Style Base de données / Excel 97)
+   ========================================================================== */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
-    max-height: 65vh;
-    border-radius: 16px;
-    background-color: var(--fond-carte);
-    border: 1px solid var(--bordure);
+    overflow-y: auto;
+    max-height: 60vh;
+    border: 2px inset #808080;
+    background-color: #808080;
+    /* Fond gris derrière la grille */
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    text-align: left;
+    border-collapse: separate;
+    border-spacing: 1px;
+    /* Grille marquée */
+    background-color: #c0c0c0;
 }
 
 th,
 td {
-    padding: 16px;
-    border-bottom: 1px solid var(--bordure);
+    padding: 4px 6px;
+    font-size: 11px;
+    background-color: #ffffff;
+    border: none;
     white-space: nowrap;
-    vertical-align: middle;
 }
 
 th {
-    background-color: var(--fond-controles);
-    color: var(--texte-principal);
-    font-weight: 700;
-    font-size: 0.95rem;
+    background-color: #d4d0c8;
+    color: #000000;
+    font-weight: bold;
+    border: 2px outset #ffffff;
+    border-bottom-color: #808080;
+    border-right-color: #808080;
+    text-align: center;
     position: sticky;
     top: 0;
     z-index: 10;
 }
 
-/* Lignes aérées et douces */
-tbody tr {
-    transition: background-color 0.2s;
+/* Couleurs alternées rigides */
+tbody tr:nth-child(even) td {
+    background-color: #f0f0f0;
 }
 
+/* Survol façon sélection système */
 tbody tr:hover td {
-    background-color: #faf8f5 !important;
-    /* Légère chaleur au survol */
+    background-color: #000080 !important;
+    color: #ffffff !important;
 }
 
-/* Fixation 1ère colonne */
+tbody tr:hover td span,
+tbody tr:hover td strong {
+    color: #ffffff !important;
+    /* Forcer le blanc sur les span verts/rouges au survol */
+}
+
+/* Figer la 1ère colonne */
 td:nth-child(1),
 th:nth-child(1) {
     position: sticky;
     left: 0;
     z-index: 5;
-    background-color: var(--fond-carte);
+    background-color: #d4d0c8;
+}
+
+td:nth-child(1) {
+    font-weight: bold;
+    border-right: 2px solid #808080;
 }
 
 th:nth-child(1) {
-    background-color: var(--fond-controles);
     z-index: 15;
 }
 
 tbody tr:hover td:nth-child(1) {
-    background-color: #faf8f5 !important;
+    background-color: #000080 !important;
 }
 
 /* ==========================================================================
-      4. APPARENCE DES TEMPS & DATES
-      ========================================================================== */
+   4. APPARENCE DES TEMPS & DATES
+   ========================================================================== */
 .cell-temps {
-    text-align: center;
-    cursor: pointer;
-    min-width: 110px;
-    border-radius: 8px;
-    /* On adoucit l'intérieur des cases */
+    text-align: right;
+    cursor: crosshair;
 }
 
 .chrono-val {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 1.05rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: normal !important;
+    /* On enlève le gras moderne */
 }
-
-/* Remplacement des couleurs agressives rouge/vert par des tons pastels */
-.chrono-val[style*="color: #28a745"] {
-    color: var(--couleur-succes) !important;
-}
-
-.chrono-val[style*="color: #dc3545"] {
-    color: #d97d7d !important;
-}
-
-/* Rouge doux */
 
 .chrono-info {
     display: none;
-    font-size: 0.85rem;
-    color: var(--texte-secondaire);
-    margin-top: 4px;
+    font-size: 10px;
+    color: #000000 !important;
 }
 
 .cell-temps:hover .chrono-val {
@@ -260,79 +225,82 @@ tbody tr:hover td:nth-child(1) {
 
 .cell-temps:hover .chrono-info {
     display: block;
-    animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
 }
 
 .vide {
     text-align: center;
-    color: #d1cbc5;
+    color: #808080;
 }
 
 /* ==========================================================================
-      5. CONTENEUR DE STATISTIQUES (Cartes douces)
-      ========================================================================== */
+   5. CONTENEUR DE STATISTIQUES (Ecrasement du CSS inline)
+   ========================================================================== */
 #statsContainer {
-    background-color: var(--fond-carte) !important;
-    border: 1px solid var(--bordure) !important;
-    border-radius: 20px !important;
-    padding: 30px !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.03) !important;
+    background-color: #ece9d8 !important;
+    border: 2px outset #ffffff !important;
+    border-bottom-color: #808080 !important;
+    border-right-color: #808080 !important;
+    padding: 10px !important;
 }
 
 #statsContainer h2 {
-    color: var(--texte-principal) !important;
-    font-size: 1.8rem;
-    margin-bottom: 25px;
+    background-color: #000080;
+    color: #ffffff !important;
+    font-size: 14px;
+    font-family: Tahoma, Arial;
+    padding: 4px;
+    text-align: left !important;
+    margin-top: 0;
 }
 
-/* Les tuiles de stats */
+#statsContainer h3[style*="color: #dc3545"] {
+    color: #cc0000 !important;
+    border: 1px solid #cc0000;
+    background-color: #ffffcc;
+    padding: 5px;
+    font-size: 11px !important;
+}
+
+/* Ecraser les blocs de stats colorés (vert, bleu, jaune) */
 #statsContainer div[style*="background"] {
-    background-color: var(--fond-page) !important;
-    border: 1px solid var(--bordure) !important;
-    border-radius: 16px !important;
-    padding: 25px 15px !important;
-    transition: transform 0.3s ease;
-}
-
-#statsContainer div[style*="background"]:hover {
-    transform: translateY(-5px);
+    background: #ffffff !important;
+    border: 2px inset #808080 !important;
+    padding: 5px !important;
+    min-width: 120px !important;
 }
 
 #statsContainer div[style*="background"] h3 {
-    font-size: 2.8rem !important;
-    font-weight: 700 !important;
-    margin-bottom: 5px !important;
+    color: #000000 !important;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px !important;
+    text-align: right;
+}
+
+#statsContainer div[style*="background"] p,
+#statsContainer div[style*="background"] div {
+    color: #000000 !important;
+    font-size: 10px !important;
+    text-align: left;
+    margin: 0 !important;
 }
 
 #statsContainer ul {
-    border: 1px solid var(--bordure);
-    border-radius: 12px;
-    overflow: hidden;
+    background: #ffffff;
+    border: 2px inset #808080;
+    height: 150px;
+    overflow-y: scroll;
+    padding: 2px !important;
 }
 
 #statsContainer li {
-    padding: 15px !important;
-    border-bottom: 1px solid var(--bordure) !important;
-    background-color: var(--fond-page);
-}
-
-#statsContainer li:last-child {
-    border-bottom: none !important;
+    border-bottom: 1px dotted #c0c0c0 !important;
+    padding: 2px 4px !important;
+    font-size: 11px;
 }
 
 /* ==========================================================================
-      6. FENÊTRE MODALE & PROGRESS BAR
-      ========================================================================== */
+   6. FENÊTRE MODALE (Boîte de dialogue Windows)
+   ========================================================================== */
 .modal {
     display: none;
     position: fixed;
@@ -340,82 +308,96 @@ tbody tr:hover td:nth-child(1) {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(61, 56, 53, 0.4);
-    /* Overlay plus chaud */
-    backdrop-filter: blur(4px);
-    /* Effet verre dépoli moderne et doux */
-    z-index: 1050;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEUAAAD///+l2Z/dAAAAAXRSTlMAQObYZgAAAAxJREFUCNdjYGBgAAABAAEAJbOtbQAAAABJRU5ErkJggg==') repeat;
+    /* Fond quadrillé gris typique */
+    z-index: 1000;
 }
 
 .modal-content {
-    background-color: var(--fond-carte);
-    border-radius: 24px;
-    padding: 30px;
-    margin: 5vh auto;
-    width: 90%;
-    max-width: 800px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    background-color: #d4d0c8;
+    border: 2px outset #ffffff;
+    border-bottom-color: #404040;
+    border-right-color: #404040;
+    margin: 10% auto;
+    padding: 2px;
+    width: 600px;
     position: relative;
+}
+
+/* Barre de titre simulée */
+#chartTitle {
+    background-color: #000080;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 5px;
+    margin: 0 0 10px 0;
+    font-family: Tahoma, Arial;
 }
 
 .close-btn {
     position: absolute;
-    top: 20px;
-    right: 25px;
-    font-size: 28px;
-    color: var(--texte-secondaire);
-    cursor: pointer;
-    transition: color 0.2s;
+    top: 4px;
+    right: 4px;
+    background-color: #d4d0c8;
+    border: 2px outset #ffffff;
+    border-bottom-color: #404040;
+    border-right-color: #404040;
+    color: #000000;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0 5px;
+    line-height: 14px;
+    cursor: default;
 }
 
-.close-btn:hover {
-    color: var(--texte-principal);
+.close-btn:active {
+    border-style: inset;
 }
 
-#progressContainer>div {
-    background-color: var(--fond-controles) !important;
-    border-radius: 20px !important;
-    border: none !important;
-    height: 12px !important;
-    /* Barre plus fine et élégante */
-}
-
-#progressBar {
-    background-color: var(--couleur-succes) !important;
-    border-radius: 20px !important;
-    font-size: 0 !important;
-    /* On cache le texte dans la barre */
+#evolutionChart {
+    background-color: #ffffff;
+    border: 2px inset #808080;
+    margin: 5px;
+    width: calc(100% - 10px) !important;
 }
 
 /* ==========================================================================
-      7. RESPONSIVE
-      ========================================================================== */
+   7. BARRE DE PROGRESSION
+   ========================================================================== */
+#progressContainer>div {
+    border: 2px inset #808080 !important;
+    background-color: #ffffff !important;
+    height: 20px !important;
+}
+
+#progressBar {
+    background-color: #000080 !important;
+    /* Bleu de chargement système */
+    color: #ffffff !important;
+    font-family: Tahoma, Arial;
+    font-size: 11px !important;
+    line-height: 16px !important;
+    text-align: center;
+}
+
+/* ==========================================================================
+   8. OPTIMISATION MOBILE (Dégradée volontairement)
+   ========================================================================== */
 @media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    .container {
-        padding: 20px;
-        border-radius: 16px;
-    }
-
-    .controls {
-        flex-direction: column;
-        padding: 15px;
-    }
-
     .control-item {
-        width: 100%;
+        display: block;
+        margin-right: 0;
     }
 
+    input[type="text"],
+    select,
     button {
         width: 100%;
-        margin-bottom: 10px;
     }
 
     .modal-content {
-        margin: 15px auto;
-        padding: 20px;
+        width: 95%;
+        margin: 5% auto;
     }
 }
