@@ -94,24 +94,38 @@
                 problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)</h3>
 
             <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+
                 <div
                     style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
                     <h3 style="margin:0; font-size: 2.5em; color: var(--couleur-principale);">
-                        <?php echo $statistiques['total_nageurs']; ?></h3>
+                        <?php echo $statistiques['total_nageurs']; ?>
+                    </h3>
                     <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Nageurs</p>
+                    <div style="font-size: 0.85em; color: #555; margin-top: 5px;">
+                        👩 <?php echo $statistiques['filles']; ?> Filles | 👨 <?php echo $statistiques['garcons']; ?>
+                        Garçons
+                    </div>
                 </div>
+
                 <div
                     style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
                     <h3 style="margin:0; font-size: 2.5em; color: #28a745;">
-                        <?php echo count($statistiques['nageurs_qualifies']); ?></h3>
+                        <?php echo count($statistiques['nageurs_qualifies']); ?>
+                    </h3>
                     <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Nageurs Qualifiés</p>
+                    <div style="font-size: 0.85em; color: #555; margin-top: 5px;">
+                        Sur <?php echo $statistiques['total_qualifications']; ?> épreuves au total
+                    </div>
                 </div>
+
                 <div
                     style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
                     <h3 style="margin:0; font-size: 2.5em; color: #17a2b8;">
-                        <?php echo $statistiques['total_performances']; ?></h3>
+                        <?php echo $statistiques['total_performances']; ?>
+                    </h3>
                     <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Performances Totales</p>
                 </div>
+
             </div>
 
             <?php if (count($statistiques['nageurs_qualifies']) > 0): ?>

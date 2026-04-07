@@ -153,24 +153,42 @@ class PerformanceController
         $ordre_officiel = ['25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF', '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
 
-        // 5. CALCUL DES STATISTIQUES (Nouveau code à ajouter ici)
+        // 5. CALCUL DES STATISTIQUES
         $statistiques = [
             'total_nageurs' => count($profils_nageurs),
             'total_performances' => 0,
             'nageurs_qualifies' => [],
-            'total_qualifications' => 0
+            'total_qualifications' => 0,
+            'filles' => 0,
+            'garcons' => 0,
+            'podiums' => 0
         ];
 
         foreach ($profils_nageurs as $nageur_id => $infos) {
             $est_qualifie_nageur = false;
             $epreuves_qualif = [];
 
+            // Déduction du genre via la première lettre de la catégorie (F/H)
+            $premiere_lettre = substr($infos['categorie'], 0, 1);
+            if ($premiere_lettre === 'F') {
+                $statistiques['filles']++;
+            } elseif ($premiere_lettre === 'H') {
+                $statistiques['garcons']++;
+            }
+
             foreach ($infos['chronos'] as $epreuve => $perf) {
                 $statistiques['total_performances']++;
+                
+                // Compte des qualifications
                 if ($perf['est_qualifie'] === true) {
                     $est_qualifie_nageur = true;
                     $epreuves_qualif[] = $epreuve;
                     $statistiques['total_qualifications']++;
+                }
+
+                // Compte des podiums (Classement 1, 2 ou 3)
+                if (!empty($perf['classement']) && (int)$perf['classement'] > 0 && (int)$perf['classement'] <= 3) {
+                    $statistiques['podiums']++;
                 }
             }
 
