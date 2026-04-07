@@ -29,7 +29,7 @@ class PerformanceModel
         SELECT n.id AS nageur_id, n.nom, n.prenom, n.date_naissance, 
                c.nom_categorie AS categorie, c.libelle AS categorie_libelle, 
                e.nom_epreuve AS epreuve,
-               p1.temps, p1.date_perf, l.nom_lieu AS lieu
+               p1.temps, p1.date_perf, p1.classement, l.nom_lieu AS lieu
         FROM performances p1
         JOIN nageurs n ON p1.nageur_id = n.id
         JOIN epreuves e ON p1.epreuve_id = e.id

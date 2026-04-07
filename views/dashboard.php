@@ -134,7 +134,10 @@
                             </span>
                             <span class='chrono-info'>
                                 📍 <?php echo htmlspecialchars($perf['lieu']); ?><br>
-                                📅 <?php echo htmlspecialchars($perf['date']); ?>
+                                📅 <?php echo htmlspecialchars($perf['date']); ?><br>
+                                <?php if (!empty($perf['classement'])) { ?>
+                                🏅 Classé <strong><?php echo $perf['classement']; ?>e</strong> FR
+                                <?php } ?>
                             </span>
                         </td>
                         <?php } else { ?>

@@ -79,19 +79,24 @@ class PerformanceController
                     ];
                 }
 
-                // --- NOUVEAU : Vérification de la qualification ---
+                // --- VÉRIFICATION DE LA QUALIFICATION ---
                 $temps_nageur = $ligne['temps'];
-                $est_qualifie = null;  // null = pas de temps de ref défini
+                $est_qualifie = null;  // null = pas de critère de qualif
 
-                // On vérifie si un temps de référence existe pour cette catégorie et cette épreuve
+                // 1. Qualification par TEMPS DE RÉFÉRENCE (Seniors, Masters, Juniors...)
                 if (isset($grille_qualifs[$categorie_a_afficher][$ligne['epreuve']])) {
                     $temps_ref = $grille_qualifs[$categorie_a_afficher][$ligne['epreuve']];
 
                     $sec_nageur = $this->timeToSeconds($temps_nageur);
                     $sec_ref = $this->timeToSeconds($temps_ref);
 
-                    // Si le temps du nageur est inférieur ou égal au temps de référence, il est qualifié
                     $est_qualifie = ($sec_nageur <= $sec_ref);
+                } 
+                // 2. Qualification par CLASSEMENT (Cadets / Cadettes) - Top 16
+                elseif (in_array($categorie_a_afficher, ['FCA', 'HCA'])) {
+                    if (!empty($ligne['classement'])) {
+                        $est_qualifie = ((int)$ligne['classement'] <= 16);
+                    }
                 }
                 // --------------------------------------------------
 
@@ -99,7 +104,8 @@ class PerformanceController
                     'temps' => $temps_nageur,
                     'date' => $ligne['date_perf'],
                     'lieu' => $ligne['lieu'],
-                    'est_qualifie' => $est_qualifie  // On stocke l'état
+                    'est_qualifie' => $est_qualifie,
+                    'classement' => $ligne['classement'] // Ajouté pour l'affichage visuel
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {

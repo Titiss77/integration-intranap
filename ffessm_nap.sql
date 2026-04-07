@@ -106,6 +106,7 @@ ALTER TABLE `grille_qualifs`
 
 
 ALTER TABLE `performances`
+  ADD COLUMN classement INT DEFAULT NULL,
   ADD CONSTRAINT `performances_ibfk_1` FOREIGN KEY (`nageur_id`) REFERENCES `nageurs` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `performances_ibfk_2` FOREIGN KEY (`epreuve_id`) REFERENCES `epreuves` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `performances_ibfk_3` FOREIGN KEY (`categorie_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,

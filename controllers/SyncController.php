@@ -63,29 +63,38 @@ class SyncController
                         if ($response) {
                             $donnees = json_decode($response, true);
                             if (is_array($donnees)) {
+                                $classement_par_categorie = []; // Compteur pour le classement national
+
                                 foreach ($donnees as $n) {
+                                    // 1. Calcul du classement national en temps réel pour cette catégorie
+                                    $cat_nageur = $n['categorie'] ?? 'Non renseigné';
+                                    if (!isset($classement_par_categorie[$cat_nageur])) {
+                                        $classement_par_categorie[$cat_nageur] = 0;
+                                    }
+                                    $classement_par_categorie[$cat_nageur]++;
+                                    $position_nationale = $classement_par_categorie[$cat_nageur];
+
+                                    // 2. Si le nageur est de notre club, on sauvegarde sa perf AVEC sa position
                                     if (isset($n['club']) && $n['club'] === $this->club_cible) {
-                                        // --- CORRECTION DE LA DATE DE NAISSANCE ---
                                         $raw_date = $n['annee'] ?? $n['naissance'] ?? $n['date_naissance'] ?? null;
                                         $date_formatee = null;
 
                                         if (!empty($raw_date)) {
                                             if (preg_match('/^\d{4}$/', $raw_date)) {
-                                                $date_formatee = $raw_date.'-01-01';  // ex: "1995" devient "1995-01-01"
+                                                $date_formatee = $raw_date.'-01-01';
                                             } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $raw_date)) {
                                                 $p = explode('/', $raw_date);
-                                                $date_formatee = $p[2].'-'.$p[1].'-'.$p[0];  // JJ/MM/AAAA devient AAAA-MM-JJ
+                                                $date_formatee = $p[2].'-'.$p[1].'-'.$p[0];
                                             } else {
-                                                $date_formatee = $raw_date;  // On suppose que c'est déjà AAAA-MM-JJ
+                                                $date_formatee = $raw_date;
                                             }
                                         }
-                                        // ------------------------------------------
 
                                         $nageur_id = $this->getOrCreateNageur($n['nom'], $n['prenom'], $cat_nom, $date_formatee);
                                         $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'Non renseigné');
                                         $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'Non renseigné');
 
-                                        $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '');
+                                        $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
                                     }
                                 }
                             }
@@ -140,10 +149,12 @@ class SyncController
         return $this->pdo->lastInsertId();
     }
 
-    private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf)
+    private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement)
     {
-        $sql = 'INSERT IGNORE INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        $sql = 'INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE classement = VALUES(classement)';
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf]);
+        $stmt->execute([$nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement]);
     }
 }
