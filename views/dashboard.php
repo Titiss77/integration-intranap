@@ -93,6 +93,7 @@
             <h3 style="color: #dc3545; font-size: medium; font-weight: 600; margin: 1rem;">* Attention il y a un
                 problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)</h3>
 
+            <?php if ($annee_selectionnee !== 'all'): ?>
             <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
 
                 <div
@@ -144,6 +145,11 @@
             </ul>
             <?php else: ?>
             <p style="text-align: center; color: #ff9800; font-weight: bold;">Aucun nageur qualifié n'a été trouvé.</p>
+            <?php endif; ?>
+            <?php else: ?>
+            <p style="text-align: center; color: #ff9800; font-weight: bold;">Attention, l'affichage des
+                statistiques n'est pas possible quand toutes les saisons sont sélectionnées.
+            </p>
             <?php endif; ?>
         </div>
 
