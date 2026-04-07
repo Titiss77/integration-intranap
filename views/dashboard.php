@@ -70,6 +70,13 @@
             </div>
         </div>
 
+        <div class='control-item'>
+                <button type="button" onclick="exporterCsv()" 
+                    style="background-color: #28a745; margin-bottom:20px; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
+                    📥 Exporter la sélection en CSV
+                </button>
+            </div>
+
         <?php if (empty($lignes_bdd)) { ?>
         <p style='text-align:center; color:#ff9800; font-size:1.2em;'>
             ⚠️ Aucun record trouvé pour l'année <?php echo htmlspecialchars($annee_selectionnee); ?>.
@@ -149,13 +156,6 @@
             <canvas id="evolutionChart"></canvas>
         </div>
     </div>
-
-    <div class='control-item'>
-                <button type="button" onclick="exporterCsv()" 
-                    style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
-                    📥 Exporter la sélection en CSV
-                </button>
-            </div>
 
 </body>
 
