@@ -1,222 +1,254 @@
 /* ==========================================================================
-   1. VARIABLES & BASE (Style Intranet Entreprise Années 90/00)
+   1. VARIABLES & BASE (Style Web 2.0 - Année 2006)
    ========================================================================== */
+:root {
+    --bleu-web2: #356aa0;
+    --bleu-clair: #e5ecf9;
+    --gris-bordure: #b5c7de;
+    --fond-page: #d9e3f0;
+    --texte-principal: #333333;
+    --orange-beta: #ff9900;
+}
+
 * {
     box-sizing: border-box;
-    border-radius: 0 !important;
-    /* Aucune rondeur */
-    box-shadow: none !important;
-    /* Aucune ombre douce */
 }
 
 body {
-    font-family: Tahoma, Arial, Verdana, sans-serif;
+    /* Typographie classique des années 2000 (façon Mac OS X / XP) */
+    font-family: "Lucida Grande", "Trebuchet MS", Tahoma, Arial, sans-serif;
     font-size: 12px;
-    background-color: #d4d0c8;
-    /* Gris classique Windows */
-    color: #000000;
+    background-color: var(--fond-page);
+    /* Léger dégradé de fond classique de l'époque */
+    background-image: linear-gradient(to bottom, #ffffff 0%, #d9e3f0 300px);
+    background-repeat: no-repeat;
+    color: var(--texte-principal);
     margin: 0;
-    padding: 15px;
-    line-height: 1.2;
+    padding: 20px;
 }
 
 .container {
-    max-width: 98%;
+    max-width: 1200px;
     margin: 0 auto;
     background-color: #ffffff;
-    padding: 15px;
-    border: 1px solid #000000;
-    border-right: 2px solid #ffffff;
-    border-bottom: 2px solid #ffffff;
+    padding: 20px;
+    /* Coins arrondis marqués et bordure épaisse */
+    border: 1px solid #999999;
+    border-radius: 8px;
+    /* Ombre portée nette, typique de 2006 */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 h1 {
-    text-align: left;
-    color: #000080;
-    /* Bleu marine très institutionnel */
+    text-align: center;
+    color: var(--bleu-web2);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 28px;
+    font-weight: bold;
     margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 20px;
-    font-family: "Times New Roman", Times, serif;
-    border-bottom: 2px solid #000000;
-    padding-bottom: 5px;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+    /* Texte légèrement resserré */
+    /* Effet de texte gravé (Letterpress) */
+    text-shadow: 1px 1px 0px #ffffff;
+    border-bottom: 2px solid var(--gris-bordure);
+    padding-bottom: 10px;
 }
 
 /* ==========================================================================
-   2. CONTRÔLES & FORMULAIRES (Boutons 3D et champs creusés)
+   2. CONTRÔLES & FORMULAIRES (Champs grisés et bordures strictes)
    ========================================================================== */
 .controls {
-    display: block;
-    background-color: #ece9d8;
-    /* Beige/Gris des vieux formulaires */
-    padding: 10px;
-    border: 2px outset #ffffff;
-    border-bottom-color: #808080;
-    border-right-color: #808080;
-    margin-bottom: 15px;
+    background-color: var(--bleu-clair);
+    padding: 15px;
+    border: 1px solid var(--gris-bordure);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
 }
 
 .control-item {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 15px;
-    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 200px;
 }
 
 .control-item label {
     font-size: 11px;
     font-weight: bold;
-    color: #000000;
-    display: inline-block;
-    margin-bottom: 3px;
-    text-transform: none;
+    color: #444444;
+    margin-bottom: 4px;
 }
 
+/* Les champs de saisie classiques */
 input[type="text"],
 select {
-    padding: 3px 5px;
-    border: 2px inset #ffffff;
-    border-top-color: #808080;
-    border-left-color: #808080;
+    padding: 5px 8px;
     font-size: 12px;
-    font-family: Tahoma, Arial, sans-serif;
+    font-family: inherit;
+    border: 1px solid #aaaaaa;
+    border-top-color: #777777;
+    border-left-color: #777777;
     background-color: #ffffff;
-    color: #000000;
-    height: 22px;
+    /* Petite ombre interne pour creuser le champ */
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    height: 28px;
 }
 
 input[type="text"]:focus,
 select:focus {
     outline: none;
-    background-color: #ffffcc;
-    /* Surlignage jaune clair des vieux ERP */
-}
-
-/* Forcer le style de tous les boutons (écrasement des couleurs HTML) */
-button,
-.control-item button {
-    background-color: #d4d0c8 !important;
-    color: #000000 !important;
-    border: 2px outset #ffffff !important;
-    border-bottom-color: #404040 !important;
-    border-right-color: #404040 !important;
-    padding: 3px 15px !important;
-    font-family: Tahoma, Arial, sans-serif !important;
-    font-size: 12px !important;
-    font-weight: normal !important;
-    cursor: default !important;
-    /* Pas de main au survol, juste la flèche */
-    height: 25px !important;
-}
-
-button:active,
-.control-item button:active {
-    border-style: inset !important;
-    padding: 4px 14px 2px 16px !important;
-    /* Effet de bouton enfoncé */
-    background-color: #c0c0c0 !important;
+    border-color: var(--orange-beta);
+    background-color: #ffffe0;
+    /* Jaune très pâle au focus */
 }
 
 /* ==========================================================================
-   3. TABLEAU DES PERFORMANCES (Style Base de données / Excel 97)
+   3. BOUTONS (L'effet "Glossy / Aqua" de 2006)
+   ========================================================================== */
+button,
+.control-item button {
+    display: inline-block;
+    padding: 5px 15px !important;
+    font-family: "Lucida Grande", Tahoma, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    color: #ffffff !important;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 15px !important;
+    /* Forme de pilule très utilisée à l'époque */
+    height: 30px !important;
+
+    /* Le fameux dégradé "Glossy" (verre brillant) */
+    background: linear-gradient(to bottom, #8db5e2 0%, #4f85bb 49%, #356aa0 50%, #356aa0 100%) !important;
+    border: 1px solid #23486f !important;
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.6), 0px 1px 2px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Changement d'apparence au survol et au clic */
+button:hover {
+    background: linear-gradient(to bottom, #a0c3ea 0%, #6398cd 49%, #477bb1 50%, #477bb1 100%) !important;
+}
+
+button:active {
+    background: linear-gradient(to bottom, #356aa0 0%, #356aa0 50%, #4f85bb 51%, #8db5e2 100%) !important;
+    box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.4) !important;
+    text-shadow: none !important;
+}
+
+/* Surcharge pour le bouton d'export (Vert "Web 2.0") */
+button[onclick="exporterCsv()"] {
+    background: linear-gradient(to bottom, #9bca63 0%, #76b133 49%, #5c931b 50%, #5c931b 100%) !important;
+    border: 1px solid #3c6111 !important;
+}
+
+button[onclick="exporterCsv()"]:hover {
+    background: linear-gradient(to bottom, #aed47e 0%, #8ac04b 49%, #71a230 50%, #71a230 100%) !important;
+}
+
+/* ==========================================================================
+   4. TABLEAU DES PERFORMANCES (Style Datagrid)
    ========================================================================== */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
-    overflow-y: auto;
-    max-height: 60vh;
-    border: 2px inset #808080;
-    background-color: #808080;
-    /* Fond gris derrière la grille */
+    max-height: 65vh;
+    border: 1px solid var(--gris-bordure);
+    background-color: #ffffff;
 }
 
 table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 1px;
-    /* Grille marquée */
-    background-color: #c0c0c0;
+    border-collapse: collapse;
 }
 
 th,
 td {
-    padding: 4px 6px;
-    font-size: 11px;
-    background-color: #ffffff;
-    border: none;
+    padding: 6px 10px;
+    border: 1px solid var(--gris-bordure);
     white-space: nowrap;
+    vertical-align: middle;
 }
 
 th {
-    background-color: #d4d0c8;
-    color: #000000;
+    /* Dégradé brillant pour l'en-tête du tableau */
+    background: linear-gradient(to bottom, #f9fbfd 0%, #e4edf6 100%);
+    color: var(--bleu-web2);
     font-weight: bold;
-    border: 2px outset #ffffff;
-    border-bottom-color: #808080;
-    border-right-color: #808080;
-    text-align: center;
     position: sticky;
     top: 0;
     z-index: 10;
+    text-align: center;
+    border-bottom: 2px solid #8ba6c6;
 }
 
-/* Couleurs alternées rigides */
 tbody tr:nth-child(even) td {
-    background-color: #f0f0f0;
+    background-color: #f5f8fb;
 }
 
-/* Survol façon sélection système */
 tbody tr:hover td {
-    background-color: #000080 !important;
-    color: #ffffff !important;
+    background-color: #ffffcc !important;
+    /* Jaune pâle au survol (très courant en 2006) */
+    color: #000000 !important;
 }
 
-tbody tr:hover td span,
-tbody tr:hover td strong {
-    color: #ffffff !important;
-    /* Forcer le blanc sur les span verts/rouges au survol */
-}
-
-/* Figer la 1ère colonne */
 td:nth-child(1),
 th:nth-child(1) {
     position: sticky;
     left: 0;
     z-index: 5;
-    background-color: #d4d0c8;
-}
-
-td:nth-child(1) {
-    font-weight: bold;
-    border-right: 2px solid #808080;
+    background-color: #ffffff;
+    border-right: 2px solid var(--gris-bordure);
 }
 
 th:nth-child(1) {
+    background: linear-gradient(to bottom, #f9fbfd 0%, #e4edf6 100%);
     z-index: 15;
 }
 
+tbody tr:nth-child(even) td:nth-child(1) {
+    background-color: #f5f8fb;
+}
+
 tbody tr:hover td:nth-child(1) {
-    background-color: #000080 !important;
+    background-color: #ffffcc !important;
 }
 
 /* ==========================================================================
-   4. APPARENCE DES TEMPS & DATES
+   5. APPARENCE DES TEMPS & DATES
    ========================================================================== */
 .cell-temps {
-    text-align: right;
-    cursor: crosshair;
+    text-align: center;
+    cursor: pointer;
+    min-width: 110px;
 }
 
 .chrono-val {
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: normal !important;
-    /* On enlève le gras moderne */
+    font-family: "Courier New", Courier, monospace;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Couleurs un peu plus vives pour le succès/erreur */
+.chrono-val[style*="color: #28a745"] {
+    color: #008000 !important;
+}
+
+.chrono-val[style*="color: #dc3545"] {
+    color: #cc0000 !important;
 }
 
 .chrono-info {
     display: none;
     font-size: 10px;
-    color: #000000 !important;
+    color: #666666;
 }
 
 .cell-temps:hover .chrono-val {
@@ -229,77 +261,48 @@ tbody tr:hover td:nth-child(1) {
 
 .vide {
     text-align: center;
-    color: #808080;
+    color: #bbbbbb;
 }
 
 /* ==========================================================================
-   5. CONTENEUR DE STATISTIQUES (Ecrasement du CSS inline)
+   6. CONTENEUR DE STATISTIQUES (Effet de boîte "Highlight")
    ========================================================================== */
 #statsContainer {
-    background-color: #ece9d8 !important;
-    border: 2px outset #ffffff !important;
-    border-bottom-color: #808080 !important;
-    border-right-color: #808080 !important;
-    padding: 10px !important;
+    background-color: #ffffe0 !important;
+    /* Jaune d'avertissement/information classique */
+    border: 1px solid #e6db55 !important;
+    border-radius: 6px !important;
+    padding: 15px !important;
+    margin-bottom: 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1) !important;
 }
 
 #statsContainer h2 {
-    background-color: #000080;
-    color: #ffffff !important;
-    font-size: 14px;
-    font-family: Tahoma, Arial;
-    padding: 4px;
-    text-align: left !important;
+    color: #cc6600 !important;
+    font-size: 18px;
+    font-family: "Trebuchet MS", sans-serif;
+    border-bottom: 1px solid #e6db55;
+    padding-bottom: 5px;
     margin-top: 0;
 }
 
-#statsContainer h3[style*="color: #dc3545"] {
-    color: #cc0000 !important;
-    border: 1px solid #cc0000;
-    background-color: #ffffcc;
-    padding: 5px;
-    font-size: 11px !important;
-}
-
-/* Ecraser les blocs de stats colorés (vert, bleu, jaune) */
+/* Blocs de chiffres */
 #statsContainer div[style*="background"] {
-    background: #ffffff !important;
-    border: 2px inset #808080 !important;
-    padding: 5px !important;
-    min-width: 120px !important;
+    background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%) !important;
+    border: 1px solid #cccccc !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
 }
 
 #statsContainer div[style*="background"] h3 {
-    color: #000000 !important;
-    font-family: 'Courier New', Courier, monospace;
     font-size: 24px !important;
-    text-align: right;
-}
-
-#statsContainer div[style*="background"] p,
-#statsContainer div[style*="background"] div {
-    color: #000000 !important;
-    font-size: 10px !important;
-    text-align: left;
-    margin: 0 !important;
-}
-
-#statsContainer ul {
-    background: #ffffff;
-    border: 2px inset #808080;
-    height: 150px;
-    overflow-y: scroll;
-    padding: 2px !important;
-}
-
-#statsContainer li {
-    border-bottom: 1px dotted #c0c0c0 !important;
-    padding: 2px 4px !important;
-    font-size: 11px;
+    color: var(--bleu-web2) !important;
+    font-family: Arial, sans-serif;
+    text-shadow: 1px 1px 0px #ffffff;
 }
 
 /* ==========================================================================
-   6. FENÊTRE MODALE (Boîte de dialogue Windows)
+   7. FENÊTRE MODALE & PROGRESS BAR
    ========================================================================== */
 .modal {
     display: none;
@@ -308,96 +311,96 @@ tbody tr:hover td:nth-child(1) {
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAABlBMVEUAAAD///+l2Z/dAAAAAXRSTlMAQObYZgAAAAxJREFUCNdjYGBgAAABAAEAJbOtbQAAAABJRU5ErkJggg==') repeat;
-    /* Fond quadrillé gris typique */
-    z-index: 1000;
+    background-color: transparent;
+    /* Overlay semi-transparent par image (technique d'époque si on n'avait pas le rgba) */
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1050;
 }
 
 .modal-content {
-    background-color: #d4d0c8;
-    border: 2px outset #ffffff;
-    border-bottom-color: #404040;
-    border-right-color: #404040;
+    background-color: #ffffff;
+    border: 5px solid rgba(82, 82, 82, 0.7);
+    /* Effet de bordure semi-transparente (Lightbox 2) */
+    border-radius: 8px;
+    padding: 15px;
     margin: 10% auto;
-    padding: 2px;
     width: 600px;
-    position: relative;
 }
 
-/* Barre de titre simulée */
 #chartTitle {
-    background-color: #000080;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 3px 5px;
-    margin: 0 0 10px 0;
-    font-family: Tahoma, Arial;
+    color: var(--bleu-web2);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 16px;
+    border-bottom: 1px solid var(--gris-bordure);
+    padding-bottom: 5px;
+    margin-top: 0;
 }
 
 .close-btn {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    background-color: #d4d0c8;
-    border: 2px outset #ffffff;
-    border-bottom-color: #404040;
-    border-right-color: #404040;
-    color: #000000;
-    font-size: 14px;
+    top: 10px;
+    right: 15px;
+    font-size: 16px;
     font-weight: bold;
-    padding: 0 5px;
-    line-height: 14px;
-    cursor: default;
+    font-family: Arial, sans-serif;
+    color: #666666;
+    cursor: pointer;
+    background-color: #eeeeee;
+    border: 1px solid #cccccc;
+    padding: 2px 6px;
+    border-radius: 3px;
 }
 
-.close-btn:active {
-    border-style: inset;
+.close-btn:hover {
+    background-color: #dddddd;
+    color: #000000;
 }
 
-#evolutionChart {
-    background-color: #ffffff;
-    border: 2px inset #808080;
-    margin: 5px;
-    width: calc(100% - 10px) !important;
-}
-
-/* ==========================================================================
-   7. BARRE DE PROGRESSION
-   ========================================================================== */
+/* Progress Bar façon Windows XP / Web 2.0 */
 #progressContainer>div {
-    border: 2px inset #808080 !important;
+    border: 1px solid #999999 !important;
     background-color: #ffffff !important;
-    height: 20px !important;
+    border-radius: 4px !important;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2) !important;
 }
 
 #progressBar {
-    background-color: #000080 !important;
-    /* Bleu de chargement système */
-    color: #ffffff !important;
-    font-family: Tahoma, Arial;
+    /* Dégradé strié vert classique */
+    background: linear-gradient(to bottom, #a4e271 0%, #6bba31 50%, #56a31c 51%, #8bce46 100%) !important;
+    border-radius: 3px !important;
     font-size: 11px !important;
-    line-height: 16px !important;
-    text-align: center;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ==========================================================================
-   8. OPTIMISATION MOBILE (Dégradée volontairement)
+   8. RESPONSIVE (Basique car en 2006, le mobile n'était pas la priorité !)
    ========================================================================== */
 @media (max-width: 768px) {
-    .control-item {
-        display: block;
-        margin-right: 0;
+    .container {
+        width: 100%;
+        border-radius: 0;
+        padding: 10px;
+        border: none;
     }
 
-    input[type="text"],
-    select,
-    button {
+    .controls {
+        flex-direction: column;
+    }
+
+    .control-item {
         width: 100%;
+        margin-bottom: 10px;
+    }
+
+    button,
+    input[type="text"],
+    select {
+        width: 100%;
+        display: block;
     }
 
     .modal-content {
         width: 95%;
-        margin: 5% auto;
+        margin: 10px auto;
     }
 }
