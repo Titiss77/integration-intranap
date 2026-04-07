@@ -169,3 +169,27 @@ function exporterCsv() {
     // On redirige vers la nouvelle route PHP pour lancer le téléchargement
     window.location.href = 'index.php?action=export&saison=' + encodeURIComponent(saison);
 }
+
+// --- 5. FONCTION POUR BASCULER ENTRE TABLEAU ET STATISTIQUES ---
+function toggleStats() {
+    let tableContainer = document.getElementById('tableContainer');
+    let statsContainer = document.getElementById('statsContainer');
+    let btnToggle = document.getElementById('btnToggleStats');
+
+    // Si les stats sont cachées, on les affiche et on cache le tableau
+    if (statsContainer.style.display === 'none') {
+        statsContainer.style.display = 'block';
+        if(tableContainer) tableContainer.style.display = 'none';
+        
+        btnToggle.innerHTML = '📋 Retour au Tableau';
+        btnToggle.style.backgroundColor = 'var(--couleur-principale)';
+    } 
+    // Sinon, on fait l'inverse
+    else {
+        statsContainer.style.display = 'none';
+        if(tableContainer) tableContainer.style.display = 'block';
+        
+        btnToggle.innerHTML = '📊 Afficher les Statistiques';
+        btnToggle.style.backgroundColor = '#17a2b8';
+    }
+}

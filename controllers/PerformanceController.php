@@ -91,11 +91,11 @@ class PerformanceController
                     $sec_ref = $this->timeToSeconds($temps_ref);
 
                     $est_qualifie = ($sec_nageur <= $sec_ref);
-                } 
+                }
                 // 2. Qualification par CLASSEMENT (Cadets / Cadettes) - Top 16
                 elseif (in_array($categorie_a_afficher, ['FCA', 'HCA'])) {
                     if (!empty($ligne['classement'])) {
-                        $est_qualifie = ((int)$ligne['classement'] <= 16);
+                        $est_qualifie = ((int) $ligne['classement'] <= 16);
                     }
                 }
                 // --------------------------------------------------
@@ -105,7 +105,7 @@ class PerformanceController
                     'date' => $ligne['date_perf'],
                     'lieu' => $ligne['lieu'],
                     'est_qualifie' => $est_qualifie,
-                    'classement' => $ligne['classement'] // Ajouté pour l'affichage visuel
+                    'classement' => $ligne['classement']  // Ajouté pour l'affichage visuel
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -142,11 +142,40 @@ class PerformanceController
             }
         }
 
-        // 4. Remplacer l'ancien tableau par le tableau trié
-        $categories_disponibles = $categories_triees;
-
         $ordre_officiel = ['25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF', '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
+
+        // 5. CALCUL DES STATISTIQUES (Nouveau code à ajouter ici)
+        $statistiques = [
+            'total_nageurs' => count($profils_nageurs),
+            'total_performances' => 0,
+            'nageurs_qualifies' => [],
+            'total_qualifications' => 0
+        ];
+
+        foreach ($profils_nageurs as $nageur_id => $infos) {
+            $est_qualifie_nageur = false;
+            $epreuves_qualif = [];
+
+            foreach ($infos['chronos'] as $epreuve => $perf) {
+                $statistiques['total_performances']++;
+                if ($perf['est_qualifie'] === true) {
+                    $est_qualifie_nageur = true;
+                    $epreuves_qualif[] = $epreuve;
+                    $statistiques['total_qualifications']++;
+                }
+            }
+
+            // Si le nageur a au moins un temps de qualification
+            if ($est_qualifie_nageur) {
+                $statistiques['nageurs_qualifies'][] = [
+                    'nom' => $infos['nom'],
+                    'prenom' => $infos['prenom'],
+                    'categorie' => $infos['categorie_libelle'],
+                    'epreuves' => implode(', ', $epreuves_qualif),
+                ];
+            }
+        }
 
         require_once __DIR__ . '/../views/dashboard.php';
     }
@@ -197,7 +226,7 @@ class PerformanceController
         if (isset($categories_actuelles[$nageur_id])) {
             $categorie_actuelle = $categories_actuelles[$nageur_id]['nom_categorie'];
             $grille = $model->getGrilleQualifs();
-            
+
             if (isset($grille[$categorie_actuelle][$epreuve])) {
                 $temps_ref_str = $grille[$categorie_actuelle][$epreuve];
                 $temps_ref_sec = $this->timeToSeconds($temps_ref_str);
@@ -206,7 +235,7 @@ class PerformanceController
         // ----------------------------------------------------
 
         header('Content-Type: application/json');
-        
+
         // On modifie la structure du JSON envoyé au JavaScript
         echo json_encode([
             'history' => $data,
@@ -227,7 +256,7 @@ class PerformanceController
 
         // On définit le nom du fichier dynamiquement
         $nom_saison = ($annee_selectionnee === 'all') ? 'toutes_saisons' : $annee_selectionnee;
-        $filename = "export_performances_{$nom_saison}_" . date('Ymd_His') . ".csv";
+        $filename = "export_performances_{$nom_saison}_" . date('Ymd_His') . '.csv';
 
         // Headers pour forcer le téléchargement du fichier CSV
         header('Content-Type: text/csv; charset=utf-8');
@@ -237,7 +266,7 @@ class PerformanceController
         $output = fopen('php://output', 'w');
 
         // Ajout du BOM UTF-8 pour la compatibilité Excel (pour les accents)
-        fputs($output, "\xEF\xBB\xBF");
+        fputs($output, "\u{FEFF}");
 
         // Écriture de la ligne d'en-tête (on utilise le point-virgule comme séparateur pour Excel FR)
         fputcsv($output, ['Nom', 'Prénom', 'Date de naissance', 'Catégorie', 'Épreuve', 'Temps', 'Date', 'Lieu'], ';');

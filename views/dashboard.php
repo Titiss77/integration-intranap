@@ -70,19 +70,72 @@
             </div>
         </div>
 
-        <div class='control-item'>
-                <button type="button" onclick="exporterCsv()" 
-                    style="background-color: #28a745; margin-bottom:20px; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
+        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            <div class='control-item' style="flex: 1;">
+                <button type="button" onclick="exporterCsv()"
+                    style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
                     📥 Exporter la sélection en CSV
                 </button>
             </div>
+            <div class='control-item' style="flex: 1;">
+                <button type="button" id="btnToggleStats" onclick="toggleStats()"
+                    style="background-color: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
+                    📊 Afficher les Statistiques
+                </button>
+            </div>
+        </div>
+
+        <div id="statsContainer"
+            style="display: none; background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--bordure); margin-bottom: 20px;">
+            <h2 style="color: var(--couleur-principale); text-align: center; margin-bottom: 20px;">📊 Statistiques de la
+                sélection</h2>
+
+            <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div
+                    style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin:0; font-size: 2.5em; color: var(--couleur-principale);">
+                        <?php echo $statistiques['total_nageurs']; ?></h3>
+                    <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Nageurs</p>
+                </div>
+                <div
+                    style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin:0; font-size: 2.5em; color: #28a745;">
+                        <?php echo count($statistiques['nageurs_qualifies']); ?></h3>
+                    <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Nageurs Qualifiés</p>
+                </div>
+                <div
+                    style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin:0; font-size: 2.5em; color: #17a2b8;">
+                        <?php echo $statistiques['total_performances']; ?></h3>
+                    <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Performances Totales</p>
+                </div>
+            </div>
+
+            <?php if (count($statistiques['nageurs_qualifies']) > 0): ?>
+            <h3 style="color: var(--couleur-principale); margin-bottom: 10px;">🏅 Liste des nageurs qualifiés</h3>
+            <ul style="list-style-type: none; padding: 0;">
+                <?php foreach ($statistiques['nageurs_qualifies'] as $q): ?>
+                <li style="padding: 10px; border-bottom: 1px solid #ddd;">
+                    <strong
+                        style="color: #28a745;"><?php echo htmlspecialchars($q['nom'] . ' ' . $q['prenom']); ?></strong>
+                    <span
+                        style="color: var(--couleur-secondaire);font-size: small;"><?php echo htmlspecialchars($q['categorie']); ?></span>
+                    <span style="color: #555; font-size: 0.9em; margin-left: 10px;">(Qualifié sur :
+                        <?php echo htmlspecialchars($q['epreuves']); ?>)</span>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php else: ?>
+            <p style="text-align: center; color: #ff9800; font-weight: bold;">Aucun nageur qualifié n'a été trouvé.</p>
+            <?php endif; ?>
+        </div>
 
         <?php if (empty($lignes_bdd)) { ?>
         <p style='text-align:center; color:#ff9800; font-size:1.2em;'>
             ⚠️ Aucun record trouvé pour l'année <?php echo htmlspecialchars($annee_selectionnee); ?>.
         </p>
         <?php } else { ?>
-        <div class='table-responsive'>
+        <div id='tableContainer' class='table-responsive'>
             <table id='mainTable'>
                 <thead>
                     <tr>
