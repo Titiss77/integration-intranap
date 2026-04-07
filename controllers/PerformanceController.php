@@ -91,11 +91,16 @@ class PerformanceController
                     $sec_ref = $this->timeToSeconds($temps_ref);
 
                     $est_qualifie = ($sec_nageur <= $sec_ref);
-                }
+                } 
                 // 2. Qualification par CLASSEMENT (Cadets / Cadettes) - Top 16
                 elseif (in_array($categorie_a_afficher, ['FCA', 'HCA'])) {
                     if (!empty($ligne['classement'])) {
-                        $est_qualifie = ((int) $ligne['classement'] <= 16);
+                        $est_qualifie = ((int)$ligne['classement'] <= 16);
+                    }
+                }
+                elseif (in_array($categorie_a_afficher, ['FMI', 'HMI'])) {
+                    if (!empty($ligne['classement'])) {
+                        $est_qualifie = ((int)$ligne['classement'] <= 32);
                     }
                 }
                 // --------------------------------------------------
@@ -105,7 +110,7 @@ class PerformanceController
                     'date' => $ligne['date_perf'],
                     'lieu' => $ligne['lieu'],
                     'est_qualifie' => $est_qualifie,
-                    'classement' => $ligne['classement']  // Ajouté pour l'affichage visuel
+                    'classement' => $ligne['classement'] // Ajouté pour l'affichage visuel
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -141,6 +146,9 @@ class PerformanceController
                 $categories_triees[$code_cat] = $libelle;
             }
         }
+
+        // 4. Remplacer l'ancien tableau par le tableau trié
+        $categories_disponibles = $categories_triees;
 
         $ordre_officiel = ['25SF', '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '1850SF', '25AP', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $colonnes_epreuves = array_intersect($ordre_officiel, $epreuves_trouvees);
@@ -226,7 +234,7 @@ class PerformanceController
         if (isset($categories_actuelles[$nageur_id])) {
             $categorie_actuelle = $categories_actuelles[$nageur_id]['nom_categorie'];
             $grille = $model->getGrilleQualifs();
-
+            
             if (isset($grille[$categorie_actuelle][$epreuve])) {
                 $temps_ref_str = $grille[$categorie_actuelle][$epreuve];
                 $temps_ref_sec = $this->timeToSeconds($temps_ref_str);
@@ -235,7 +243,7 @@ class PerformanceController
         // ----------------------------------------------------
 
         header('Content-Type: application/json');
-
+        
         // On modifie la structure du JSON envoyé au JavaScript
         echo json_encode([
             'history' => $data,
@@ -253,10 +261,13 @@ class PerformanceController
         // On récupère l'année demandée depuis l'URL (ou 'all' par défaut)
         $annee_selectionnee = isset($_GET['saison']) ? $_GET['saison'] : 'all';
         $lignes_bdd = $model->getPerformances($annee_selectionnee);
+        
+        // On récupère la grille des temps de référence pour calculer les qualifications
+        $grille_qualifs = $model->getGrilleQualifs();
 
         // On définit le nom du fichier dynamiquement
         $nom_saison = ($annee_selectionnee === 'all') ? 'toutes_saisons' : $annee_selectionnee;
-        $filename = "export_performances_{$nom_saison}_" . date('Ymd_His') . '.csv';
+        $filename = "export_performances_{$nom_saison}_" . date('Ymd_His') . ".csv";
 
         // Headers pour forcer le téléchargement du fichier CSV
         header('Content-Type: text/csv; charset=utf-8');
@@ -266,10 +277,10 @@ class PerformanceController
         $output = fopen('php://output', 'w');
 
         // Ajout du BOM UTF-8 pour la compatibilité Excel (pour les accents)
-        fputs($output, "\u{FEFF}");
+        fputs($output, "\xEF\xBB\xBF");
 
-        // Écriture de la ligne d'en-tête (on utilise le point-virgule comme séparateur pour Excel FR)
-        fputcsv($output, ['Nom', 'Prénom', 'Date de naissance', 'Catégorie', 'Épreuve', 'Temps', 'Date', 'Lieu'], ';');
+        // Écriture de la ligne d'en-tête AVEC LES NOUVELLES COLONNES
+        fputcsv($output, ['Nom', 'Prénom', 'Date de naissance', 'Catégorie', 'Épreuve', 'Temps', 'Date', 'Lieu', 'Classement FR', 'Qualifié ?'], ';');
 
         // Si on exporte "Toutes les saisons", on a besoin des catégories les plus récentes
         $categories_actuelles = [];
@@ -288,6 +299,35 @@ class PerformanceController
                     $categorie = $ligne['categorie'];
                 }
 
+                // --- CALCUL DE LA QUALIFICATION POUR L'EXPORT ---
+                $est_qualifie = 'Non'; // Par défaut, on met non.
+
+                // 1. Règle classique (Seniors, Juniors, Masters...) : Temps de référence
+                if (isset($grille_qualifs[$categorie][$ligne['epreuve']])) {
+                    $temps_ref = $grille_qualifs[$categorie][$ligne['epreuve']];
+                    $sec_nageur = $this->timeToSeconds($ligne['temps']);
+                    $sec_ref = $this->timeToSeconds($temps_ref);
+
+                    if ($sec_nageur <= $sec_ref) {
+                        $est_qualifie = 'Oui';
+                    }
+                } 
+                // 2. Règle spécifique (Cadets/Cadettes) : Top 16 National
+                elseif (in_array($categorie, ['FCA', 'HCA'])) {
+                    if (!empty($ligne['classement']) && (int)$ligne['classement'] <= 16) {
+                        $est_qualifie = 'Oui';
+                    }
+                }
+                elseif (in_array($categorie, ['FMI', 'HMI'])) {
+                    if (!empty($ligne['classement']) && (int)$ligne['classement'] <= 32) {
+                        $est_qualifie = 'Oui';
+                    }
+                }
+                // ------------------------------------------------
+
+                // Gestion de l'affichage du classement (s'il est vide, on met un tiret)
+                $affichage_classement = !empty($ligne['classement']) ? $ligne['classement'] : '-';
+
                 // Insertion de la ligne dans le CSV
                 fputcsv($output, [
                     $ligne['nom'],
@@ -297,7 +337,9 @@ class PerformanceController
                     $ligne['epreuve'],
                     $ligne['temps'],
                     $ligne['date_perf'],
-                    $ligne['lieu']
+                    $ligne['lieu'],
+                    $affichage_classement, // Nouvelle colonne
+                    $est_qualifie          // Nouvelle colonne (Oui/Non)
                 ], ';');
             }
         }
