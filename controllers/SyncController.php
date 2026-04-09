@@ -71,7 +71,7 @@ class SyncController
                                     if (!isset($classement_par_categorie[$cat_nageur])) {
                                         $classement_par_categorie[$cat_nageur] = 0;
                                     }
-                                    $classement_par_categorie[$cat_nageur]++;
+                                    ++$classement_par_categorie[$cat_nageur];
                                     $position_nationale = $classement_par_categorie[$cat_nageur];
 
                                     // 2. Si le nageur est de notre club, on sauvegarde sa perf AVEC sa position
@@ -151,7 +151,7 @@ class SyncController
 
     private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement)
     {
-        $sql = 'INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) 
+        $sql = 'INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE classement = VALUES(classement)';
         $stmt = $this->pdo->prepare($sql);

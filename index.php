@@ -30,6 +30,7 @@ if (isset($_GET['action']) && 'history' === $_GET['action']) {
 // Interception pour l'EXPORT CSV
 if (isset($_GET['action']) && 'export' === $_GET['action']) {
     $controller->exportCsv();
+
     exit;
 }
 

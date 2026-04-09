@@ -12,6 +12,7 @@ class PerformanceModel
     public function getSaisons()
     {
         $stmt = $this->pdo->query('SELECT DISTINCT saison FROM performances ORDER BY saison DESC');
+
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
@@ -26,8 +27,8 @@ class PerformanceModel
 
         // AJOUT : c.libelle AS categorie_libelle
         $sql = "
-        SELECT n.id AS nageur_id, n.nom, n.prenom, n.date_naissance, 
-               c.nom_categorie AS categorie, c.libelle AS categorie_libelle, 
+        SELECT n.id AS nageur_id, n.nom, n.prenom, n.date_naissance,
+               c.nom_categorie AS categorie, c.libelle AS categorie_libelle,
                e.nom_epreuve AS epreuve,
                p1.temps, p1.date_perf, p1.classement, l.nom_lieu AS lieu
         FROM performances p1
@@ -41,9 +42,9 @@ class PerformanceModel
             WHERE 1=1 {$condition_saison}
             GROUP BY p.nageur_id, p.epreuve_id
         ) p2 ON p1.nageur_id = p2.nageur_id AND p1.epreuve_id = p2.epreuve_id AND p1.temps = p2.min_temps
-        WHERE 1=1 ".str_replace('p.', 'p1.', $condition_saison)."
+        WHERE 1=1 ".str_replace('p.', 'p1.', $condition_saison).'
         ORDER BY epreuve ASC, p1.temps ASC
-        ";
+        ';
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -78,17 +79,17 @@ class PerformanceModel
             ) p_max ON p.nageur_id = p_max.nageur_id AND p.saison = p_max.max_saison
             ORDER BY c.libelle DESC
         ';
-        
+
         $stmt = $this->pdo->query($sql);
         $result = [];
-        
+
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $result[$row['nageur_id']] = [
                 'nom_categorie' => $row['nom_categorie'],
-                'libelle' => $row['libelle']
+                'libelle' => $row['libelle'],
             ];
         }
-        
+
         return $result;
     }
 
@@ -99,15 +100,15 @@ class PerformanceModel
                 FROM grille_qualifs g
                 JOIN categories c ON g.categorie_id = c.id
                 JOIN epreuves e ON g.epreuve_id = e.id';
-        
+
         $stmt = $this->pdo->query($sql);
         $result = [];
-        
+
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Structure : $result['F35+']['50SF'] = '00:23.50'
             $result[$row['nom_categorie']][$row['nom_epreuve']] = $row['temps_de_ref'];
         }
-        
+
         return $result;
     }
 }

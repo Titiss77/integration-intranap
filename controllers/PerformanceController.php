@@ -1,7 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/../models/PerformanceModel.php';
+require_once __DIR__.'/../config/Database.php';
+
+require_once __DIR__.'/../models/PerformanceModel.php';
 
 class PerformanceController
 {
@@ -17,7 +18,7 @@ class PerformanceController
         $grille_qualifs = $model->getGrilleQualifs();
 
         $categories_actuelles = [];
-        if ($annee_selectionnee === 'all') {
+        if ('all' === $annee_selectionnee) {
             $categories_actuelles = $model->getCategoriesActuelles();
         }
 
@@ -30,12 +31,12 @@ class PerformanceController
             foreach ($lignes_bdd as $ligne) {
                 $nageur_id = $ligne['nageur_id'];
 
-                if ($annee_selectionnee === 'all' && isset($categories_actuelles[$nageur_id])) {
+                if ('all' === $annee_selectionnee && isset($categories_actuelles[$nageur_id])) {
                     $categorie_a_afficher = $categories_actuelles[$nageur_id]['nom_categorie'];
                     $libelle_a_afficher = $categories_actuelles[$nageur_id]['libelle'];
                 } else {
                     $categorie_a_afficher = $ligne['categorie'];
-                    $libelle_a_afficher = $ligne['categorie_libelle'] . ' (en ' . $annee_selectionnee . ')';
+                    $libelle_a_afficher = $ligne['categorie_libelle'].' (en '.$annee_selectionnee.')';
                 }
 
                 if (!isset($categories_disponibles[$categorie_a_afficher])) {
@@ -62,9 +63,9 @@ class PerformanceController
                     $sec_ref = $this->timeToSeconds($temps_ref);
                     $est_qualifie = ($sec_nageur <= $sec_ref);
                 } elseif (in_array($categorie_a_afficher, ['FCA', 'HCA']) && !empty($ligne['classement'])) {
-                    $est_qualifie = ((int)$ligne['classement'] <= 16);
+                    $est_qualifie = ((int) $ligne['classement'] <= 16);
                 } elseif (in_array($categorie_a_afficher, ['FMI', 'HMI']) && !empty($ligne['classement'])) {
-                    $est_qualifie = ((int)$ligne['classement'] <= 32);
+                    $est_qualifie = ((int) $ligne['classement'] <= 32);
                 }
 
                 $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
@@ -72,7 +73,7 @@ class PerformanceController
                     'date' => $ligne['date_perf'],
                     'lieu' => $ligne['lieu'],
                     'est_qualifie' => $est_qualifie,
-                    'classement' => $ligne['classement']
+                    'classement' => $ligne['classement'],
                 ];
 
                 if (!in_array($ligne['epreuve'], $epreuves_trouvees)) {
@@ -92,7 +93,7 @@ class PerformanceController
                     'date_perf' => $ligne['date_perf'],
                     'lieu' => $ligne['lieu'],
                     'est_qualifie' => $est_qualifie,
-                    'classement' => $ligne['classement']
+                    'classement' => $ligne['classement'],
                 ];
             }
         }
@@ -105,7 +106,9 @@ class PerformanceController
             }
         }
         foreach ($categories_disponibles as $code_cat => $libelle) {
-            if (!isset($categories_triees[$code_cat])) $categories_triees[$code_cat] = $libelle;
+            if (!isset($categories_triees[$code_cat])) {
+                $categories_triees[$code_cat] = $libelle;
+            }
         }
         $categories_disponibles = $categories_triees;
 
@@ -118,18 +121,21 @@ class PerformanceController
             $est_qualifie_nageur = false;
             $epreuves_qualif = [];
             $premiere_lettre = substr($infos['categorie'], 0, 1);
-            if ($premiere_lettre === 'F') $statistiques['filles']++;
-            elseif ($premiere_lettre === 'H') $statistiques['garcons']++;
+            if ('F' === $premiere_lettre) {
+                ++$statistiques['filles'];
+            } elseif ('H' === $premiere_lettre) {
+                ++$statistiques['garcons'];
+            }
 
             foreach ($infos['chronos'] as $epreuve => $perf) {
-                $statistiques['total_performances']++;
-                if ($perf['est_qualifie'] === true) {
+                ++$statistiques['total_performances'];
+                if (true === $perf['est_qualifie']) {
                     $est_qualifie_nageur = true;
                     $epreuves_qualif[] = $epreuve;
-                    $statistiques['total_qualifications']++;
+                    ++$statistiques['total_qualifications'];
                 }
-                if (!empty($perf['classement']) && (int)$perf['classement'] > 0 && (int)$perf['classement'] <= 3) {
-                    $statistiques['podiums']++;
+                if (!empty($perf['classement']) && (int) $perf['classement'] > 0 && (int) $perf['classement'] <= 3) {
+                    ++$statistiques['podiums'];
                 }
             }
             if ($est_qualifie_nageur) {
@@ -137,14 +143,7 @@ class PerformanceController
             }
         }
 
-        require_once __DIR__ . '/../views/dashboard.php';
-    }
-
-    private function timeToSeconds($timeStr)
-    {
-        $parts = explode(':', str_replace(',', '.', $timeStr));
-        if (count($parts) === 2) return ($parts[0] * 60) + (float) $parts[1];
-        return (float) $parts[0];
+        require_once __DIR__.'/../views/dashboard.php';
     }
 
     public function getHistoryApi()
@@ -171,6 +170,7 @@ class PerformanceController
         usort($data, function ($a, $b) {
             $da = implode('', array_reverse(explode('/', $a['date'])));
             $db = implode('', array_reverse(explode('/', $b['date'])));
+
             return strcmp($da, $db);
         });
 
@@ -190,38 +190,59 @@ class PerformanceController
         echo json_encode([
             'history' => $data,
             'temps_ref_sec' => $temps_ref_sec,
-            'temps_ref_str' => $temps_ref_str
+            'temps_ref_str' => $temps_ref_str,
         ]);
     }
 
-    public function exportCsv() { /* Inchangé... */ 
+    public function exportCsv()
+    { // Inchangé...
         $pdo = Database::getConnection();
         $model = new PerformanceModel($pdo);
         $annee_selectionnee = isset($_GET['saison']) ? $_GET['saison'] : 'all';
         $lignes_bdd = $model->getPerformances($annee_selectionnee);
         $grille_qualifs = $model->getGrilleQualifs();
-        $nom_saison = ($annee_selectionnee === 'all') ? 'toutes_saisons' : $annee_selectionnee;
-        $filename = "export_performances_{$nom_saison}_" . date('Ymd_His') . ".csv";
+        $nom_saison = ('all' === $annee_selectionnee) ? 'toutes_saisons' : $annee_selectionnee;
+        $filename = "export_performances_{$nom_saison}_".date('Ymd_His').'.csv';
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="'.$filename.'"');
         $output = fopen('php://output', 'w');
         fputs($output, "\xEF\xBB\xBF");
         fputcsv($output, ['Nom', 'Prénom', 'Date de naissance', 'Catégorie', 'Épreuve', 'Temps', 'Date', 'Lieu', 'Classement FR', 'Qualifié ?'], ';');
         $categories_actuelles = [];
-        if ($annee_selectionnee === 'all') $categories_actuelles = $model->getCategoriesActuelles();
+        if ('all' === $annee_selectionnee) {
+            $categories_actuelles = $model->getCategoriesActuelles();
+        }
         if (!empty($lignes_bdd)) {
             foreach ($lignes_bdd as $ligne) {
                 $nageur_id = $ligne['nageur_id'];
-                if ($annee_selectionnee === 'all' && isset($categories_actuelles[$nageur_id])) $categorie = $categories_actuelles[$nageur_id]['nom_categorie'];
-                else $categorie = $ligne['categorie'];
+                if ('all' === $annee_selectionnee && isset($categories_actuelles[$nageur_id])) {
+                    $categorie = $categories_actuelles[$nageur_id]['nom_categorie'];
+                } else {
+                    $categorie = $ligne['categorie'];
+                }
                 $est_qualifie = 'Non';
                 if (isset($grille_qualifs[$categorie][$ligne['epreuve']])) {
-                    if ($this->timeToSeconds($ligne['temps']) <= $this->timeToSeconds($grille_qualifs[$categorie][$ligne['epreuve']])) $est_qualifie = 'Oui';
-                } elseif (in_array($categorie, ['FCA', 'HCA']) && !empty($ligne['classement']) && (int)$ligne['classement'] <= 16) $est_qualifie = 'Oui';
-                elseif (in_array($categorie, ['FMI', 'HMI']) && !empty($ligne['classement']) && (int)$ligne['classement'] <= 32) $est_qualifie = 'Oui';
+                    if ($this->timeToSeconds($ligne['temps']) <= $this->timeToSeconds($grille_qualifs[$categorie][$ligne['epreuve']])) {
+                        $est_qualifie = 'Oui';
+                    }
+                } elseif (in_array($categorie, ['FCA', 'HCA']) && !empty($ligne['classement']) && (int) $ligne['classement'] <= 16) {
+                    $est_qualifie = 'Oui';
+                } elseif (in_array($categorie, ['FMI', 'HMI']) && !empty($ligne['classement']) && (int) $ligne['classement'] <= 32) {
+                    $est_qualifie = 'Oui';
+                }
                 fputcsv($output, [$ligne['nom'], $ligne['prenom'], $ligne['date_naissance'], $categorie, $ligne['epreuve'], $ligne['temps'], $ligne['date_perf'], $ligne['lieu'], !empty($ligne['classement']) ? $ligne['classement'] : '-', $est_qualifie], ';');
             }
         }
         fclose($output);
+    }
+
+    private function timeToSeconds($timeStr)
+    {
+        $parts = explode(':', str_replace(',', '.', $timeStr));
+        if (2 === count($parts)) {
+            return ($parts[0] * 60) + (float) $parts[1];
+        }
+
+        return (float) $parts[0];
     }
 }

@@ -52,7 +52,7 @@
                 <option value="all">Toutes les catégories</option>
                 <?php foreach ($categories_disponibles as $cat_code => $cat_libelle) { ?>
                 <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
-                    <?php echo !empty($cat_libelle) ? htmlspecialchars($cat_libelle) . ' (' . htmlspecialchars($cat_code) . ')' : htmlspecialchars($cat_code); ?>
+                    <?php echo !empty($cat_libelle) ? htmlspecialchars($cat_libelle).' ('.htmlspecialchars($cat_code).')' : htmlspecialchars($cat_code); ?>
                 </option>
                 <?php } ?>
             </select>
@@ -74,7 +74,7 @@
             <h3 style="color: #dc3545; font-size: medium; font-weight: 600; margin: 1rem;">* Attention il y a un
                 problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)</h3>
 
-            <?php if ($annee_selectionnee !== 'all'): ?>
+            <?php if ('all' !== $annee_selectionnee) { ?>
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3 style="color: var(--couleur-principale);"><?php echo $statistiques['total_nageurs']; ?></h3>
@@ -94,31 +94,31 @@
                     <p>Performances Totales</p>
                 </div>
             </div>
-            <?php if (count($statistiques['nageurs_qualifies']) > 0): ?>
+            <?php if (count($statistiques['nageurs_qualifies']) > 0) { ?>
             <h3 style="color: var(--couleur-principale); margin-bottom: 15px;">🏅 Liste des nageurs qualifiés</h3>
             <ul style="list-style-type: none; padding: 0;">
-                <?php foreach ($statistiques['nageurs_qualifies'] as $q): ?>
+                <?php foreach ($statistiques['nageurs_qualifies'] as $q) { ?>
                 <li
                     style="padding: 12px; border-bottom: 1px solid var(--bordure); display: flex; flex-direction: column; gap: 4px;">
                     <div>
                         <strong
-                            style="color: var(--succes); font-size: 1.1rem;"><?php echo htmlspecialchars($q['nom'] . ' ' . $q['prenom']); ?></strong>
+                            style="color: var(--succes); font-size: 1.1rem;"><?php echo htmlspecialchars($q['nom'].' '.$q['prenom']); ?></strong>
                         <span
                             style="background: var(--fond-page); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 8px; color: var(--texte-principal);"><?php echo htmlspecialchars($q['categorie']); ?></span>
                     </div>
                     <span style="color: var(--texte-secondaire); font-size: 0.9em;">🎯 Qualifié sur :
                         <strong><?php echo htmlspecialchars($q['epreuves']); ?></strong></span>
                 </li>
-                <?php endforeach; ?>
+                <?php } ?>
             </ul>
-            <?php else: ?>
+            <?php } else { ?>
             <p style="text-align: center; color: var(--avertissement); font-weight: bold; padding: 20px;">Aucun nageur
                 qualifié n'a été trouvé.</p>
-            <?php endif; ?>
-            <?php else: ?>
+            <?php } ?>
+            <?php } else { ?>
             <p style="text-align: center; color: var(--avertissement); font-weight: bold; padding: 20px;">Les
                 statistiques ne sont pas disponibles pour "Toutes les saisons".</p>
-            <?php endif; ?>
+            <?php } ?>
         </div>
 
         <?php if (empty($lignes_bdd)) { ?>
@@ -129,21 +129,21 @@
         <div id='tableContainer'>
             <div class="tabs-ffessm">
                 <?php $premiere = true;
-                foreach ($colonnes_epreuves as $epreuve) { ?>
+            foreach ($colonnes_epreuves as $epreuve) { ?>
                 <button class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
                     onclick="openEpreuve(event, 'ep-<?php echo $epreuve; ?>')">
                     <?php echo htmlspecialchars($epreuve); ?>
                 </button>
                 <?php $premiere = false;
-                } ?>
+            } ?>
             </div>
 
             <div class="tabs-content-ffessm">
                 <?php
-                $premiere = true;
-                foreach ($colonnes_epreuves as $epreuve) {
-                    $perfs = $performances_par_epreuve[$epreuve];
-                    ?>
+            $premiere = true;
+            foreach ($colonnes_epreuves as $epreuve) {
+                $perfs = $performances_par_epreuve[$epreuve];
+                ?>
                 <div id="ep-<?php echo $epreuve; ?>" class="tab-pane"
                     style="display: <?php echo $premiere ? 'block' : 'none'; ?>;">
                     <h2 style="color: var(--couleur-principale); margin-bottom: 20px; text-align: center;">🥇 Classement
@@ -162,13 +162,14 @@
                         </thead>
                         <tbody>
                             <?php
-                            foreach ($perfs as $index => $perf) {
-                                $color = '';
-                                if ($perf['est_qualifie'] === true)
-                                    $color = 'color: var(--succes); font-weight:bold;';
-                                elseif ($perf['est_qualifie'] === false)
-                                    $color = 'color: var(--danger);';
-                                ?>
+                        foreach ($perfs as $index => $perf) {
+                            $color = '';
+                            if (true === $perf['est_qualifie']) {
+                                $color = 'color: var(--succes); font-weight:bold;';
+                            } elseif (false === $perf['est_qualifie']) {
+                                $color = 'color: var(--danger);';
+                            }
+                            ?>
                             <tr class="nageur-row"
                                 data-category="<?php echo htmlspecialchars($perf['categorie'], ENT_QUOTES); ?>">
                                 <td data-label="Classement"
@@ -190,15 +191,16 @@
                                     </span>
                                 </td>
                                 <td data-label="Temps" class="cell-temps"
-                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>", "<?php echo htmlspecialchars($perf['categorie']); ?>")'>
+                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'].' '.$perf['prenom']); ?>", "<?php echo htmlspecialchars($perf['categorie']); ?>")'>
                                     <?php
-                                    // Définition de la couleur selon la qualification
-                                    $color = 'color: var(--texte-principal);';
-                                    if ($perf['est_qualifie'] === true)
-                                        $color = 'color: var(--succes);';
-                                    elseif ($perf['est_qualifie'] === false)
-                                        $color = 'color: var(--danger);';
-                                    ?>
+                                // Définition de la couleur selon la qualification
+                                $color = 'color: var(--texte-principal);';
+                            if (true === $perf['est_qualifie']) {
+                                $color = 'color: var(--succes);';
+                            } elseif (false === $perf['est_qualifie']) {
+                                $color = 'color: var(--danger);';
+                            }
+                            ?>
 
                                     <div class="btn-evolution" style="<?php echo $color; ?>" title="Voir l'évolution">
                                         <span><?php echo htmlspecialchars($perf['temps']); ?></span>
@@ -223,7 +225,7 @@
                     </table>
                 </div>
                 <?php $premiere = false;
-                } ?>
+            } ?>
             </div>
         </div>
         <?php } ?>
