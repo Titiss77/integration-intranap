@@ -1,6 +1,3 @@
-/* ==========================================================================
-   1. VARIABLES & BASE (La fondation)
-   ========================================================================== */
 :root {
     --couleur-principale: #0056b3;
     --couleur-secondaire: #007bff;
@@ -11,6 +8,10 @@
     --bordure: #d2d2d7;
     --ligne-survol: #f5f5f7;
     --couleur-temps: #1d1d1f;
+    --succes: #28a745;
+    --danger: #dc3545;
+    --info: #17a2b8;
+    --avertissement: #ff9800;
 }
 
 * {
@@ -23,226 +24,213 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--fond-page);
     color: var(--texte-principal);
-    line-height: 1.5;
-    padding: 20px;
+    line-height: 1.6;
+    padding: 10px;
+    font-size: 16px;
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
-    background-color: var(--fond-carte);
-    padding: 30px;
+    background: var(--fond-carte);
+    padding: 15px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 h1 {
+    font-size: 1.5rem;
     text-align: center;
+    margin-bottom: 1.5rem;
     color: var(--couleur-principale);
-    margin-bottom: 30px;
-    font-size: 2rem;
+}
+
+.controls,
+.actions-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+select,
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: var(--fond-carte);
+    color: var(--texte-principal);
+    -webkit-appearance: none;
+}
+
+button {
+    width: 100%;
+    padding: 14px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--couleur-secondaire);
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--succes);
+    color: white;
+}
+
+.btn-info {
+    background-color: var(--info);
+    color: white;
 }
 
 /* ==========================================================================
-   2. CONTRÔLES & FORMULAIRES (Recherche, Filtres, Bouton)
+   ONGLETS (TABS FFESSM)
    ========================================================================== */
-.controls {
+.tabs-ffessm {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
-    background-color: #f8f9fa;
-    padding: 20px;
+    gap: 8px;
+    margin-bottom: 20px;
+    justify-content: center;
+    background: var(--fond-page);
+    padding: 15px;
     border-radius: 8px;
     border: 1px solid var(--bordure);
-    margin-bottom: 20px;
-    align-items: flex-end;
-    /* Aligne le bas des champs */
 }
 
-.control-item {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    /* Les champs se partagent l'espace équitablement */
-    min-width: 200px;
-    /* Taille minimale avant de passer à la ligne */
-}
-
-.control-item label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--texte-secondaire);
-    margin-bottom: 5px;
-    text-transform: uppercase;
-}
-
-input[type="text"],
-select {
-    padding: 10px 15px;
+.tab-btn {
+    background-color: var(--fond-carte);
+    color: var(--texte-principal);
     border: 1px solid var(--bordure);
-    border-radius: 6px;
-    font-size: 1rem;
-    background-color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9em;
+    width: auto;
+    /* Retire le width:100% des boutons globaux */
 }
 
-input[type="text"]:focus,
-select:focus {
-    outline: none;
-    border-color: var(--couleur-secondaire);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+.tab-btn:hover {
+    background-color: var(--ligne-survol);
 }
 
-button#btnSync {
-    background-color: var(--couleur-principale) !important;
-    color: white !important;
-    border: none;
-    padding: 12px 20px !important;
-    border-radius: 6px !important;
-    font-size: 1rem !important;
-    font-weight: bold !important;
+.tab-btn.active {
+    background-color: var(--couleur-principale);
+    color: white;
+    border-color: var(--couleur-principale);
+}
+
+/* ==========================================================================
+   TABLEAUX DE CLASSEMENT
+   ========================================================================== */
+.table-rank {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--fond-carte);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--bordure);
+    /* Alternative propre au border sur un tableau */
+}
+
+.table-rank th,
+.table-rank td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--bordure);
+    vertical-align: middle;
+}
+
+.table-rank th {
+    background-color: var(--couleur-principale);
+    color: white;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+.table-rank tr:last-child td {
+    border-bottom: none;
+}
+
+.table-rank tr:hover td {
+    background-color: var(--ligne-survol);
+}
+
+.cell-temps {
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
-button#btnSync:hover:not(:disabled) {
-    background-color: var(--couleur-secondaire) !important;
+.cell-temps:hover {
+    background-color: rgba(0, 123, 255, 0.1) !important;
 }
 
 /* ==========================================================================
-   3. TABLEAU DES PERFORMANCES (La donnée pure)
+   STATISTIQUES & MODALES
    ========================================================================== */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    /* Scroll horizontal si besoin */
-    max-height: 65vh;
-    /* Scroll vertical */
-    border: 1px solid var(--bordure);
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--fond-page);
+    padding: 20px;
     border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--bordure);
 }
 
-table {
-    width: 100%;
-    border-collapse: separate;
-    /* Obligatoire pour que les colonnes figées marchent bien */
-    border-spacing: 0;
-    text-align: left;
-    white-space: nowrap;
-    /* Empêche le texte de revenir à la ligne */
+.stat-card h3 {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
 }
 
-/* Cellules de base */
-th,
-td {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--bordure);
-    border-right: 1px solid var(--bordure);
-    vertical-align: middle;
-}
-
-/* Ligne d'en-tête (Figée en haut) */
-th {
-    background-color: var(--couleur-principale);
-    color: white;
+.stat-card p {
+    color: var(--texte-secondaire);
     font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    /* Au dessus des cellules normales */
+    text-transform: uppercase;
+    font-size: 0.85rem;
 }
 
-/* Lignes au survol */
-tbody tr:hover td {
-    background-color: var(--ligne-survol);
-}
-
-/* --- MAGIE RESPONSIVE : 1ère Colonne Figée à gauche --- */
-/* Pour ne jamais perdre le nom du nageur au scroll horizontal */
-td:nth-child(1),
-th:nth-child(1) {
-    position: sticky;
-    left: 0;
-    background-color: var(--fond-carte);
-    /* Cache les données qui passent dessous */
-    border-right: 2px solid var(--bordure);
-    /* Démarcation nette */
-    z-index: 5;
-}
-
-th:nth-child(1) {
-    background-color: var(--couleur-principale);
-    z-index: 15;
-    /* Le coin en haut à gauche doit être au dessus de tout */
-}
-
-/* ==========================================================================
-   4. APPARENCE DES TEMPS & DATES
-   ========================================================================== */
-.cell-temps {
-    text-align: center;
-    cursor: pointer;
-    min-width: 110px;
-}
-
-.chrono-val {
-    font-family: 'Courier New', Courier, monospace;
-    /* Police d'horloge */
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: var(--couleur-temps);
-}
-
-.chrono-info {
-    display: none;
-    font-size: 0.8rem;
-    color: var(--texte-secondaire);
-    line-height: 1.4;
-}
-
-/* Au survol d'une case chrono, on cache le temps et on montre la date/lieu */
-.cell-temps:hover .chrono-val {
-    display: none;
-}
-
-.cell-temps:hover .chrono-info {
-    display: block;
-}
-
-.vide {
-    text-align: center;
-    color: #a1a1aa;
-}
-
-/* Colonne Profil (Date de naissance / Catégorie) */
-td:nth-child(3) {
-    font-size: 0.9rem;
-    color: var(--texte-secondaire);
-    text-align: center;
-}
-
-/* ==========================================================================
-   5. FENÊTRE MODALE (Graphique)
-   ========================================================================== */
 .modal {
     display: none;
     position: fixed;
-    top: 0;
+    z-index: 1000;
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
+    backdrop-filter: blur(3px);
+    padding: 15px;
+    overflow-y: auto;
 }
 
 .modal-content {
     background-color: var(--fond-carte);
-    margin: 5% auto;
-    padding: 30px;
-    width: 90%;
+    margin: 10vh auto;
+    padding: 25px 20px;
+    border-radius: 16px;
+    width: 100%;
     max-width: 800px;
-    border-radius: 12px;
     position: relative;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .close-btn {
@@ -250,61 +238,120 @@ td:nth-child(3) {
     top: 15px;
     right: 20px;
     font-size: 30px;
-    color: var(--texte-secondaire);
-    cursor: pointer;
     line-height: 1;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--texte-secondaire);
+    background: var(--fond-page);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
 }
 
 .close-btn:hover {
-    color: var(--couleur-temps);
+    background: var(--bordure);
+    color: var(--texte-principal);
 }
 
 /* ==========================================================================
-   6. OPTIMISATION MOBILE (Écrans < 768px)
+   RESPONSIVE DESIGN BURALISTE (Tablettes & Bureau)
    ========================================================================== */
-@media (max-width: 768px) {
+@media (min-width: 768px) {
     body {
-        padding: 10px;
-        /* Moins de marges sur téléphone */
+        padding: 20px;
     }
 
     .container {
-        padding: 15px;
+        padding: 30px;
     }
 
     h1 {
-        font-size: 1.5rem;
+        font-size: 2.2rem;
     }
 
-    /* Les filtres passent les uns en dessous des autres */
     .controls {
-        flex-direction: column;
-        padding: 15px;
+        flex-direction: row;
+        align-items: center;
     }
 
-    .control-item {
-        width: 100%;
+    .controls>* {
+        flex: 1;
+        margin: 0;
     }
 
-    input[type="text"],
-    select,
-    button#btnSync {
-        width: 100%;
-        font-size: 16px;
-        /* Empêche le zoom automatique agaçant sur iPhone */
+    .actions-bar {
+        flex-direction: row;
     }
 
-    /* Ajustement du tableau pour petits écrans */
+    .actions-bar>div {
+        flex: 1;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ==========================================================================
+   MODE "CARTES" POUR SMARTPHONES (Propre et sans bug)
+   ========================================================================== */
+@media (max-width: 767px) {
+    .table-rank {
+        box-shadow: none;
+        background: transparent;
+    }
+
+    table,
+    thead,
+    tbody,
     th,
-    td {
-        padding: 10px;
-        font-size: 0.8rem;
-        max-width: 7rem;
-            overflow: auto;
+    td,
+    tr {
+        display: block;
+        width: 100%;
     }
 
-    .modal-content {
-        margin: 15% auto;
-        padding: 20px;
+    .table-rank thead {
+        display: none;
+        /* Cache les en-têtes sur mobile */
+    }
+
+    .table-rank tr {
+        border: 1px solid var(--bordure);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        background: var(--fond-carte);
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-rank td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        border-bottom: 1px solid var(--ligne-survol);
+        padding: 12px 15px;
+        text-align: right;
+    }
+
+    /* Génère le titre de la ligne à gauche de chaque cellule via l'attribut data-label */
+    .table-rank td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--texte-secondaire);
+        font-size: 0.9em;
+        margin-right: 15px;
+        text-align: left;
+    }
+
+    /* Traitement spécial pour mettre en valeur la première ligne de la carte (le Nom du Nageur) */
+    .table-rank td:nth-child(2) {
+        background-color: var(--ligne-survol);
+        border-bottom: 2px solid var(--couleur-principale);
     }
 }

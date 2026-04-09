@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" href="data:,">
     <title>Performances du Club</title>
     <link rel="icon" type="image/x-icon" href="https://palmes-en-cornouailles.22web.org/favicon.ico">
@@ -13,229 +13,238 @@
 </head>
 
 <body>
-
     <div class="container">
-        <h1>🏆 Meilleurs Temps du Club 🏆</h1>
+        <h1>🏆 Meilleurs Temps du Club</h1>
 
-        <div class="control-item">
-            <button id="btnSync" onclick="lancerSync()"
-                style="background-color: var(--secondary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;">
+        <div style="margin-bottom: 20px;">
+            <button id="btnSync" class="btn-primary" onclick="lancerSync()">
                 🔄 Synchroniser avec la FFESSM
             </button>
         </div>
 
-        <div id="progressContainer"
-            style="display: none; width: 100%; max-width: 600px; margin: 15px auto; text-align: center;">
+        <div id="progressContainer" style="display: none; width: 100%; margin: 15px 0; text-align: center;">
             <div
-                style="background-color: #e9ecef; border-radius: 8px; overflow: hidden; height: 25px; width: 100%; border: 1px solid #ccc;">
+                style="background-color: var(--fond-page); border-radius: 8px; overflow: hidden; height: 25px; border: 1px solid var(--bordure);">
                 <div id="progressBar"
-                    style="height: 100%; width: 0%; background-color: #28a745; transition: width 0.3s; color: white; font-weight: bold; line-height: 25px;">
-                    0%
-                </div>
+                    style="height: 100%; width: 0%; background-color: var(--succes); transition: width 0.3s; color: white; font-weight: bold; line-height: 25px; font-size: 0.9rem;">
+                    0%</div>
             </div>
-            <p id="progressText" style="margin-top: 8px; font-size: 0.9em; color: #555; font-style: italic;">
+            <p id="progressText"
+                style="margin-top: 8px; font-size: 0.9em; color: var(--texte-secondaire); font-style: italic;">
                 Démarrage...</p>
         </div>
 
-        <div class='controls'>
-            <form method='GET' class='control-item'>
-                <label>📅 <strong>Année :</strong></label>
-                <select name='saison' onchange='this.form.submit()'>
-                    <option value='all' <?php echo 'all' === $annee_selectionnee ? 'selected' : ''; ?>>Toutes les
-                        saisons
-                    </option>
+        <div class="controls">
+            <form method="GET" style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                <label style="white-space: nowrap;">📅 <strong>Année :</strong></label>
+                <select name="saison" onchange="this.form.submit()" style="flex: 1;">
+                    <option value="all" <?php echo 'all' === $annee_selectionnee ? 'selected' : ''; ?>>Toutes les
+                        saisons</option>
                     <?php foreach ($annees_disponibles as $annee) { ?>
                     <option value="<?php echo htmlspecialchars($annee); ?>"
                         <?php echo $annee_selectionnee == $annee ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($annee); ?>
-                    </option>
+                        <?php echo htmlspecialchars($annee); ?></option>
                     <?php } ?>
                 </select>
             </form>
 
-            <select id='categoryFilter' onchange='filterData()'>
-                <option value='all'>Toutes les catégories</option>
+            <select id="categoryFilter" onchange="filterData()">
+                <option value="all">Toutes les catégories</option>
                 <?php foreach ($categories_disponibles as $cat_code => $cat_libelle) { ?>
                 <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
-                    <?php if (!empty($cat_libelle)) { ?>
-                    <?php echo htmlspecialchars($cat_libelle) . ' (' . htmlspecialchars($cat_code) . ')'; ?>
-                    <?php } else { ?>
-                    <?php echo htmlspecialchars($cat_code); ?>
-                    <?php } ?>
+                    <?php echo !empty($cat_libelle) ? htmlspecialchars($cat_libelle) . ' (' . htmlspecialchars($cat_code) . ')' : htmlspecialchars($cat_code); ?>
                 </option>
                 <?php } ?>
             </select>
-            <div class='control-item'>
-                <input type='text' id='searchInput' onkeyup='filterData()' placeholder='🔍 Rechercher...'>
-            </div>
+
+            <input type="text" id="searchInput" onkeyup="filterData()" placeholder="🔍 Rechercher un nageur...">
         </div>
 
-        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-            <div class='control-item' style="flex: 1;">
-                <button type="button" onclick="exporterCsv()"
-                    style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
-                    📥 Exporter la sélection en CSV
-                </button>
-            </div>
-            <div class='control-item' style="flex: 1;">
-                <button type="button" id="btnToggleStats" onclick="toggleStats()"
-                    style="background-color: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; height: 100%;">
-                    📊 Afficher les Statistiques
-                </button>
-            </div>
+        <div class="actions-bar">
+            <div><button type="button" class="btn-success" onclick="exporterCsv()">📥 Exporter en CSV</button></div>
+            <div><button type="button" id="btnToggleStats" class="btn-info" onclick="toggleStats()">📊 Afficher les
+                    Statistiques</button></div>
         </div>
 
         <div id="statsContainer"
             style="display: none; background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--bordure); margin-bottom: 20px;">
             <h2 style="color: var(--couleur-principale); text-align: center; margin-bottom: 20px;">📊 Statistiques de la
                 sélection</h2>
-
-            <h3 style="color: #dc3545; font-size: medium; font-weight: 600; margin: 1rem;">* Attention il y a un
-                problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)</h3>
-
             <?php if ($annee_selectionnee !== 'all'): ?>
-            <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
-
-                <div
-                    style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
-                    <h3 style="margin:0; font-size: 2.5em; color: var(--couleur-principale);">
-                        <?php echo $statistiques['total_nageurs']; ?>
-                    </h3>
-                    <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Nageurs</p>
-                    <div style="font-size: 0.85em; color: #555; margin-top: 5px;">
-                        👩 <?php echo $statistiques['filles']; ?> Filles | 👨 <?php echo $statistiques['garcons']; ?>
-                        Garçons
-                    </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 style="color: var(--couleur-principale);"><?php echo $statistiques['total_nageurs']; ?></h3>
+                    <p>Nageurs</p>
+                    <div style="font-size: 0.85em; color: var(--texte-secondaire); margin-top: 5px;">👩
+                        <?php echo $statistiques['filles']; ?> Filles | 👨 <?php echo $statistiques['garcons']; ?>
+                        Garçons</div>
                 </div>
-
-                <div
-                    style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
-                    <h3 style="margin:0; font-size: 2.5em; color: #28a745;">
-                        <?php echo count($statistiques['nageurs_qualifies']); ?>
-                    </h3>
-                    <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Nageurs Qualifiés</p>
-                    <div style="font-size: 0.85em; color: #555; margin-top: 5px;">
-                        Sur <?php echo $statistiques['total_qualifications']; ?> épreuves au total
-                    </div>
+                <div class="stat-card">
+                    <h3 style="color: var(--succes);"><?php echo count($statistiques['nageurs_qualifies']); ?></h3>
+                    <p>Nageurs Qualifiés</p>
+                    <div style="font-size: 0.85em; color: var(--texte-secondaire); margin-top: 5px;">Sur
+                        <?php echo $statistiques['total_qualifications']; ?> épreuves au total</div>
                 </div>
-
-                <div
-                    style="flex: 1; min-width: 150px; background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
-                    <h3 style="margin:0; font-size: 2.5em; color: #17a2b8;">
-                        <?php echo $statistiques['total_performances']; ?>
-                    </h3>
-                    <p style="margin:0; color: var(--texte-secondaire); font-weight: bold;">Performances Totales</p>
+                <div class="stat-card">
+                    <h3 style="color: var(--info);"><?php echo $statistiques['total_performances']; ?></h3>
+                    <p>Performances Totales</p>
                 </div>
-
             </div>
-
             <?php if (count($statistiques['nageurs_qualifies']) > 0): ?>
-            <h3 style="color: var(--couleur-principale); margin-bottom: 10px;">🏅 Liste des nageurs qualifiés</h3>
+            <h3 style="color: var(--couleur-principale); margin-bottom: 15px;">🏅 Liste des nageurs qualifiés</h3>
             <ul style="list-style-type: none; padding: 0;">
                 <?php foreach ($statistiques['nageurs_qualifies'] as $q): ?>
-                <li style="padding: 10px; border-bottom: 1px solid #ddd;">
-                    <strong
-                        style="color: #28a745;"><?php echo htmlspecialchars($q['nom'] . ' ' . $q['prenom']); ?></strong>
-                    <span
-                        style="color: var(--couleur-secondaire);font-size: small;"><?php echo htmlspecialchars($q['categorie']); ?></span>
-                    <span style="color: #555; font-size: 0.9em; margin-left: 10px;">(Qualifié sur :
-                        <?php echo htmlspecialchars($q['epreuves']); ?>)</span>
+                <li
+                    style="padding: 12px; border-bottom: 1px solid var(--bordure); display: flex; flex-direction: column; gap: 4px;">
+                    <div>
+                        <strong
+                            style="color: var(--succes); font-size: 1.1rem;"><?php echo htmlspecialchars($q['nom'] . ' ' . $q['prenom']); ?></strong>
+                        <span
+                            style="background: var(--fond-page); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 8px; color: var(--texte-principal);"><?php echo htmlspecialchars($q['categorie']); ?></span>
+                    </div>
+                    <span style="color: var(--texte-secondaire); font-size: 0.9em;">🎯 Qualifié sur :
+                        <strong><?php echo htmlspecialchars($q['epreuves']); ?></strong></span>
                 </li>
                 <?php endforeach; ?>
             </ul>
             <?php else: ?>
-            <p style="text-align: center; color: #ff9800; font-weight: bold;">Aucun nageur qualifié n'a été trouvé.</p>
+            <p style="text-align: center; color: var(--avertissement); font-weight: bold; padding: 20px;">Aucun nageur
+                qualifié n'a été trouvé.</p>
             <?php endif; ?>
             <?php else: ?>
-            <p style="text-align: center; color: #ff9800; font-weight: bold;">Attention, l'affichage des
-                statistiques n'est pas possible quand toutes les saisons sont sélectionnées.
-            </p>
+            <p style="text-align: center; color: var(--avertissement); font-weight: bold; padding: 20px;">Les
+                statistiques ne sont pas disponibles pour "Toutes les saisons".</p>
             <?php endif; ?>
         </div>
 
         <?php if (empty($lignes_bdd)) { ?>
-        <p style='text-align:center; color:#ff9800; font-size:1.2em;'>
-            ⚠️ Aucun record trouvé pour l'année <?php echo htmlspecialchars($annee_selectionnee); ?>.
-        </p>
+        <p style='text-align:center; color: var(--avertissement); font-size:1.2em; padding: 40px;'>⚠️ Aucun record
+            trouvé pour l'année <?php echo htmlspecialchars($annee_selectionnee); ?>.</p>
         <?php } else { ?>
-        <div id='tableContainer' class='table-responsive'>
-            <table id='mainTable'>
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Profil</th> <?php foreach ($colonnes_epreuves as $epreuve) { ?>
-                        <th><?php echo htmlspecialchars($epreuve); ?></th>
-                        <?php } ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($profils_nageurs as $infos) { ?>
-                    <tr class='nageur-row'
-                        data-category='<?php echo htmlspecialchars($infos['categorie'], ENT_QUOTES); ?>'>
-                        <td><strong><?php echo htmlspecialchars($infos['nom']); ?></strong></td>
-                        <td><?php echo htmlspecialchars($infos['prenom']); ?></td>
 
-                        <td style="text-align: center; white-space: nowrap;">
-                            <?php echo htmlspecialchars($infos['date_naissance_str']); ?>
-                            <?php echo htmlspecialchars($infos['age_str']); ?><br>
+        <div id='tableContainer'>
+            <div class="tabs-ffessm">
+                <?php $premiere = true; foreach ($colonnes_epreuves as $epreuve) { ?>
+                <button class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
+                    onclick="openEpreuve(event, 'ep-<?php echo $epreuve; ?>')">
+                    <?php echo htmlspecialchars($epreuve); ?>
+                </button>
+                <?php $premiere = false; } ?>
+            </div>
 
-                            <?php if (!empty($infos['categorie_libelle'])): ?>
-                            <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
-                                <?php echo htmlspecialchars($infos['categorie_libelle']); ?>
-                            </span>
-                            <?php else: ?>
-                            <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
-                                <?php echo htmlspecialchars($infos['categorie']); ?>
-                            </span>
-                            <?php endif; ?>
-                        </td>
+            <div class="tabs-content-ffessm">
+                <?php $premiere = true; foreach ($colonnes_epreuves as $epreuve) { 
+                        $perfs = $performances_par_epreuve[$epreuve];
+                    ?>
+                <div id="ep-<?php echo $epreuve; ?>" class="tab-pane"
+                    style="display: <?php echo $premiere ? 'block' : 'none'; ?>;">
+                    <h2 style="color: var(--couleur-principale); margin-bottom: 20px; text-align: center;">🥇 Classement
+                        <?php echo htmlspecialchars($epreuve); ?></h2>
 
-                        <?php foreach ($colonnes_epreuves as $epreuve) { ?>
-                        <?php if (isset($infos['chronos'][$epreuve])) { ?>
-                        <?php $perf = $infos['chronos'][$epreuve]; ?>
-                        <td class='cell-temps'
-                            onclick='showChart(<?php echo $infos['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']); ?>")'>
-                            <?php
-                            $color_style = '';
-                            if ($perf['est_qualifie'] === true) {
-                                $color_style = 'color: #28a745; font-weight: bold;';  // Vert (Qualifié)
-                            } elseif ($perf['est_qualifie'] === false) {
-                                $color_style = 'color: #dc3545;';  // Rouge (Non qualifié)
-                            }
-                            // Si $perf['est_qualifie'] === null, ça garde la couleur par défaut (Noir)
-                            ?>
-                            <span class='chrono-val' style='<?php echo $color_style; ?>'>
-                                <?php echo htmlspecialchars($perf['temps']); ?>
-                            </span>
-                            <span class='chrono-info'>
-                                📍 <?php echo htmlspecialchars($perf['lieu']); ?><br>
-                                📅 <?php echo htmlspecialchars($perf['date']); ?><br>
-                                <?php if (!empty($perf['classement'])) { ?>
-                                🏅 Classé <strong><?php echo $perf['classement']; ?>e</strong> FR
-                                <?php } ?>
-                            </span>
-                        </td>
-                        <?php } else { ?>
-                        <td class='vide'>-</td>
-                        <?php } ?>
-                        <?php } ?>
-                    </tr>
-
-                    <?php } ?>
-                </tbody>
-            </table>
+                    <table class="table-rank">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Clt</th>
+                                <th>Nageur</th>
+                                <th>Catégorie</th>
+                                <th>Temps</th>
+                                <th>Date</th>
+                                <th>Lieu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($perfs as $index => $perf) { 
+                                    $color = '';
+                                    if ($perf['est_qualifie'] === true) $color = 'color: var(--succes); font-weight:bold;';
+                                    elseif ($perf['est_qualifie'] === false) $color = 'color: var(--danger);';
+                                ?>
+                            <tr class="nageur-row"
+                                data-category="<?php echo htmlspecialchars($perf['categorie'], ENT_QUOTES); ?>">
+                                <td data-label="Classement"
+                                    style="font-weight: bold; color: var(--couleur-principale); font-size: 1.1em;">
+                                    #<?php echo $index + 1; ?>
+                                </td>
+                                <td data-label="Nageur">
+                                    <div style="text-align: left;">
+                                        <strong
+                                            style="color: var(--texte-principal); display: block; font-size: 1.05rem;"><?php echo htmlspecialchars($perf['nom']); ?></strong>
+                                        <span
+                                            style="color: var(--texte-secondaire); font-size: 0.9rem;"><?php echo htmlspecialchars($perf['prenom']); ?></span>
+                                    </div>
+                                </td>
+                                <td data-label="Catégorie">
+                                    <span
+                                        style="background: var(--couleur-principale); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold;">
+                                        <?php echo htmlspecialchars($perf['categorie']); ?>
+                                    </span>
+                                </td>
+                                <td data-label="Temps" class="cell-temps"
+                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>")'>
+                                    <span
+                                        style="<?php echo $color; ?> cursor: pointer; display: block; font-size: 1.1em;">
+                                        <?php echo htmlspecialchars($perf['temps']); ?> 📈
+                                    </span>
+                                    <?php if (!empty($perf['classement'])) { ?>
+                                    <small style="color: var(--texte-secondaire);">🏅
+                                        <?php echo $perf['classement']; ?>e FR</small>
+                                    <?php } ?>
+                                </td>
+                                <td data-label="Date" style="color: var(--texte-secondaire); font-size: 0.9em;">
+                                    <?php echo htmlspecialchars($perf['date_perf']); ?>
+                                </td>
+                                <td data-label="Lieu" style="color: var(--texte-secondaire); font-size: 0.9em;">
+                                    <?php echo htmlspecialchars($perf['lieu']); ?>
+                                </td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php $premiere = false; } ?>
+            </div>
         </div>
         <?php } ?>
     </div>
+
     <div id="chartModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeChart()">&times;</span>
-            <h2 id="chartTitle">Évolution</h2>
-            <canvas id="evolutionChart"></canvas>
+            <h2 id="chartTitle"
+                style="margin-bottom: 20px; font-size: 1.3rem; color: var(--couleur-principale); padding-right: 40px;">
+                Évolution</h2>
+            <div style="position: relative; width: 100%;"><canvas id="evolutionChart"></canvas></div>
         </div>
     </div>
 
+    <script>
+    function openEpreuve(evt, epreuveId) {
+        let tabPanes = document.getElementsByClassName("tab-pane");
+        for (let i = 0; i < tabPanes.length; i++) tabPanes[i].style.display = "none";
+
+        let tabBtns = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < tabBtns.length; i++) tabBtns[i].className = tabBtns[i].className.replace(" active", "");
+
+        document.getElementById(epreuveId).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    function filterData() {
+        let searchValue = document.getElementById('searchInput').value.toLowerCase().trim();
+        let categoryValue = document.getElementById('categoryFilter').value;
+        let rows = document.querySelectorAll('.nageur-row');
+
+        rows.forEach(row => {
+            let rowCat = row.getAttribute('data-category');
+            // Le nom et prénom sont dans la 2ème cellule (index 1)
+            let nageur = row.cells[1] ? row.cells[1].textContent.toLowerCase() : "";
+
+            let matchText = nageur.includes(searchValue);
+            let matchCategory = (categoryValue === 'all' || rowCat === categoryValue);
+
+            row.style.display = (matchText && matchCategory) ? '' : 'none';
+        });
+    }
+    </script>
 </body>
 
 </html>
