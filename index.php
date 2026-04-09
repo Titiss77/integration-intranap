@@ -1,4 +1,5 @@
 <?php
+
 // 🔴 1. Démarrage de la session (Indispensable pour le CSRF et le Rate Limiting)
 session_start();
 
@@ -15,15 +16,15 @@ header('X-XSS-Protection: 1; mode=block');
 // header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
 // --- CHARGEMENT DES VARIABLES D'ENVIRONNEMENT ---
-require_once __DIR__ . '/config/Env.php';
-Env::load(__DIR__ . '/.env');
+require_once __DIR__.'/config/Env.php';
+Env::load(__DIR__.'/.env');
 
-require_once __DIR__ . '/controllers/PerformanceController.php';
+require_once __DIR__.'/controllers/PerformanceController.php';
 $controller = new PerformanceController();
 
 // Interception pour la SYNCHRONISATION
 if (isset($_GET['action']) && 'sync' === $_GET['action']) {
-    require_once __DIR__ . '/controllers/SyncController.php';
+    require_once __DIR__.'/controllers/SyncController.php';
     $sync = new SyncController();
 
     // 🔴 On passe le token reçu dans l'URL au contrôleur

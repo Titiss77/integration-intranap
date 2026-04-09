@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__.'/../config/Database.php';
 
 class SyncController
 {
@@ -29,12 +29,13 @@ class SyncController
 
         // 🔴 1. VÉRIFICATION CSRF
         // On vérifie que la session est bien démarrée pour accéder aux variables
-        if (session_status() === PHP_SESSION_NONE) {
+        if (PHP_SESSION_NONE === session_status()) {
             session_start();
         }
 
         if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token_recu)) {
             $this->sendSSE(0, 'Erreur de sécurité (Jeton CSRF invalide). Veuillez recharger la page.', true, true);
+
             return;
         }
 
@@ -44,6 +45,7 @@ class SyncController
         if (isset($_SESSION['last_sync_time']) && ($now - $_SESSION['last_sync_time']) < 300) {
             $attente = 300 - ($now - $_SESSION['last_sync_time']);
             $this->sendSSE(0, "Anti-spam : Veuillez patienter {$attente} secondes avant de relancer.", true, true);
+
             return;
         }
         // On met à jour l'heure de la dernière tentative
@@ -79,7 +81,7 @@ class SyncController
                         $params = ['action' => 'gettop', 'course' => $epreuve, 'bassin' => '0', 'cid' => '0', 'order' => 'tps', 'clubid' => '0', 'saison' => $saison, 'category' => $cat_code, 'token' => $this->token];
 
                         $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, $this->url . '?' . http_build_query($params));
+                        curl_setopt($ch, CURLOPT_URL, $this->url.'?'.http_build_query($params));
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
                         // 🔴 3. SÉCURITÉ SSL RÉACTIVÉE (Protection Man-In-The-Middle)
@@ -95,8 +97,9 @@ class SyncController
 
                         // Gestion explicite des erreurs cURL (utile pour débugger le SSL)
                         if (curl_errno($ch)) {
-                            $this->sendSSE(0, 'Erreur réseau FFESSM : ' . curl_error($ch), true, true);
+                            $this->sendSSE(0, 'Erreur réseau FFESSM : '.curl_error($ch), true, true);
                             curl_close($ch);
+
                             return;
                         }
 
@@ -123,10 +126,10 @@ class SyncController
 
                                         if (!empty($raw_date)) {
                                             if (preg_match('/^\d{4}$/', $raw_date)) {
-                                                $date_formatee = $raw_date . '-01-01';
+                                                $date_formatee = $raw_date.'-01-01';
                                             } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $raw_date)) {
                                                 $p = explode('/', $raw_date);
-                                                $date_formatee = $p[2] . '-' . $p[1] . '-' . $p[0];
+                                                $date_formatee = $p[2].'-'.$p[1].'-'.$p[0];
                                             } else {
                                                 $date_formatee = $raw_date;
                                             }
@@ -153,8 +156,8 @@ class SyncController
 
     private function sendSSE($progress, $message, $is_done = false, $is_error = false)
     {
-        echo 'data: ' . json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error]) . "\n\n";
-        echo str_pad('', 4096) . "\n";
+        echo 'data: '.json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error])."\n\n";
+        echo str_pad('', 4096)."\n";
         if (ob_get_level() > 0) {
             ob_flush();
         }
@@ -182,6 +185,7 @@ class SyncController
                 $updateStmt = $this->pdo->prepare('UPDATE nageurs SET date_naissance = ? WHERE id = ?');
                 $updateStmt->execute([$date_naissance, $nageur['id']]);
             }
+
             return $nageur['id'];
         }
 
