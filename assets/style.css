@@ -9,7 +9,7 @@
     --ligne-survol: #f5f5f7;
     --couleur-temps: #1d1d1f;
     --succes: #28a745;
-    --danger: #dc3545;
+    --danger: #dc9435;
     --info: #17a2b8;
     --avertissement: #ff9800;
 }
@@ -354,4 +354,45 @@ button:active {
         background-color: var(--ligne-survol);
         border-bottom: 2px solid var(--couleur-principale);
     }
+}
+
+/* ==========================================================================
+   BOUTON TEMPS (Pour inciter au clic sur le graphique)
+   ========================================================================== */
+.btn-evolution {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background-color: var(--fond-carte);
+    /* La bordure prend automatiquement la couleur du texte (vert, rouge ou noir) */
+    border: 2px solid currentColor;
+    font-size: 1.05em;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+}
+
+/* Effet d'enfoncement au clic/survol */
+.btn-evolution:hover,
+.cell-temps:active .btn-evolution {
+    transform: scale(0.95);
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.btn-evolution .icon {
+    font-size: 1.1em;
+}
+
+.classement-badge {
+    display: inline-block;
+    margin-top: 6px;
+    color: var(--texte-secondaire);
+    background: var(--ligne-survol);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.85em;
 }

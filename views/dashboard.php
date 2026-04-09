@@ -124,17 +124,21 @@
 
         <div id='tableContainer'>
             <div class="tabs-ffessm">
-                <?php $premiere = true; foreach ($colonnes_epreuves as $epreuve) { ?>
+                <?php $premiere = true;
+                foreach ($colonnes_epreuves as $epreuve) { ?>
                 <button class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
                     onclick="openEpreuve(event, 'ep-<?php echo $epreuve; ?>')">
                     <?php echo htmlspecialchars($epreuve); ?>
                 </button>
-                <?php $premiere = false; } ?>
+                <?php $premiere = false;
+                } ?>
             </div>
 
             <div class="tabs-content-ffessm">
-                <?php $premiere = true; foreach ($colonnes_epreuves as $epreuve) { 
-                        $perfs = $performances_par_epreuve[$epreuve];
+                <?php
+                $premiere = true;
+                foreach ($colonnes_epreuves as $epreuve) {
+                    $perfs = $performances_par_epreuve[$epreuve];
                     ?>
                 <div id="ep-<?php echo $epreuve; ?>" class="tab-pane"
                     style="display: <?php echo $premiere ? 'block' : 'none'; ?>;">
@@ -153,10 +157,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($perfs as $index => $perf) { 
-                                    $color = '';
-                                    if ($perf['est_qualifie'] === true) $color = 'color: var(--succes); font-weight:bold;';
-                                    elseif ($perf['est_qualifie'] === false) $color = 'color: var(--danger);';
+                            <?php
+                            foreach ($perfs as $index => $perf) {
+                                $color = '';
+                                if ($perf['est_qualifie'] === true)
+                                    $color = 'color: var(--succes); font-weight:bold;';
+                                elseif ($perf['est_qualifie'] === false)
+                                    $color = 'color: var(--danger);';
                                 ?>
                             <tr class="nageur-row"
                                 data-category="<?php echo htmlspecialchars($perf['categorie'], ENT_QUOTES); ?>">
@@ -180,13 +187,25 @@
                                 </td>
                                 <td data-label="Temps" class="cell-temps"
                                     onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>", "<?php echo htmlspecialchars($perf['categorie']); ?>")'>
-                                    <span
-                                        style="<?php echo $color; ?> cursor: pointer; display: block; font-size: 1.1em;">
-                                        <?php echo htmlspecialchars($perf['temps']); ?> 📈
-                                    </span>
+                                    <?php
+                                    // Définition de la couleur selon la qualification
+                                    $color = 'color: var(--texte-principal);';
+                                    if ($perf['est_qualifie'] === true)
+                                        $color = 'color: var(--succes);';
+                                    elseif ($perf['est_qualifie'] === false)
+                                        $color = 'color: var(--danger);';
+                                    ?>
+
+                                    <div class="btn-evolution" style="<?php echo $color; ?>" title="Voir l'évolution">
+                                        <span><?php echo htmlspecialchars($perf['temps']); ?></span>
+                                        <span class="icon">📊</span>
+                                    </div>
+
                                     <?php if (!empty($perf['classement'])) { ?>
-                                    <small style="color: var(--texte-secondaire);">🏅
-                                        <?php echo $perf['classement']; ?>e FR</small>
+                                    <div>
+                                        <small class="classement-badge">🏅 <?php echo $perf['classement']; ?>e
+                                            FR</small>
+                                    </div>
                                     <?php } ?>
                                 </td>
                                 <td data-label="Date" style="color: var(--texte-secondaire); font-size: 0.9em;">
@@ -200,7 +219,8 @@
                         </tbody>
                     </table>
                 </div>
-                <?php $premiere = false; } ?>
+                <?php $premiere = false;
+                } ?>
             </div>
         </div>
         <?php } ?>
