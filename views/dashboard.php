@@ -173,27 +173,19 @@
                     <?php foreach ($profils_nageurs as $infos) { ?>
                     <tr class='nageur-row'
                         data-category='<?php echo htmlspecialchars($infos['categorie'], ENT_QUOTES); ?>'>
+                        <td><strong><?php echo htmlspecialchars($infos['nom']); ?></strong></td>
+                        <td><?php echo htmlspecialchars($infos['prenom']); ?></td>
 
-                        <td class="sticky-col"
-                            title="<?php echo htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']); ?>">
-                            <div class="nageur-nom-compact">
-                                <strong><?php echo htmlspecialchars($infos['nom']); ?></strong>
-                                <span><?php echo htmlspecialchars($infos['prenom']); ?></span>
-                            </div>
-                        </td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            <?php echo htmlspecialchars($infos['date_naissance_str']); ?>
+                            <?php echo htmlspecialchars($infos['age_str']); ?><br>
 
-                        <td data-label="Profil" style="text-align: right;">
-                            <span
-                                style="display:inline-block; font-size: 0.9em; margin-right: 8px;"><?php echo htmlspecialchars($infos['date_naissance_str']); ?>
-                                <?php echo htmlspecialchars($infos['age_str']); ?></span>
                             <?php if (!empty($infos['categorie_libelle'])): ?>
-                            <span
-                                style="display: inline-block; background: var(--couleur-principale); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">
+                            <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
                                 <?php echo htmlspecialchars($infos['categorie_libelle']); ?>
                             </span>
                             <?php else: ?>
-                            <span
-                                style="display: inline-block; background: var(--couleur-principale); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">
+                            <span style="font-size: 0.85em; font-weight: bold; color: var(--primary);">
                                 <?php echo htmlspecialchars($infos['categorie']); ?>
                             </span>
                             <?php endif; ?>
@@ -202,34 +194,34 @@
                         <?php foreach ($colonnes_epreuves as $epreuve) { ?>
                         <?php if (isset($infos['chronos'][$epreuve])) { ?>
                         <?php $perf = $infos['chronos'][$epreuve]; ?>
-                        <td data-label="<?php echo htmlspecialchars($epreuve); ?>" class='cell-temps'
+                        <td class='cell-temps'
                             onclick='showChart(<?php echo $infos['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($infos['nom'] . ' ' . $infos['prenom']); ?>")'>
                             <?php
-                                        $color_style = '';
-                                        if ($perf['est_qualifie'] === true) {
-                                            $color_style = 'color: var(--succes); font-weight: bold;';
-                                        } elseif ($perf['est_qualifie'] === false) {
-                                            $color_style = 'color: var(--danger);';
-                                        }
-                                        ?>
-                            <div style="text-align: right;">
-                                <span class='chrono-val' style='<?php echo $color_style; ?>'>
-                                    <?php echo htmlspecialchars($perf['temps']); ?>
-                                </span>
-                                <span class='chrono-info'>
-                                    📍 <?php echo htmlspecialchars($perf['lieu']); ?> | 📅
-                                    <?php echo htmlspecialchars($perf['date']); ?>
-                                    <?php if (!empty($perf['classement'])) { ?>
-                                    <br>🏅 Classé <strong><?php echo $perf['classement']; ?>e</strong> FR
-                                    <?php } ?>
-                                </span>
-                            </div>
+                            $color_style = '';
+                            if ($perf['est_qualifie'] === true) {
+                                $color_style = 'color: #28a745; font-weight: bold;';  // Vert (Qualifié)
+                            } elseif ($perf['est_qualifie'] === false) {
+                                $color_style = 'color: #dc3545;';  // Rouge (Non qualifié)
+                            }
+                            // Si $perf['est_qualifie'] === null, ça garde la couleur par défaut (Noir)
+                            ?>
+                            <span class='chrono-val' style='<?php echo $color_style; ?>'>
+                                <?php echo htmlspecialchars($perf['temps']); ?>
+                            </span>
+                            <span class='chrono-info'>
+                                📍 <?php echo htmlspecialchars($perf['lieu']); ?><br>
+                                📅 <?php echo htmlspecialchars($perf['date']); ?><br>
+                                <?php if (!empty($perf['classement'])) { ?>
+                                🏅 Classé <strong><?php echo $perf['classement']; ?>e</strong> FR
+                                <?php } ?>
+                            </span>
                         </td>
                         <?php } else { ?>
-                        <td data-label="<?php echo htmlspecialchars($epreuve); ?>" class='vide'>-</td>
+                        <td class='vide'>-</td>
                         <?php } ?>
                         <?php } ?>
                     </tr>
+
                     <?php } ?>
                 </tbody>
             </table>
