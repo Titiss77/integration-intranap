@@ -13,7 +13,8 @@ function lancerSync() {
     progressBar.innerText = '0%';
     progressText.innerText = 'Connexion à la base FFESSM...';
 
-    const evtSource = new EventSource("index.php?action=sync");
+    
+const evtSource = new EventSource("index.php?action=sync&token=" + encodeURIComponent(CSRF_TOKEN));
 
     evtSource.onmessage = function(event) {
         const data = JSON.parse(event.data);

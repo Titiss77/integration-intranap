@@ -1,0 +1,9 @@
+# Bloquer l'accès aux fichiers de configuration
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# Optionnel : Bloquer l'accès aux fichiers SQL
+<FilesMatch "\.sql$">
+    Require all denied
+</FilesMatch>
