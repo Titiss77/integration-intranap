@@ -1,0 +1,6 @@
+{
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.94",
+        "php-cs-fixer/shim": "^3.9"
+    }
+}
