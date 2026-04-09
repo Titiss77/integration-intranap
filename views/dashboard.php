@@ -203,8 +203,7 @@
 
                                     <?php if (!empty($perf['classement'])) { ?>
                                     <div>
-                                        <small class="classement-badge">🏅 <?php echo $perf['classement']; ?>e
-                                            FR</small>
+                                        <small class="classement-badge">🏅 <?php echo $perf['classement']; ?>e</small>
                                     </div>
                                     <?php } ?>
                                 </td>
