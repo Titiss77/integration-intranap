@@ -179,7 +179,7 @@
                                     </span>
                                 </td>
                                 <td data-label="Temps" class="cell-temps"
-                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>")'>
+                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>", "<?php echo htmlspecialchars($perf['categorie']); ?>")'>
                                     <span
                                         style="<?php echo $color; ?> cursor: pointer; display: block; font-size: 1.1em;">
                                         <?php echo htmlspecialchars($perf['temps']); ?> 📈

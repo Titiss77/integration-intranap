@@ -147,29 +147,51 @@ class PerformanceController
         return (float) $parts[0];
     }
 
-    public function getHistoryApi() { /* Inchangé... */ 
+    public function getHistoryApi()
+    {
         $nageur_id = $_GET['nageur_id'] ?? 0;
         $epreuve = $_GET['epreuve'] ?? '';
+        $categorie = $_GET['categorie'] ?? ''; // NOUVEAU : On récupère la catégorie
+
         $pdo = Database::getConnection();
         $model = new PerformanceModel($pdo);
         $history = $model->getHistorique($nageur_id, $epreuve);
+
         $data = [];
         foreach ($history as $h) {
-            $data[] = ['date' => $h['date_perf'], 'temps_str' => $h['temps'], 'temps_sec' => $this->timeToSeconds($h['temps']), 'lieu' => $h['lieu']];
+            $data[] = [
+                'date' => $h['date_perf'],
+                'temps_str' => $h['temps'],
+                'temps_sec' => $this->timeToSeconds($h['temps']),
+                'lieu' => $h['lieu'],
+            ];
         }
-        usort($data, function ($a, $b) { return strcmp(implode('', array_reverse(explode('/', $a['date']))), implode('', array_reverse(explode('/', $b['date'])))); });
-        $temps_ref_sec = null; $temps_ref_str = null;
-        $categories_actuelles = $model->getCategoriesActuelles();
-        if (isset($categories_actuelles[$nageur_id])) {
-            $categorie_actuelle = $categories_actuelles[$nageur_id]['nom_categorie'];
+
+        // Tri chronologique des dates
+        usort($data, function ($a, $b) {
+            $da = implode('', array_reverse(explode('/', $a['date'])));
+            $db = implode('', array_reverse(explode('/', $b['date'])));
+            return strcmp($da, $db);
+        });
+
+        $temps_ref_sec = null;
+        $temps_ref_str = null;
+
+        // Recherche du temps de qualif précis pour la catégorie demandée
+        if (!empty($categorie)) {
             $grille = $model->getGrilleQualifs();
-            if (isset($grille[$categorie_actuelle][$epreuve])) {
-                $temps_ref_str = $grille[$categorie_actuelle][$epreuve];
+            if (isset($grille[$categorie][$epreuve])) {
+                $temps_ref_str = $grille[$categorie][$epreuve];
                 $temps_ref_sec = $this->timeToSeconds($temps_ref_str);
             }
         }
+
         header('Content-Type: application/json');
-        echo json_encode(['history' => $data, 'temps_ref_sec' => $temps_ref_sec, 'temps_ref_str' => $temps_ref_str]);
+        echo json_encode([
+            'history' => $data,
+            'temps_ref_sec' => $temps_ref_sec,
+            'temps_ref_str' => $temps_ref_str
+        ]);
     }
 
     public function exportCsv() { /* Inchangé... */ 

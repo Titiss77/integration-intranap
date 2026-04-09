@@ -77,14 +77,19 @@ function filterData() {
 // --- 3. FONCTIONS POUR LE GRAPHIQUE ---
 let myChart = null;
 
-async function showChart(nageurId, epreuve, nomComplet) {
+async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
     document.getElementById('chartModal').style.display = 'block';
     document.getElementById('chartTitle').innerText = "📈 Évolution de " + nomComplet + " sur " + epreuve;
     
-    let response = await fetch('index.php?action=history&nageur_id=' + nageurId + '&epreuve=' + epreuve);
+    // NOUVEAU : On ajoute la catégorie à l'URL si elle existe
+    let url = 'index.php?action=history&nageur_id=' + nageurId + '&epreuve=' + epreuve;
+    if (categorie !== '') {
+        url += '&categorie=' + encodeURIComponent(categorie);
+    }
+
+    let response = await fetch(url);
     let responseData = await response.json();
     
-    // Extraction des données de la nouvelle structure JSON
     let data = responseData.history;
     let tempsRefSec = responseData.temps_ref_sec;
     let tempsRefStr = responseData.temps_ref_str;
@@ -96,7 +101,6 @@ async function showChart(nageurId, epreuve, nomComplet) {
     const ctx = document.getElementById('evolutionChart').getContext('2d');
     if (myChart) { myChart.destroy(); }
     
-    // 1er Dataset : Les performances du nageur
     let datasets = [{
         label: 'Temps chronométré',
         data: values,
@@ -106,16 +110,15 @@ async function showChart(nageurId, epreuve, nomComplet) {
         pointBackgroundColor: '#0056b3', fill: true, tension: 0.2
     }];
 
-    // 2ème Dataset : La ligne de qualification (si elle existe)
+    // Ajout de la ligne d'objectif si elle est trouvée en BDD
     if (tempsRefSec !== null) {
         datasets.push({
             label: 'Objectif Qualif (' + tempsRefStr + ')',
-            // On crée un tableau avec la même valeur pour tracer une ligne droite
             data: data.map(() => tempsRefSec),
-            borderColor: '#dc3545', // Rouge
+            borderColor: '#dc3545',
             borderWidth: 2,
-            borderDash: [5, 5], // Ligne en pointillés
-            pointRadius: 0, // Ne pas afficher de points sur cette ligne
+            borderDash: [5, 5],
+            pointRadius: 0,
             fill: false,
             tension: 0
         });
@@ -123,21 +126,17 @@ async function showChart(nageurId, epreuve, nomComplet) {
     
     myChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
+        data: { labels: labels, datasets: datasets },
         options: {
             responsive: true,
             plugins: { 
                 tooltip: { 
                     callbacks: { 
                         label: function(c) { 
-                            // On adapte le texte du survol selon la ligne ciblée
                             if (c.datasetIndex === 0) {
                                 return " Chrono : " + tooltips[c.dataIndex]; 
                             } else {
-                                return " Objectif à atteindre : " + tempsRefStr;
+                                return " Objectif : " + tempsRefStr;
                             }
                         } 
                     } 
