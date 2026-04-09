@@ -79,9 +79,8 @@ let myChart = null;
 
 async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
     document.getElementById('chartModal').style.display = 'block';
-    document.getElementById('chartTitle').innerText = "📈 Évolution de " + nomComplet + " sur " + epreuve;
+    document.getElementById('chartTitle').innerText = "📈 Évolution : " + nomComplet; // Titre plus court
     
-    // NOUVEAU : On ajoute la catégorie à l'URL si elle existe
     let url = 'index.php?action=history&nageur_id=' + nageurId + '&epreuve=' + epreuve;
     if (categorie !== '') {
         url += '&categorie=' + encodeURIComponent(categorie);
@@ -94,7 +93,11 @@ async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
     let tempsRefSec = responseData.temps_ref_sec;
     let tempsRefStr = responseData.temps_ref_str;
     
-    const labels = data.map(d => d.date + " (" + d.lieu + ")");
+    // 🔴 1. On ne met plus que la DATE sur l'axe X pour gagner de la place
+    const labels = data.map(d => d.date);
+    // 🔴 2. On prépare le détail complet (Date + Lieu) pour l'afficher au clic (Tooltip)
+    const fullDetails = data.map(d => d.date + " - " + d.lieu);
+    
     const values = data.map(d => d.temps_sec);
     const tooltips = data.map(d => d.temps_str);
     
@@ -102,18 +105,17 @@ async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
     if (myChart) { myChart.destroy(); }
     
     let datasets = [{
-        label: 'Temps chronométré',
+        label: 'Temps',
         data: values,
         borderColor: '#007bff',
         backgroundColor: 'rgba(0, 123, 255, 0.1)',
-        borderWidth: 3, pointRadius: 6, pointHoverRadius: 8,
+        borderWidth: 3, pointRadius: 5, pointHoverRadius: 8,
         pointBackgroundColor: '#0056b3', fill: true, tension: 0.2
     }];
 
-    // Ajout de la ligne d'objectif si elle est trouvée en BDD
     if (tempsRefSec !== null) {
         datasets.push({
-            label: 'Objectif Qualif (' + tempsRefStr + ')',
+            label: 'Objectif (' + tempsRefStr + ')',
             data: data.map(() => tempsRefSec),
             borderColor: '#dc3545',
             borderWidth: 2,
@@ -129,20 +131,39 @@ async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
         data: { labels: labels, datasets: datasets },
         options: {
             responsive: true,
+            maintainAspectRatio: false, // 🔴 INDISPENSABLE : Laisse le CSS (60vh) décider de la hauteur !
             plugins: { 
+                legend: {
+                    position: 'bottom' // On descend la légende pour libérer le haut
+                },
                 tooltip: { 
                     callbacks: { 
+                        title: function(context) {
+                            // 🔴 Affiche le Date + Lieu complet en gras dans la bulle
+                            return fullDetails[context[0].dataIndex];
+                        },
                         label: function(c) { 
                             if (c.datasetIndex === 0) {
-                                return " Chrono : " + tooltips[c.dataIndex]; 
+                                return " ⏱️ Chrono : " + tooltips[c.dataIndex]; 
                             } else {
-                                return " Objectif : " + tempsRefStr;
+                                return " 🎯 Objectif : " + tempsRefStr;
                             }
                         } 
                     } 
                 } 
             },
-            scales: { y: { reverse: true, title: { display: true, text: 'Plus rapide ⬆️' } } }
+            scales: { 
+                x: {
+                    ticks: {
+                        maxRotation: 45, // Incline légèrement les dates, mais pas trop (évite le texte vertical)
+                        minRotation: 45
+                    }
+                },
+                y: { 
+                    reverse: true, 
+                    title: { display: false } // On retire le texte "Plus rapide ⬆️" qui écrase le graph à gauche
+                } 
+            }
         }
     });
 }

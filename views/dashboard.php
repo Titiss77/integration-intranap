@@ -14,7 +14,7 @@
 
 <body>
     <div class="container">
-        <h1>🏆 Meilleurs Temps du Club</h1>
+        <h1>🏆 Meilleurs Temps du PEC</h1>
 
         <div style="margin-bottom: 20px;">
             <button id="btnSync" class="btn-primary" onclick="lancerSync()">
@@ -235,7 +235,9 @@
             <h2 id="chartTitle"
                 style="margin-bottom: 20px; font-size: 1.3rem; color: var(--couleur-principale); padding-right: 40px;">
                 Évolution</h2>
-            <div style="position: relative; width: 100%;"><canvas id="evolutionChart"></canvas></div>
+            <div style="position: relative; width: 100%; height: 60vh; min-height: 350px;">
+                <canvas id="evolutionChart"></canvas>
+            </div>
         </div>
     </div>
 
