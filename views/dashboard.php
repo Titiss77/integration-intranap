@@ -75,10 +75,9 @@
             <h2 style="color: var(--couleur-principale); text-align: center; margin-bottom: 20px;">📊 Statistiques de la
                 sélection</h2>
 
+            <?php if ('all' !== $annee_selectionnee) { ?>
             <h3 style="color: #dc3545; font-size: medium; font-weight: 600; margin: 1rem;">* Attention il y a un
                 problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)</h3>
-
-            <?php if ('all' !== $annee_selectionnee) { ?>
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3 style="color: var(--couleur-principale);"><?php echo $statistiques['total_nageurs']; ?></h3>
