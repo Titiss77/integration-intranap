@@ -261,6 +261,64 @@
         </div>
     </div>
 
+    </div>
+    <footer
+        style="text-align: center; margin-top: 20px; padding: 20px; color: var(--texte-secondaire); font-size: 0.85rem;">
+        <p>© <?php echo date('Y'); ?> - Palmes en Cornouailles (PEC) | <a href="#" onclick="openPrivacy(event)"
+                style="color: var(--couleur-principale); text-decoration: none; font-weight: bold;">Politique de
+                Confidentialité & Mentions Légales</a></p>
+    </footer>
+
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePrivacy()">&times;</span>
+            <h2 style="color: var(--couleur-principale); margin-bottom: 15px;">🛡️ Politique de Confidentialité</h2>
+            <div
+                style="line-height: 1.6; font-size: 0.95rem; color: var(--texte-principal); max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                <h3>1. Éditeur de l'application</h3>
+                <p>Cette application est éditée par le club <strong>Palmes en Cornouailles (PEC)</strong>.</p>
+
+                <h3 style="margin-top: 15px;">2. Données collectées</h3>
+                <p>Afin de proposer un suivi sportif, nous affichons les données suivantes : Nom, Prénom, Année de
+                    naissance, Genre, Catégorie et Performances sportives (Temps, Date, Lieu).</p>
+
+                <h3 style="margin-top: 15px;">3. Source des données</h3>
+                <p>Ces données sont strictement publiques et synchronisées automatiquement depuis la base de données
+                    officielle de la <strong>Fédération Française d'Études et de Sports Sous-Marins (FFESSM)</strong>.
+                </p>
+
+                <h3 style="margin-top: 15px;">4. Finalité</h3>
+                <p>Le traitement a pour seule finalité le suivi des performances et l'affichage des classements internes
+                    du club (intérêt légitime).</p>
+
+                <h3 style="margin-top: 15px;">5. Vos droits (Droit à l'oubli)</h3>
+                <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et d'effacement de vos
+                    données sur cette interface. Pour exercer ce droit ou retirer vos performances de notre affichage,
+                    contactez-nous à : <strong>
+                        <?php echo $_ENV['EMAIL_CONTACT'] ?? 'root'; ?>
+                    </strong>.</p>
+
+                <h3 style="margin-top: 15px;">6. Cookies</h3>
+                <p>Ce site n'utilise aucun cookie de ciblage publicitaire ou de suivi analytique. Seul un cookie
+                    technique de session ("PHPSESSID"), strictement nécessaire au fonctionnement et à la sécurité de
+                    l'application (prévention des attaques CSRF), est utilisé. En vertu des directives de la CNIL, ce
+                    cookie technique est exempté de recueil de consentement préalable.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="cookieBanner"
+        style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--texte-principal); color: white; padding: 15px 20px; text-align: center; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);">
+        <p style="margin: 0; font-size: 0.9rem; display: inline-block; max-width: 800px; text-align: left;">
+            ℹ️ <strong>Information :</strong> Ce site utilise uniquement des cookies techniques essentiels pour garantir
+            la sécurité et le bon fonctionnement de l'application. Aucun suivi publicitaire n'est effectué.
+            <a href="#" onclick="openPrivacy(event)" style="color: #a6e22e; text-decoration: underline;">En savoir
+                plus</a>.
+        </p>
+        <button onclick="acceptCookies()"
+            style="background: var(--succes); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 15px;">Compris</button>
+    </div>
+
     <script>
     function openEpreuve(evt, epreuveId) {
         let tabPanes = document.getElementsByClassName("tab-pane");

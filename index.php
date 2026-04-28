@@ -1,19 +1,29 @@
 <?php
 
-// 🔴 1. Démarrage de la session (Indispensable pour le CSRF et le Rate Limiting)
+// 🔴 1. Sécurisation extrême du cookie de session (RGPD / Sécurité)
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => $_SERVER['HTTP_HOST'],
+    'secure' => isset($_SERVER['HTTPS']), // true si HTTPS est actif
+    'httponly' => true, // Empêche l'accès au cookie via JavaScript (anti-XSS)
+    'samesite' => 'Strict' // Empêche l'envoi du cookie depuis d'autres sites (anti-CSRF)
+]);
+
+// 🔴 2. Démarrage de la session
 session_start();
 
-// 🔴 2. Génération d'un jeton CSRF unique pour la session s'il n'existe pas
+// 🔴 3. Génération d'un jeton CSRF unique
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// 🔴 3. En-têtes de sécurité HTTP
+// 🔴 4. En-têtes de sécurité HTTP
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
-// Force le HTTPS si disponible
-// header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+// Dé-commenté pour forcer le HTTPS (très important pour le RGPD)
+header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
 // --- CHARGEMENT DES VARIABLES D'ENVIRONNEMENT ---
 require_once __DIR__.'/config/Env.php';

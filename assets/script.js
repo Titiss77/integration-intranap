@@ -354,3 +354,41 @@ window.onclick = function(event) {
     if (event.target == chartModal) { closeChart(); }
     if (event.target == logModal) { closeLogs(); }
 }
+
+// --- 7. FONCTIONS RGPD (Cookies & Mentions Légales) ---
+
+// Vérifie au chargement de la page si l'utilisateur a déjà cliqué sur "Compris"
+document.addEventListener("DOMContentLoaded", function() {
+    if (!localStorage.getItem("rgpd_accepted")) {
+        document.getElementById("cookieBanner").style.display = "flex";
+        document.getElementById("cookieBanner").style.alignItems = "center";
+        document.getElementById("cookieBanner").style.justifyContent = "center";
+        document.getElementById("cookieBanner").style.flexWrap = "wrap";
+        document.getElementById("cookieBanner").style.gap = "10px";
+    }
+});
+
+function acceptCookies() {
+    localStorage.setItem("rgpd_accepted", "true");
+    document.getElementById("cookieBanner").style.display = "none";
+}
+
+function openPrivacy(e) {
+    if (e) e.preventDefault();
+    document.getElementById('privacyModal').style.display = 'block';
+}
+
+function closePrivacy() {
+    document.getElementById('privacyModal').style.display = 'none';
+}
+
+// MISE À JOUR DE LA FERMETURE AU CLIC EN DEHORS DES MODALES
+window.onclick = function(event) {
+    let chartModal = document.getElementById('chartModal');
+    let logModal = document.getElementById('logModal');
+    let privacyModal = document.getElementById('privacyModal');
+    
+    if (event.target == chartModal) { closeChart(); }
+    if (event.target == logModal) { closeLogs(); }
+    if (event.target == privacyModal) { closePrivacy(); }
+}
