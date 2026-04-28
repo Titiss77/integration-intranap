@@ -1,0 +1,2 @@
+# Liste des nageurs qui ne souhaitent pas apparaitre dans le l'intranap
+# NOM Prenom

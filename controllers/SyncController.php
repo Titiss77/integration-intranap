@@ -54,6 +54,20 @@ class SyncController
         ob_implicit_flush(true);
         set_time_limit(0);
 
+        // 🔴 1. CHARGEMENT DE LA BLACKLIST
+        $blacklist = [];
+        $chemin_blacklist = __DIR__ . '/../blacklist.txt';
+        if (file_exists($chemin_blacklist)) {
+            $lignes = file($chemin_blacklist, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lignes as $ligne) {
+                // On ignore les lignes commentées avec #
+                if (strpos(trim($ligne), '#') !== 0) {
+                    // On met tout en minuscules pour faciliter la comparaison
+                    $blacklist[] = mb_strtolower(trim($ligne), 'UTF-8');
+                }
+            }
+        }
+
         $saisons = [date('Y')];
         $liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $categories_genre = ['F' => 'Femmes', 'M' => 'Hommes'];
@@ -92,70 +106,90 @@ class SyncController
                         if ($response) {
                             $donnees = json_decode($response, true);
                             if (is_array($donnees)) {
-                                $compteur_lignes = [];  // Compte le nombre total de nageurs
-                                $vraie_position = [];  // Stocke le rang officiel (gère les ex-aequo)
-                                $dernier_temps = [];  // Mémorise le chrono précédent
+                                $compteur_lignes = [];
+                                $vraie_position = [];
+                                $dernier_temps = [];
 
                                 foreach ($donnees as $n) {
                                     $cat_nageur = $n['categorie'] ?? 'NC';
 
-                                    // Initialisation pour une nouvelle catégorie
                                     if (!isset($compteur_lignes[$cat_nageur])) {
                                         $compteur_lignes[$cat_nageur] = 0;
                                         $vraie_position[$cat_nageur] = 0;
                                         $dernier_temps[$cat_nageur] = null;
                                     }
 
-                                    // On incrémente le nombre de nageurs passés
                                     $compteur_lignes[$cat_nageur]++;
 
-                                    // Si le chrono est différent du précédent, le rang devient égal au nombre de nageurs
                                     if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
                                         $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
                                         $dernier_temps[$cat_nageur] = $n['temps'];
                                     }
 
-                                    // On assigne le rang calculé
                                     $position_nationale = $vraie_position[$cat_nageur];
 
                                     if (isset($n['club']) && $n['club'] === $this->club_cible) {
-                                        $nageur_id = $this->getOrCreateNageur($n['nom'], $n['prenom'], $cat_nom, null);
+                                        $nom_nageur = $n['nom'] ?? '';
+                                        $prenom_nageur = $n['prenom'] ?? '';
+
+                                        // 🔴 2. VÉRIFICATION BLACKLIST POUR CE NAGEUR
+                                        $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
+                                        $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
+                                        
+                                        $est_blacklist = false;
+                                        foreach ($blacklist as $bl_nom) {
+                                            if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
+                                                $est_blacklist = true;
+                                                break;
+                                            }
+                                        }
+
+                                        // Si le nageur est sur liste noire
+                                        if ($est_blacklist) {
+                                            // On tente de le supprimer de la base (si jamais il y était avant son ajout à la liste)
+                                            $stmtDel = $this->pdo->prepare('DELETE FROM nageurs WHERE nom = ? AND prenom = ?');
+                                            $stmtDel->execute([$nom_nageur, $prenom_nageur]);
+                                            
+                                            // Si on a bien supprimé quelqu'un, on le loggue pour information
+                                            if ($stmtDel->rowCount() > 0) {
+                                                $info = "Suppression des données de : {$prenom_nageur} {$nom_nageur}";
+                                                $modifs_session[] = "[BLACKLIST] " . $info;
+                                                $this->writeToLog("[BLACKLIST] " . $info);
+                                            }
+                                            
+                                            // On saute ce nageur et on passe au suivant (aucune insertion)
+                                            continue; 
+                                        }
+
+                                        $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
                                         $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
                                         $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
 
-                                        // 🔴 1. On cherche le meilleur temps précédent pour cette épreuve (pour voir s'il y a un nouveau chrono)
                                         $stmtBest = $this->pdo->prepare('SELECT temps FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? ORDER BY temps ASC LIMIT 1');
                                         $stmtBest->execute([$nageur_id, $epreuve_id, $saison]);
                                         $old_best = $stmtBest->fetch(PDO::FETCH_ASSOC);
 
-                                        // 🔴 2. On cherche la ligne EXACTE (même chrono et même date) pour voir si juste le classement a évolué
                                         $stmtExact = $this->pdo->prepare('SELECT classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND temps = ? AND date_perf = ?');
                                         $stmtExact->execute([$nageur_id, $epreuve_id, $n['temps'], $n['date'] ?? '']);
                                         $old_exact = $stmtExact->fetch(PDO::FETCH_ASSOC);
 
-                                        // Insertion ou mise à jour
                                         $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
 
-                                        // 🔴 3. Analyse des changements pour les logs
                                         if ($affectedRows > 0) {
                                             if ($affectedRows === 1) {
-                                                // NOUVELLE LIGNE : C'est soit une toute première perf, soit un nouveau temps par rapport à avant
                                                 if ($old_best && $old_best['temps'] !== $n['temps']) {
-                                                    $info = "{$n['prenom']} {$n['nom']} ({$epreuve}) | Ancien temps : {$old_best['temps']} -> Nouveau : {$n['temps']} à {$n['lieu']}";
+                                                    $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ancien temps : {$old_best['temps']} -> Nouveau : {$n['temps']} à {$n['lieu']}";
                                                     $modifs_session[] = $info;
                                                     $this->writeToLog('[NOUVEAU TEMPS] ' . $info);
                                                 } else {
-                                                    $info = "{$n['prenom']} {$n['nom']} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
+                                                    $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
                                                     $modifs_session[] = $info;
                                                     $this->writeToLog('[AJOUT] ' . $info);
                                                 }
                                             } elseif ($affectedRows === 2) {
-                                                // MISE À JOUR : Le temps existait déjà mais le classement (ON DUPLICATE KEY UPDATE) a changé
                                                 $ancien_clt = ($old_exact && $old_exact['classement'] !== null) ? $old_exact['classement'] : 'NC';
-
                                                 if ($ancien_clt != $position_nationale) {
-                                                    $info = "{$n['prenom']} {$n['nom']} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau Clt : {$position_nationale}";
-                                                    // On peut choisir d'afficher ça ou non sur l'interface (ici oui).
+                                                    $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau Clt : {$position_nationale}";
                                                     $modifs_session[] = $info;
                                                     $this->writeToLog('[MAJ CLASSEMENT] ' . $info);
                                                 }
@@ -230,11 +264,9 @@ class SyncController
         return $stmt->rowCount();
     }
 
-    // NOUVELLE MÉTHODE : Lire le fichier de log
     public function getLogs()
     {
         if (file_exists($this->log_file)) {
-            // On renvoie le contenu brut pour l'analyse JS
             echo file_get_contents($this->log_file);
         } else {
             echo 'Aucun historique.';
