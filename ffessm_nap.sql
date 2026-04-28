@@ -1,6 +1,6 @@
-DroP DATABASE IF EXISTS `ffessm_nap`;
-CREATE DATABASE `ffessm_nap` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `ffessm_nap`;
+DroP DATABASE IF EXISTS `b7_41112099_intranap_club`;
+CREATE DATABASE `b7_41112099_intranap_club` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `b7_41112099_intranap_club`;
 
 DROP TABLE IF EXISTS `performances`;
 DROP TABLE IF EXISTS `lieux`;
