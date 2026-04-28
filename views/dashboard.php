@@ -250,17 +250,17 @@
         </div>
     </div>
 
-    <div id="logContent" style="padding: 15px; border-radius: 8px; max-height: 60vh; overflow-y: auto;">
+    <div id="logModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <span class="close-btn" onclick="closeLogs()">&times;</span>
             <h2 style="color: var(--couleur-principale); margin-bottom: 15px; font-size: 1.3rem;">📜 Historique des
                 synchronisations</h2>
-            <div id="logContent"
-                style="background: #1e1e1e; color: #a6e22e; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; max-height: 50vh; overflow-y: auto; text-align: left; line-height: 1.4;">
+            <div id="logContent" style="padding: 15px; border-radius: 8px; max-height: 60vh; overflow-y: auto;">
                 Chargement...
             </div>
         </div>
     </div>
+
     <script>
     function openEpreuve(evt, epreuveId) {
         let tabPanes = document.getElementsByClassName("tab-pane");

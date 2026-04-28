@@ -249,8 +249,14 @@ async function voirLogs() {
                     sessions.push(currentSession);
                     currentSession = null;
                 }
-            } else if (currentSession && line.includes("[")) {
-                currentSession.logs.push(line);
+            } else if (currentSession) {
+                // Si la ligne commence bien par une date (ex: [2026-04-28)
+                if (line.trim().startsWith("[")) {
+                    currentSession.logs.push(line);
+                } else if (currentSession.logs.length > 0) {
+                    // Sinon, c'est que la ligne a été coupée en deux ! On la recolle à la précédente.
+                    currentSession.logs[currentSession.logs.length - 1] += " " + line.trim();
+                }
             }
         });
 
