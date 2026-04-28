@@ -7,3 +7,7 @@
 <FilesMatch "\.sql$">
     Require all denied
 </FilesMatch>
+
+<Files "sync_modifications.log">
+    Require all denied
+</Files>
