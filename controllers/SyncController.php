@@ -38,8 +38,8 @@ class SyncController
         }
 
         $now = time();
-        if (isset($_SESSION['last_sync_time']) && ($now - $_SESSION['last_sync_time']) < 300) {
-            $attente = 300 - ($now - $_SESSION['last_sync_time']);
+        if (isset($_SESSION['last_sync_time']) && ($now - $_SESSION['last_sync_time']) < 10) {
+            $attente = 10 - ($now - $_SESSION['last_sync_time']);
             $this->sendSSE(0, "Anti-spam : Attendez {$attente}s.", true, true);
             return;
         }
