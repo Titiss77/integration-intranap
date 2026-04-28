@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../config/Database.php';
+require_once __DIR__ . '/../config/Database.php';
 
 class SyncController
 {
@@ -17,7 +17,7 @@ class SyncController
         $this->url = $_ENV['API_URL'] ?? '';
         $this->token = $_ENV['API_TOKEN'] ?? '';
         $this->club_cible = $_ENV['API_CLUB'] ?? '';
-        
+
         $this->log_file = __DIR__ . '/../sync_modifications.log';
     }
 
@@ -49,19 +49,20 @@ class SyncController
             session_write_close();
         }
 
-        while (ob_get_level() > 0) ob_end_clean();
+        while (ob_get_level() > 0)
+            ob_end_clean();
         ob_implicit_flush(true);
         set_time_limit(0);
 
         $saisons = [date('Y')];
         $liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $categories_genre = ['F' => 'Femmes', 'M' => 'Hommes'];
-        
+
         $total_steps = count($saisons) * count($liste_epreuves) * count($categories_genre);
         $current_step = 0;
 
         try {
-            $this->writeToLog("--- DÉBUT DE SYNCHRONISATION ---");
+            $this->writeToLog('--- DÉBUT DE SYNCHRONISATION ---');
 
             foreach ($saisons as $saison) {
                 foreach ($liste_epreuves as $epreuve) {
@@ -69,18 +70,18 @@ class SyncController
 
                     foreach ($categories_genre as $cat_code => $cat_nom) {
                         ++$current_step;
-                        
+
                         $params = ['action' => 'gettop', 'course' => $epreuve, 'saison' => $saison, 'category' => $cat_code, 'token' => $this->token, 'clubid' => '0', 'order' => 'tps'];
-                        
+
                         $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, $this->url.'?'.http_build_query($params));
+                        curl_setopt($ch, CURLOPT_URL, $this->url . '?' . http_build_query($params));
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
                         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                         $response = curl_exec($ch);
 
                         if (curl_errno($ch)) {
-                            $this->writeToLog("ERREUR RÉSEAU : " . curl_error($ch));
+                            $this->writeToLog('ERREUR RÉSEAU : ' . curl_error($ch));
                             $this->sendSSE(0, 'Erreur réseau.', true, true);
                             return;
                         }
@@ -91,12 +92,31 @@ class SyncController
                         if ($response) {
                             $donnees = json_decode($response, true);
                             if (is_array($donnees)) {
-                                $classement_par_categorie = [];
+                                $compteur_lignes = [];  // Compte le nombre total de nageurs
+                                $vraie_position = [];  // Stocke le rang officiel (gère les ex-aequo)
+                                $dernier_temps = [];  // Mémorise le chrono précédent
 
                                 foreach ($donnees as $n) {
                                     $cat_nageur = $n['categorie'] ?? 'NC';
-                                    if (!isset($classement_par_categorie[$cat_nageur])) $classement_par_categorie[$cat_nageur] = 0;
-                                    $position_nationale = ++$classement_par_categorie[$cat_nageur];
+
+                                    // Initialisation pour une nouvelle catégorie
+                                    if (!isset($compteur_lignes[$cat_nageur])) {
+                                        $compteur_lignes[$cat_nageur] = 0;
+                                        $vraie_position[$cat_nageur] = 0;
+                                        $dernier_temps[$cat_nageur] = null;
+                                    }
+
+                                    // On incrémente le nombre de nageurs passés
+                                    $compteur_lignes[$cat_nageur]++;
+
+                                    // Si le chrono est différent du précédent, le rang devient égal au nombre de nageurs
+                                    if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
+                                        $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
+                                        $dernier_temps[$cat_nageur] = $n['temps'];
+                                    }
+
+                                    // On assigne le rang calculé
+                                    $position_nationale = $vraie_position[$cat_nageur];
 
                                     if (isset($n['club']) && $n['club'] === $this->club_cible) {
                                         $nageur_id = $this->getOrCreateNageur($n['nom'], $n['prenom'], $cat_nom, null);
@@ -123,21 +143,21 @@ class SyncController
                                                 if ($old_best && $old_best['temps'] !== $n['temps']) {
                                                     $info = "{$n['prenom']} {$n['nom']} ({$epreuve}) | Ancien temps : {$old_best['temps']} -> Nouveau : {$n['temps']} à {$n['lieu']}";
                                                     $modifs_session[] = $info;
-                                                    $this->writeToLog("[NOUVEAU TEMPS] " . $info);
+                                                    $this->writeToLog('[NOUVEAU TEMPS] ' . $info);
                                                 } else {
                                                     $info = "{$n['prenom']} {$n['nom']} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
                                                     $modifs_session[] = $info;
-                                                    $this->writeToLog("[AJOUT] " . $info);
+                                                    $this->writeToLog('[AJOUT] ' . $info);
                                                 }
                                             } elseif ($affectedRows === 2) {
                                                 // MISE À JOUR : Le temps existait déjà mais le classement (ON DUPLICATE KEY UPDATE) a changé
                                                 $ancien_clt = ($old_exact && $old_exact['classement'] !== null) ? $old_exact['classement'] : 'NC';
-                                                
+
                                                 if ($ancien_clt != $position_nationale) {
                                                     $info = "{$n['prenom']} {$n['nom']} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau Clt : {$position_nationale}";
                                                     // On peut choisir d'afficher ça ou non sur l'interface (ici oui).
                                                     $modifs_session[] = $info;
-                                                    $this->writeToLog("[MAJ CLASSEMENT] " . $info);
+                                                    $this->writeToLog('[MAJ CLASSEMENT] ' . $info);
                                                 }
                                             }
                                         }
@@ -150,14 +170,14 @@ class SyncController
                         $message = !empty($modifs_session) ? "{$epreuve} ({$cat_nom}) : " . implode(' | ', $modifs_session) : "{$epreuve} ({$cat_nom}) : À jour (0 modif)";
                         $this->sendSSE($pourcentage, $message);
 
-                        usleep(300000); 
+                        usleep(300000);
                     }
                 }
             }
-            $this->writeToLog("--- FIN DE SYNCHRONISATION ---");
+            $this->writeToLog('--- FIN DE SYNCHRONISATION ---');
             $this->sendSSE(100, 'Synchronisation terminée !', true);
         } catch (Exception $e) {
-            $this->writeToLog("ERREUR CRITIQUE : " . $e->getMessage());
+            $this->writeToLog('ERREUR CRITIQUE : ' . $e->getMessage());
             $this->sendSSE(0, 'Erreur interne.', true, true);
         }
     }
@@ -171,9 +191,10 @@ class SyncController
 
     private function sendSSE($progress, $message, $is_done = false, $is_error = false)
     {
-        echo 'data: '.json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error])."\n\n";
-        echo str_pad('', 4096)."\n";
-        if (ob_get_level() > 0) ob_flush();
+        echo 'data: ' . json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error]) . "\n\n";
+        echo str_pad('', 4096) . "\n";
+        if (ob_get_level() > 0)
+            ob_flush();
         flush();
     }
 
@@ -191,7 +212,8 @@ class SyncController
         $stmt = $this->pdo->prepare('SELECT id FROM nageurs WHERE nom = ? AND prenom = ?');
         $stmt->execute([$nom, $prenom]);
         $nageur = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($nageur) return $nageur['id'];
+        if ($nageur)
+            return $nageur['id'];
 
         $stmt = $this->pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
         $stmt->execute([$nom, $prenom, $genre, $date_naissance]);
