@@ -25,7 +25,7 @@
                 🔄 Synchroniser avec la FFESSM
             </button>
             <button onclick="voirLogs()"
-                style="background: none; border: 1px solid var(--bordure); padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; color: var(--texte-secondaire); width: auto;">
+                style="background: none; padding: 4px 10px; font-size: 0.8rem; color: var(--texte-secondaire);">
                 📜 Voir les dernières modifs
             </button>
         </div>
