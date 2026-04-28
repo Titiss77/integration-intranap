@@ -8,7 +8,6 @@ class SyncController
     private $token;
     private $url;
     private $club_cible;
-    // Chemin vers le fichier de log
     private $log_file;
 
     public function __construct()
@@ -19,7 +18,6 @@ class SyncController
         $this->token = $_ENV['API_TOKEN'] ?? '';
         $this->club_cible = $_ENV['API_CLUB'] ?? '';
         
-        // On définit le fichier de log à la racine du projet
         $this->log_file = __DIR__ . '/../sync_modifications.log';
     }
 
@@ -63,7 +61,6 @@ class SyncController
         $current_step = 0;
 
         try {
-            // Entête du log pour cette session de synchro
             $this->writeToLog("--- DÉBUT DE SYNCHRONISATION ---");
 
             foreach ($saisons as $saison) {
@@ -106,13 +103,43 @@ class SyncController
                                         $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
                                         $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
 
+                                        // 🔴 1. On cherche le meilleur temps précédent pour cette épreuve (pour voir s'il y a un nouveau chrono)
+                                        $stmtBest = $this->pdo->prepare('SELECT temps FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? ORDER BY temps ASC LIMIT 1');
+                                        $stmtBest->execute([$nageur_id, $epreuve_id, $saison]);
+                                        $old_best = $stmtBest->fetch(PDO::FETCH_ASSOC);
+
+                                        // 🔴 2. On cherche la ligne EXACTE (même chrono et même date) pour voir si juste le classement a évolué
+                                        $stmtExact = $this->pdo->prepare('SELECT classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND temps = ? AND date_perf = ?');
+                                        $stmtExact->execute([$nageur_id, $epreuve_id, $n['temps'], $n['date'] ?? '']);
+                                        $old_exact = $stmtExact->fetch(PDO::FETCH_ASSOC);
+
+                                        // Insertion ou mise à jour
                                         $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
 
+                                        // 🔴 3. Analyse des changements pour les logs
                                         if ($affectedRows > 0) {
-                                            $info = "{$n['prenom']} {$n['nom']} ({$epreuve} - {$n['temps']} - {$n['lieu']})";
-                                            $modifs_session[] = $info;
-                                            // Écriture immédiate dans le fichier log
-                                            $this->writeToLog("[MODIF] " . $info);
+                                            if ($affectedRows === 1) {
+                                                // NOUVELLE LIGNE : C'est soit une toute première perf, soit un nouveau temps par rapport à avant
+                                                if ($old_best && $old_best['temps'] !== $n['temps']) {
+                                                    $info = "{$n['prenom']} {$n['nom']} ({$epreuve}) | Ancien temps : {$old_best['temps']} -> Nouveau : {$n['temps']} à {$n['lieu']}";
+                                                    $modifs_session[] = $info;
+                                                    $this->writeToLog("[NOUVEAU TEMPS] " . $info);
+                                                } else {
+                                                    $info = "{$n['prenom']} {$n['nom']} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
+                                                    $modifs_session[] = $info;
+                                                    $this->writeToLog("[AJOUT] " . $info);
+                                                }
+                                            } elseif ($affectedRows === 2) {
+                                                // MISE À JOUR : Le temps existait déjà mais le classement (ON DUPLICATE KEY UPDATE) a changé
+                                                $ancien_clt = ($old_exact && $old_exact['classement'] !== null) ? $old_exact['classement'] : 'NC';
+                                                
+                                                if ($ancien_clt != $position_nationale) {
+                                                    $info = "{$n['prenom']} {$n['nom']} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau Clt : {$position_nationale}";
+                                                    // On peut choisir d'afficher ça ou non sur l'interface (ici oui).
+                                                    $modifs_session[] = $info;
+                                                    $this->writeToLog("[MAJ CLASSEMENT] " . $info);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -120,7 +147,7 @@ class SyncController
                         }
 
                         $pourcentage = round(($current_step / $total_steps) * 100);
-                        $message = !empty($modifs_session) ? "{$epreuve} ({$cat_nom}) : " . implode(', ', $modifs_session) : "{$epreuve} ({$cat_nom}) : RAS";
+                        $message = !empty($modifs_session) ? "{$epreuve} ({$cat_nom}) : " . implode(' | ', $modifs_session) : "{$epreuve} ({$cat_nom}) : À jour (0 modif)";
                         $this->sendSSE($pourcentage, $message);
 
                         usleep(300000); 
@@ -135,12 +162,10 @@ class SyncController
         }
     }
 
-    // Nouvelle fonction pour écrire dans le fichier log
     private function writeToLog($message)
     {
         $date = date('Y-m-d H:i:s');
         $format = "[$date] $message" . PHP_EOL;
-        // FILE_APPEND permet de ne pas écraser le fichier à chaque fois
         file_put_contents($this->log_file, $format, FILE_APPEND);
     }
 
