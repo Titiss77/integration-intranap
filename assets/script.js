@@ -214,3 +214,35 @@ function toggleStats() {
         btnToggle.style.backgroundColor = '#17a2b8';
     }
 }
+
+// --- 6. FONCTIONS POUR LES LOGS ---
+async function voirLogs() {
+    document.getElementById('logModal').style.display = 'block';
+    document.getElementById('logContent').innerHTML = 'Chargement...';
+    
+    try {
+        let response = await fetch('index.php?action=get_logs');
+        let text = await response.text();
+        let logContainer = document.getElementById('logContent');
+        
+        logContainer.innerHTML = text;
+        
+        // Fait défiler automatiquement tout en bas pour voir les modifs les plus récentes
+        logContainer.scrollTop = logContainer.scrollHeight;
+    } catch (e) {
+        document.getElementById('logContent').innerHTML = '❌ Erreur lors du chargement des logs.';
+    }
+}
+
+function closeLogs() { 
+    document.getElementById('logModal').style.display = 'none'; 
+}
+
+// MISE À JOUR DE LA FERMETURE AU CLIC EN DEHORS DES MODALES
+window.onclick = function(event) {
+    let chartModal = document.getElementById('chartModal');
+    let logModal = document.getElementById('logModal');
+    
+    if (event.target == chartModal) { closeChart(); }
+    if (event.target == logModal) { closeLogs(); }
+}

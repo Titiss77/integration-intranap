@@ -24,6 +24,10 @@
             <button id="btnSync" class="btn-primary" onclick="lancerSync()">
                 🔄 Synchroniser avec la FFESSM
             </button>
+            <button onclick="voirLogs()"
+                style="background: none; border: 1px solid var(--bordure); padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; color: var(--texte-secondaire); width: auto;">
+                📜 Voir les dernières modifs
+            </button>
         </div>
 
         <div id="progressContainer" style="display: none; width: 100%; margin: 15px 0; text-align: center;">
@@ -56,7 +60,7 @@
                 <option value="all">Toutes les catégories</option>
                 <?php foreach ($categories_disponibles as $cat_code => $cat_libelle) { ?>
                 <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
-                    <?php echo !empty($cat_libelle) ? htmlspecialchars($cat_libelle).' ('.htmlspecialchars($cat_code).')' : htmlspecialchars($cat_code); ?>
+                    <?php echo !empty($cat_libelle) ? htmlspecialchars($cat_libelle) . ' (' . htmlspecialchars($cat_code) . ')' : htmlspecialchars($cat_code); ?>
                 </option>
                 <?php } ?>
             </select>
@@ -105,7 +109,7 @@
                     style="padding: 12px; border-bottom: 1px solid var(--bordure); display: flex; flex-direction: column; gap: 4px;">
                     <div>
                         <strong
-                            style="color: var(--succes); font-size: 1.1rem;"><?php echo htmlspecialchars($q['nom'].' '.$q['prenom']); ?></strong>
+                            style="color: var(--succes); font-size: 1.1rem;"><?php echo htmlspecialchars($q['nom'] . ' ' . $q['prenom']); ?></strong>
                         <span
                             style="background: var(--fond-page); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 8px; color: var(--texte-principal);"><?php echo htmlspecialchars($q['categorie']); ?></span>
                     </div>
@@ -132,21 +136,21 @@
         <div id='tableContainer'>
             <div class="tabs-ffessm">
                 <?php $premiere = true;
-            foreach ($colonnes_epreuves as $epreuve) { ?>
+                foreach ($colonnes_epreuves as $epreuve) { ?>
                 <button class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
                     onclick="openEpreuve(event, 'ep-<?php echo $epreuve; ?>')">
                     <?php echo htmlspecialchars($epreuve); ?>
                 </button>
                 <?php $premiere = false;
-            } ?>
+                } ?>
             </div>
 
             <div class="tabs-content-ffessm">
                 <?php
-            $premiere = true;
-            foreach ($colonnes_epreuves as $epreuve) {
-                $perfs = $performances_par_epreuve[$epreuve];
-                ?>
+                $premiere = true;
+                foreach ($colonnes_epreuves as $epreuve) {
+                    $perfs = $performances_par_epreuve[$epreuve];
+                    ?>
                 <div id="ep-<?php echo $epreuve; ?>" class="tab-pane"
                     style="display: <?php echo $premiere ? 'block' : 'none'; ?>;">
                     <h2 style="color: var(--couleur-principale); margin-bottom: 20px; text-align: center;">🥇 Classement
@@ -165,14 +169,14 @@
                         </thead>
                         <tbody>
                             <?php
-                        foreach ($perfs as $index => $perf) {
-                            $color = '';
-                            if (true === $perf['est_qualifie']) {
-                                $color = 'color: var(--succes); font-weight:bold;';
-                            } elseif (false === $perf['est_qualifie']) {
-                                $color = 'color: var(--danger);';
-                            }
-                            ?>
+                            foreach ($perfs as $index => $perf) {
+                                $color = '';
+                                if (true === $perf['est_qualifie']) {
+                                    $color = 'color: var(--succes); font-weight:bold;';
+                                } elseif (false === $perf['est_qualifie']) {
+                                    $color = 'color: var(--danger);';
+                                }
+                                ?>
                             <tr class="nageur-row"
                                 data-category="<?php echo htmlspecialchars($perf['categorie'], ENT_QUOTES); ?>">
                                 <td data-label="Classement"
@@ -194,16 +198,16 @@
                                     </span>
                                 </td>
                                 <td data-label="Temps" class="cell-temps"
-                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'].' '.$perf['prenom']); ?>", "<?php echo htmlspecialchars($perf['categorie']); ?>")'>
+                                    onclick='showChart(<?php echo $perf['nageur_id']; ?>, "<?php echo htmlspecialchars($epreuve); ?>", "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>", "<?php echo htmlspecialchars($perf['categorie']); ?>")'>
                                     <?php
-                                // Définition de la couleur selon la qualification
-                                $color = 'color: var(--texte-principal);';
-                            if (true === $perf['est_qualifie']) {
-                                $color = 'color: var(--succes);';
-                            } elseif (false === $perf['est_qualifie']) {
-                                $color = 'color: var(--danger);';
-                            }
-                            ?>
+                                    // Définition de la couleur selon la qualification
+                                    $color = 'color: var(--texte-principal);';
+                                    if (true === $perf['est_qualifie']) {
+                                        $color = 'color: var(--succes);';
+                                    } elseif (false === $perf['est_qualifie']) {
+                                        $color = 'color: var(--danger);';
+                                    }
+                                    ?>
 
                                     <div class="btn-evolution" style="<?php echo $color; ?>" title="Voir l'évolution">
                                         <span><?php echo htmlspecialchars($perf['temps']); ?></span>
@@ -228,7 +232,7 @@
                     </table>
                 </div>
                 <?php $premiere = false;
-            } ?>
+                } ?>
             </div>
         </div>
         <?php } ?>
@@ -246,6 +250,17 @@
         </div>
     </div>
 
+    <div id="logModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close-btn" onclick="closeLogs()">&times;</span>
+            <h2 style="color: var(--couleur-principale); margin-bottom: 15px; font-size: 1.3rem;">📜 Historique des
+                synchronisations</h2>
+            <div id="logContent"
+                style="background: #1e1e1e; color: #a6e22e; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; max-height: 50vh; overflow-y: auto; text-align: left; line-height: 1.4;">
+                Chargement...
+            </div>
+        </div>
+    </div>
     <script>
     function openEpreuve(evt, epreuveId) {
         let tabPanes = document.getElementsByClassName("tab-pane");

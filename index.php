@@ -40,7 +40,13 @@ if (isset($_GET['action']) && 'history' === $_GET['action']) {
 
     exit;
 }
-
+// Interception pour la LECTURE DES LOGS
+if (isset($_GET['action']) && 'get_logs' === $_GET['action']) {
+    require_once __DIR__.'/controllers/SyncController.php';
+    $sync = new SyncController();
+    $sync->getLogs();
+    exit;
+}
 // Sinon, on charge la page normale
 
 // Interception pour l'EXPORT CSV
