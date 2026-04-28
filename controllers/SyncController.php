@@ -28,31 +28,24 @@ class SyncController
         header('X-Accel-Buffering: no');
 
         // 🔴 1. VÉRIFICATION CSRF
-        // On vérifie que la session est bien démarrée pour accéder aux variables
         if (PHP_SESSION_NONE === session_status()) {
             session_start();
         }
 
         if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token_recu)) {
             $this->sendSSE(0, 'Erreur de sécurité (Jeton CSRF invalide). Veuillez recharger la page.', true, true);
-
             return;
         }
 
         // 🔴 2. RATE LIMITING (Anti-Spam / DoS)
-        // Limite à une synchronisation toutes les 5 minutes (300 secondes)
         $now = time();
         if (isset($_SESSION['last_sync_time']) && ($now - $_SESSION['last_sync_time']) < 300) {
             $attente = 300 - ($now - $_SESSION['last_sync_time']);
             $this->sendSSE(0, "Anti-spam : Veuillez patienter {$attente} secondes avant de relancer.", true, true);
-
             return;
         }
-        // On met à jour l'heure de la dernière tentative
         $_SESSION['last_sync_time'] = $now;
 
-        // On ferme la session en écriture pour éviter de bloquer la navigation de l'utilisateur
-        // pendant la longue boucle de synchronisation
         if (PHP_SESSION_ACTIVE === session_status()) {
             session_write_close();
         }
@@ -76,34 +69,25 @@ class SyncController
 
                     foreach ($categories_genre as $cat_code => $cat_nom) {
                         ++$current_step;
-                        $this->sendSSE(round(($current_step / $total_steps) * 100), "Recherche : {$epreuve} ({$cat_nom})");
-
+                        
                         $params = ['action' => 'gettop', 'course' => $epreuve, 'bassin' => '0', 'cid' => '0', 'order' => 'tps', 'clubid' => '0', 'saison' => $saison, 'category' => $cat_code, 'token' => $this->token];
 
                         $ch = curl_init();
                         curl_setopt($ch, CURLOPT_URL, $this->url.'?'.http_build_query($params));
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                        // 🔴 3. SÉCURITÉ SSL RÉACTIVÉE (Protection Man-In-The-Middle)
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-
-                        // NOTE IMPORTANTE SI CELA BLOQUE EN LOCAL (WAMP/XAMPP) :
-                        // Téléchargez cacert.pem depuis https://curl.se/ca/cacert.pem
-                        // Placez-le dans votre dossier config/ et décommentez la ligne suivante :
-                        // curl_setopt($ch, CURLOPT_CAINFO, __DIR__ . '/../config/cacert.pem');
-
                         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                         $response = curl_exec($ch);
 
-                        // Gestion explicite des erreurs cURL (utile pour débugger le SSL)
                         if (curl_errno($ch)) {
                             $this->sendSSE(0, 'Erreur réseau FFESSM : '.curl_error($ch), true, true);
                             curl_close($ch);
-
                             return;
                         }
 
                         curl_close($ch);
+
+                        $liste_modifications = []; // Tableau pour stocker les noms des nageurs modifiés
 
                         if ($response) {
                             $donnees = json_decode($response, true);
@@ -111,7 +95,6 @@ class SyncController
                                 $classement_par_categorie = [];
 
                                 foreach ($donnees as $n) {
-                                    // Calcul du classement national
                                     $cat_nageur = $n['categorie'] ?? 'Non renseigné';
                                     if (!isset($classement_par_categorie[$cat_nageur])) {
                                         $classement_par_categorie[$cat_nageur] = 0;
@@ -119,7 +102,6 @@ class SyncController
                                     ++$classement_par_categorie[$cat_nageur];
                                     $position_nationale = $classement_par_categorie[$cat_nageur];
 
-                                    // Sauvegarde en BDD
                                     if (isset($n['club']) && $n['club'] === $this->club_cible) {
                                         $raw_date = $n['annee'] ?? $n['naissance'] ?? $n['date_naissance'] ?? null;
                                         $date_formatee = null;
@@ -139,11 +121,27 @@ class SyncController
                                         $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'Non renseigné');
                                         $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'Non renseigné');
 
-                                        $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
+                                        // On récupère le nombre de lignes affectées (1 = Insert, 2 = Update, 0 = Rien)
+                                        $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
+
+                                        if ($affectedRows > 0) {
+                                            $liste_modifications[] = $n['prenom'] . ' ' . $n['nom'] . ' (' . $n['temps'] . ')';
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        // Construction et envoi du message SSE avec les modifications trouvées
+                        $pourcentage = round(($current_step / $total_steps) * 100);
+                        if (!empty($liste_modifications)) {
+                            $message = "{$epreuve} ({$cat_nom}) : " . implode(', ', $liste_modifications);
+                        } else {
+                            $message = "{$epreuve} ({$cat_nom}) : À jour (0 modif)";
+                        }
+                        
+                        $this->sendSSE($pourcentage, $message);
+
                         usleep(500000);  // Respect du serveur FFESSM
                     }
                 }
@@ -185,7 +183,6 @@ class SyncController
                 $updateStmt = $this->pdo->prepare('UPDATE nageurs SET date_naissance = ? WHERE id = ?');
                 $updateStmt->execute([$date_naissance, $nageur['id']]);
             }
-
             return $nageur['id'];
         }
 
@@ -195,6 +192,7 @@ class SyncController
         return $this->pdo->lastInsertId();
     }
 
+    // 🔴 Modification ici : la fonction retourne maintenant le nombre de lignes affectées
     private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement)
     {
         $sql = 'INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement)
@@ -202,5 +200,7 @@ class SyncController
                 ON DUPLICATE KEY UPDATE classement = VALUES(classement)';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement]);
+        
+        return $stmt->rowCount(); // Renvoie > 0 si une ligne a été ajoutée ou mise à jour
     }
 }
