@@ -250,7 +250,7 @@
         </div>
     </div>
 
-    <div id="logModal" class="modal">
+    <div id="logContent" style="padding: 15px; border-radius: 8px; max-height: 60vh; overflow-y: auto;">
         <div class="modal-content" style="max-width: 700px;">
             <span class="close-btn" onclick="closeLogs()">&times;</span>
             <h2 style="color: var(--couleur-principale); margin-bottom: 15px; font-size: 1.3rem;">📜 Historique des

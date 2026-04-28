@@ -396,3 +396,114 @@ button:active {
     border-radius: 6px;
     font-size: 0.85em;
 }
+
+/* Styles pour les logs "Client Friendly" */
+.log-session {
+    margin-bottom: 25px;
+    border-left: 4px solid var(--couleur-principale);
+    padding-left: 15px;
+}
+
+.log-session-title {
+    font-weight: bold;
+    color: var(--texte-principal);
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.log-card {
+    background: #fff;
+    border: 1px solid var(--bordure);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.log-icon {
+    font-size: 1.5rem;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.log-body {
+    flex: 1;
+}
+
+.log-type {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.log-name {
+    font-weight: bold;
+    color: var(--couleur-principale);
+}
+
+.log-details {
+    font-size: 0.9rem;
+    color: var(--texte-secondaire);
+}
+
+.log-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--fond-page);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+.arrow-right {
+    color: var(--couleur-principale);
+}
+
+/* Couleurs par type */
+.type-temps {
+    border-left: 4px solid var(--succes);
+}
+
+.type-temps .log-type {
+    color: var(--succes);
+}
+
+.type-temps .log-icon {
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.type-classement {
+    border-left: 4px solid var(--info);
+}
+
+.type-classement .log-type {
+    color: var(--info);
+}
+
+.type-classement .log-icon {
+    background: rgba(23, 162, 184, 0.1);
+}
+
+.type-ajout {
+    border-left: 4px solid var(--avertissement);
+}
+
+.type-ajout .log-type {
+    color: var(--avertissement);
+}
+
+.type-ajout .log-icon {
+    background: rgba(255, 152, 0, 0.1);
+}

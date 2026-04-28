@@ -229,15 +229,15 @@ class SyncController
         $stmt->execute([$nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement]);
         return $stmt->rowCount();
     }
+
     // NOUVELLE MÉTHODE : Lire le fichier de log
     public function getLogs()
     {
         if (file_exists($this->log_file)) {
-            // On récupère le contenu, on échappe le HTML pour la sécurité et on garde les sauts de ligne
-            $content = file_get_contents($this->log_file);
-            echo nl2br(htmlspecialchars($content));
+            // On renvoie le contenu brut pour l'analyse JS
+            echo file_get_contents($this->log_file);
         } else {
-            echo "Aucun historique de synchronisation pour le moment.";
+            echo 'Aucun historique.';
         }
     }
 }

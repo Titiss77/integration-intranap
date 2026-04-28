@@ -215,27 +215,129 @@ function toggleStats() {
     }
 }
 
-// --- 6. FONCTIONS POUR LES LOGS ---
+// --- 6. FONCTIONS POUR LES LOGS (VERSION ROBUSTE) ---
 async function voirLogs() {
-    document.getElementById('logModal').style.display = 'block';
-    document.getElementById('logContent').innerHTML = 'Chargement...';
+    const modal = document.getElementById('logModal');
+    const container = document.getElementById('logContent');
     
+    if (!modal || !container) return;
+
+    modal.style.display = 'block';
+    container.innerHTML = '<div style="text-align:center; padding:20px;">Analyse de l\'historique...</div>';
+
     try {
-        let response = await fetch('index.php?action=get_logs');
-        let text = await response.text();
-        let logContainer = document.getElementById('logContent');
+        const response = await fetch('index.php?action=get_logs');
+        const rawText = await response.text();
         
-        logContainer.innerHTML = text;
+        if (rawText.includes("Aucun historique") || rawText.trim() === "") {
+            container.innerHTML = "<div style='padding:20px; text-align:center;'>Aucun historique de synchronisation pour le moment.</div>";
+            return;
+        }
+
+        const lines = rawText.split('\n').filter(l => l.trim() !== "");
+        let sessions = [];
+        let currentSession = null;
+
+        // Étape 1 : On regroupe les logs par session de synchro
+        lines.forEach(line => {
+            if (line.includes("--- DÉBUT")) {
+                let dateMatch = line.match(/\[(.*?)\]/);
+                let date = dateMatch ? dateMatch[1] : "Date inconnue";
+                currentSession = { date: date, logs: [] };
+            } else if (line.includes("--- FIN")) {
+                if (currentSession) {
+                    sessions.push(currentSession);
+                    currentSession = null;
+                }
+            } else if (currentSession && line.includes("[")) {
+                currentSession.logs.push(line);
+            }
+        });
+
+        // Si une session n'a pas de "FIN" (ex: erreur réseau en cours)
+        if (currentSession) sessions.push(currentSession);
+
+        // Étape 2 : On inverse l'ordre des sessions (les plus récentes en haut)
+        sessions.reverse();
+
+        // Étape 3 : On génère le HTML
+        let html = "";
+        sessions.forEach(session => {
+            html += `<div class="log-session">`;
+            html += `<div class="log-session-title">📅 Synchronisation du ${session.date}</div>`;
+            
+            if (session.logs.length === 0) {
+                html += `<div style="color: var(--texte-secondaire); font-size: 0.9em; margin-bottom: 10px;">✅ À jour (Aucune modification)</div>`;
+            } else {
+                session.logs.forEach(logLine => {
+                    html += parseLogLine(logLine);
+                });
+            }
+            html += `</div>`;
+        });
+
+        container.style.background = "transparent";
+        container.innerHTML = html || "<div style='padding:20px;'>Aucune modification trouvée.</div>";
         
-        // Fait défiler automatiquement tout en bas pour voir les modifs les plus récentes
-        logContainer.scrollTop = logContainer.scrollHeight;
     } catch (e) {
-        document.getElementById('logContent').innerHTML = '❌ Erreur lors du chargement des logs.';
+        console.error("Erreur d'affichage des logs:", e);
+        container.innerHTML = "❌ Erreur de chargement de l'historique.";
+    }
+}
+
+function parseLogLine(line) {
+    try {
+        // Extraction de l'heure
+        let dateMatch = line.match(/\[(.*?)\]/);
+        let heure = dateMatch ? dateMatch[1].split(' ')[1] : ""; 
+        
+        // Extraction du contenu après la date
+        let content = line.substring(line.indexOf(']') + 1).trim();
+        
+        let type = "Info", icon = "ℹ️", css = "type-ajout", label = "Modification";
+        let detailHtml = "";
+
+        // Détection du type de modification
+        if (content.includes("[NOUVEAU TEMPS]")) {
+            type = "Performance"; icon = "⏱️"; css = "type-temps"; label = "Nouveau Chrono";
+            let rawData = content.replace("[NOUVEAU TEMPS]", "").trim();
+            let parts = rawData.split('|');
+            let namePart = parts[0] ? parts[0].trim() : "Nageur inconnu";
+            let changePart = parts[1] ? parts[1].replace('Ancien temps :', '').replace('Nouveau :', '→').trim() : "";
+            detailHtml = `<div class="log-name">${namePart}</div><div class="log-change">${changePart}</div>`;
+        } 
+        else if (content.includes("[MAJ CLASSEMENT]")) {
+            type = "Classement"; icon = "📈"; css = "type-classement"; label = "Évolution Rang";
+            let rawData = content.replace("[MAJ CLASSEMENT]", "").trim();
+            let parts = rawData.split('|');
+            let namePart = parts[0] ? parts[0].trim() : "Nageur inconnu";
+            let changePart = parts[1] ? parts[1].replace('Ancien Clt :', '').replace('Nouveau Clt :', '→').trim() : "";
+            detailHtml = `<div class="log-name">${namePart}</div><div class="log-change">Rang ${changePart}</div>`;
+        }
+        else {
+            // Repli générique
+            detailHtml = `<div class="log-details">${content.replace(/\[.*?\]/, '').trim()}</div>`;
+        }
+
+        return `
+            <div class="log-card ${css}">
+                <div class="log-icon">${icon}</div>
+                <div class="log-body">
+                    <div class="log-type">${label}</div>
+                    ${detailHtml}
+                </div>
+                <div style="font-size:0.75rem; color:var(--texte-secondaire); min-width: 40px; text-align: right; font-weight: bold;">${heure}</div>
+            </div>`;
+            
+    } catch (err) {
+        console.error("Erreur de parsing sur la ligne :", line, err);
+        return `<div class="log-card type-ajout"><div class="log-details">Détail technique : ${line}</div></div>`;
     }
 }
 
 function closeLogs() { 
-    document.getElementById('logModal').style.display = 'none'; 
+    const modal = document.getElementById('logModal');
+    if(modal) modal.style.display = 'none'; 
 }
 
 // MISE À JOUR DE LA FERMETURE AU CLIC EN DEHORS DES MODALES
