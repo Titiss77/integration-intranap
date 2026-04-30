@@ -263,6 +263,9 @@ async function voirLogs() {
         // Si une session n'a pas de "FIN" (ex: erreur réseau en cours)
         if (currentSession) sessions.push(currentSession);
 
+        // NOUVEAU : On filtre pour ne garder que les sessions qui ont des logs
+        sessions = sessions.filter(session => session.logs.length > 0);
+
         // Étape 2 : On inverse l'ordre des sessions (les plus récentes en haut)
         sessions.reverse();
 
@@ -272,18 +275,18 @@ async function voirLogs() {
             html += `<div class="log-session">`;
             html += `<div class="log-session-title">📅 Synchronisation du ${session.date}</div>`;
             
-            if (session.logs.length === 0) {
-                html += `<div style="color: var(--texte-secondaire); font-size: 0.9em; margin-bottom: 10px;">✅ À jour (Aucune modification)</div>`;
-            } else {
-                session.logs.forEach(logLine => {
-                    html += parseLogLine(logLine);
-                });
-            }
+            // Plus besoin de vérifier si c'est vide, on a déjà filtré
+            session.logs.forEach(logLine => {
+                html += parseLogLine(logLine);
+            });
+            
             html += `</div>`;
         });
 
         container.style.background = "transparent";
-        container.innerHTML = html || "<div style='padding:20px;'>Aucune modification trouvée.</div>";
+        
+        // S'il n'y a eu aucune modification dans aucune session, on affiche un message global
+        container.innerHTML = html || "<div style='padding:20px; text-align:center;'>Aucune modification trouvée dans l'historique récent.</div>";
         
     } catch (e) {
         console.error("Erreur d'affichage des logs:", e);
