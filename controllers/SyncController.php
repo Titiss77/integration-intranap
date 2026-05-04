@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/SyncLogger.php'; // Inclusion du système de logs
+require_once __DIR__ . '/SyncLogger.php';  // Inclusion du système de logs
 
 class SyncController
 {
@@ -26,7 +26,7 @@ class SyncController
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache, must-revalidate');
         header('Connection: keep-alive');
-        header('X-Accel-Buffering: no'); // Désactive le buffer Nginx sur l'hébergeur
+        header('X-Accel-Buffering: no');  // Désactive le buffer Nginx sur l'hébergeur
 
         if (PHP_SESSION_NONE === session_status()) {
             session_start();
@@ -38,10 +38,11 @@ class SyncController
             return;
         }
 
-        // Anti-spam (5 minutes)
+        // Anti-spam (300 secondes)
         $now = time();
-        if (isset($_SESSION['last_sync_time']) && ($now - $_SESSION['last_sync_time']) < 300) {
-            $attente = 300 - ($now - $_SESSION['last_sync_time']);
+        $antiSpam = 300;
+        if (isset($_SESSION['last_sync_time']) && ($now - $_SESSION['last_sync_time']) < $antiSpam) {
+            $attente = $antiSpam - ($now - $_SESSION['last_sync_time']);
             $this->sendSSE(0, "Anti-spam : Attendez {$attente}s.", true, true);
             return;
         }
@@ -71,13 +72,13 @@ class SyncController
                     $blacklist[] = mb_strtolower(trim($ligne), 'UTF-8');
                 }
             }
-            $this->logger->info('CONFIG', count($blacklist) . " nageurs chargés depuis la blacklist.");
+            $this->logger->info('CONFIG', count($blacklist) . ' nageurs chargés depuis la blacklist.');
         }
 
         $saisons = [date('Y')];
         $liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $categories_genre = ['F' => 'Femmes', 'M' => 'Hommes'];
-        
+
         $total_steps = count($saisons) * count($liste_epreuves) * count($categories_genre);
         $current_step = 0;
 
@@ -85,14 +86,14 @@ class SyncController
             foreach ($saisons as $saison) {
                 foreach ($liste_epreuves as $epreuve) {
                     $epreuve_id = $this->getOrCreateSimple('epreuves', 'nom_epreuve', $epreuve);
-                    
+
                     foreach ($categories_genre as $cat_code => $cat_nom) {
                         $current_step++;
-                        
+
                         // 3. Préparation API avec anti-cache pour votre hébergeur
                         $params = [
-                            'action' => 'gettop', 'course' => $epreuve, 'saison' => $saison, 
-                            'category' => $cat_code, 'token' => $this->token, 'clubid' => '0', 
+                            'action' => 'gettop', 'course' => $epreuve, 'saison' => $saison,
+                            'category' => $cat_code, 'token' => $this->token, 'clubid' => '0',
                             'order' => 'tps', 'nocache' => time()
                         ];
 
@@ -105,7 +106,7 @@ class SyncController
                         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
                         $response = curl_exec($ch);
-                        
+
                         if (curl_errno($ch)) {
                             $erreur = curl_error($ch);
                             $this->logger->error('API_CURL', "Erreur réseau sur $epreuve ($cat_code) : $erreur");
@@ -118,7 +119,7 @@ class SyncController
 
                         if ($response) {
                             $donnees = json_decode($response, true);
-                            
+
                             // Si l'hébergeur FFESSM nous renvoie une page d'erreur HTML au lieu du JSON
                             if (json_last_error() !== JSON_ERROR_NONE) {
                                 $this->logger->error('API_JSON', "L'API a bloqué la requête ou renvoyé du HTML sur $epreuve ($cat_code).");
@@ -137,7 +138,7 @@ class SyncController
                                         $vraie_position[$cat_nageur] = 0;
                                         $dernier_temps[$cat_nageur] = null;
                                     }
-                                    
+
                                     $compteur_lignes[$cat_nageur]++;
                                     if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
                                         $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
@@ -152,7 +153,7 @@ class SyncController
                                         // Vérification de la blacklist
                                         $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
                                         $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
-                                        
+
                                         $est_blacklist = false;
                                         foreach ($blacklist as $bl_nom) {
                                             if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
@@ -166,10 +167,10 @@ class SyncController
                                             $stmtDel->execute([$nom_nageur, $prenom_nageur]);
                                             if ($stmtDel->rowCount() > 0) {
                                                 $info = "Suppression des données de : {$prenom_nageur} {$nom_nageur}";
-                                                $modifs_session[] = "[BLACKLIST] " . $info;
+                                                $modifs_session[] = '[BLACKLIST] ' . $info;
                                                 $this->logger->warning('BLACKLIST', $info);
                                             }
-                                            continue; 
+                                            continue;
                                         }
 
                                         // Insertion BDD
@@ -191,18 +192,18 @@ class SyncController
                                             if ($affectedRows === 1) {
                                                 if ($old_best && $old_best['temps'] !== $n['temps']) {
                                                     $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ancien: {$old_best['temps']} -> Nouveau: {$n['temps']} à {$n['lieu']}";
-                                                    $modifs_session[] = "[NOUVEAU TEMPS] " . $info;
+                                                    $modifs_session[] = '[NOUVEAU TEMPS] ' . $info;
                                                     $this->logger->success('UPDATE', $info);
                                                 } else {
                                                     $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
-                                                    $modifs_session[] = "[AJOUT] " . $info;
+                                                    $modifs_session[] = '[AJOUT] ' . $info;
                                                     $this->logger->info('INSERT', $info);
                                                 }
                                             } elseif ($affectedRows === 2) {
                                                 $ancien_clt = ($old_exact && $old_exact['classement'] !== null) ? $old_exact['classement'] : 'NC';
                                                 if ($ancien_clt != $position_nationale) {
                                                     $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau : {$position_nationale}";
-                                                    $modifs_session[] = "[MAJ CLASSEMENT] " . $info;
+                                                    $modifs_session[] = '[MAJ CLASSEMENT] ' . $info;
                                                     $this->logger->info('RANKING', $info);
                                                 }
                                             }
@@ -215,14 +216,13 @@ class SyncController
                         $pourcentage = round(($current_step / $total_steps) * 100);
                         $message = !empty($modifs_session) ? "{$epreuve} ({$cat_nom}) : modifs en cours..." : "{$epreuve} ({$cat_nom}) : à jour";
                         $this->sendSSE($pourcentage, $message);
-                        usleep(150000); // Petite pause pour ne pas saturer l'API
+                        usleep(150000);  // Petite pause pour ne pas saturer l'API
                     }
                 }
             }
 
             $this->logger->info('END', '--- FIN DE SYNCHRONISATION ---');
             $this->sendSSE(100, 'Synchronisation terminée !', true);
-
         } catch (Exception $e) {
             $this->logger->error('FATAL', 'Erreur critique : ' . $e->getMessage());
             $this->sendSSE(0, 'Erreur interne au serveur.', true, true);
@@ -235,12 +235,14 @@ class SyncController
         echo 'data: ' . json_encode(['progress' => $progress, 'message' => $message, 'done' => $is_done, 'error' => $is_error]) . "\n\n";
         // Envoi d'espaces vides pour forcer le vidage du buffer sur les hébergeurs récalcitrants
         echo str_pad('', 4096) . "\n";
-        if (ob_get_level() > 0) ob_flush();
+        if (ob_get_level() > 0)
+            ob_flush();
         flush();
     }
 
     // --- Méthodes privées BDD ---
-    private function getOrCreateSimple($table, $column, $value) {
+    private function getOrCreateSimple($table, $column, $value)
+    {
         $stmt = $this->pdo->prepare("INSERT IGNORE INTO {$table} ({$column}) VALUES (?)");
         $stmt->execute([$value]);
         $stmt = $this->pdo->prepare("SELECT id FROM {$table} WHERE {$column} = ?");
@@ -248,17 +250,20 @@ class SyncController
         return $stmt->fetchColumn();
     }
 
-    private function getOrCreateNageur($nom, $prenom, $genre, $date_naissance) {
+    private function getOrCreateNageur($nom, $prenom, $genre, $date_naissance)
+    {
         $stmt = $this->pdo->prepare('SELECT id FROM nageurs WHERE nom = ? AND prenom = ?');
         $stmt->execute([$nom, $prenom]);
         $nageur = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($nageur) return $nageur['id'];
+        if ($nageur)
+            return $nageur['id'];
         $stmt = $this->pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
         $stmt->execute([$nom, $prenom, $genre, $date_naissance]);
         return $this->pdo->lastInsertId();
     }
 
-    private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement) {
+    private function insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement)
+    {
         $sql = 'INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE classement = VALUES(classement)';
@@ -267,7 +272,8 @@ class SyncController
         return $stmt->rowCount();
     }
 
-    public function getLogs() {
+    public function getLogs()
+    {
         $log_file = __DIR__ . '/../sync_modifications.log';
         if (file_exists($log_file)) {
             echo file_get_contents($log_file);
