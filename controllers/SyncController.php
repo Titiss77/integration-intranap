@@ -10,6 +10,7 @@ class SyncController
     private $club_cible;
     private $log_file;  // Fichier pour l'interface web
     private $logger;  // Fichier pour le débogage technique
+    private $sql_file;  // NOUVEAU : Fichier SQL
 
     public function __construct()
     {
@@ -18,11 +19,11 @@ class SyncController
         $this->token = $_ENV['API_TOKEN'] ?? '';
         $this->club_cible = $_ENV['API_CLUB'] ?? '';
 
-        // Log historique pour l'interface web (inchangé)
         $this->log_file = __DIR__ . '/../sync_modifications.log';
-
-        // Log technique pour trouver les erreurs (Nouveau)
         $this->logger = new SyncLogger('sync_debug.log');
+
+        // NOUVEAU : Chemin vers le fichier SQL à la racine
+        $this->sql_file = __DIR__ . '/../ffessm_nap.sql';
     }
 
     public function syncData($token_recu = '')
@@ -209,6 +210,9 @@ class SyncController
                             $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
 
                             if ($affectedRows > 0) {
+                                // NOUVEAU : Écriture de la requête en dur dans ffessm_nap.sql
+                                $this->writeToSqlFile($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
+
                                 if ($affectedRows === 1) {
                                     if ($old_best && $old_best['temps'] !== $n['temps']) {
                                         $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ancien: {$old_best['temps']} -> Nouveau: {$n['temps']} à {$n['lieu']}";
@@ -301,5 +305,29 @@ class SyncController
         } else {
             echo 'Aucun historique.';
         }
+    }
+
+    private function writeToSqlFile($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $temps, $date_perf, $classement)
+    {
+        // Nettoyage et préparation des variables pour l'injection directe dans le fichier texte
+        $classement_val = empty($classement) ? 'NULL' : (int) $classement;
+        $temps_val = $this->pdo->quote($temps);
+        $date_val = empty($date_perf) ? 'NULL' : $this->pdo->quote($date_perf);
+
+        // Création de la requête brute
+        $sql = sprintf(
+            "INSERT INTO `performances` (`nageur_id`, `epreuve_id`, `categorie_id`, `lieu_id`, `saison`, `temps`, `date_perf`, `classement`) VALUES (%d, %d, %d, %d, %d, %s, %s, %s) ON DUPLICATE KEY UPDATE `classement` = VALUES(`classement`);\n",
+            (int) $nageur_id,
+            (int) $epreuve_id,
+            (int) $categorie_id,
+            (int) $lieu_id,
+            (int) $saison,
+            $temps_val,
+            $date_val,
+            $classement_val
+        );
+
+        // Ajout à la fin du fichier ffessm_nap.sql
+        file_put_contents($this->sql_file, $sql, FILE_APPEND);
     }
 }
