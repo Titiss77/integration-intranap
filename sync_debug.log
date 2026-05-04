@@ -1,0 +1,135 @@
+--------------------------------------------------------------------------------
+[2026-05-04 16:32:03] [INFO   ] [START          ] --- DÉBUT DE SYNCHRONISATION ---
+[2026-05-04 16:32:03] [INFO   ] [CONFIG         ] 0 nageurs chargés depuis la blacklist.
+[2026-05-04 16:32:03] [INFO   ] [API_CALL       ] Requete: 50SF | F
+[2026-05-04 16:32:03] [SUCCESS] [API_JSON       ] Succès JSON : 331 temps reçus.
+[2026-05-04 16:32:03] [INFO   ] [RANKING        ] Maelys LE BIGOT  (50SF - 00:26.50) | Ancien Clt : 49 -> Nouveau : 50
+[2026-05-04 16:32:04] [INFO   ] [RANKING        ] Eloise KERJEAN (50SF - 00:27.18) | Ancien Clt : 25 -> Nouveau : 26
+[2026-05-04 16:32:04] [INFO   ] [RANKING        ] Maelys LE BIGOT (50SF - 00:27.36) | Ancien Clt : 52 -> Nouveau : 53
+[2026-05-04 16:32:04] [INFO   ] [RANKING        ] Pauline CAMUS (50SF - 00:28.13) | Ancien Clt : 29 -> Nouveau : 30
+[2026-05-04 16:32:04] [INFO   ] [API_CALL       ] Requete: 50SF | M
+[2026-05-04 16:32:04] [SUCCESS] [API_JSON       ] Succès JSON : 330 temps reçus.
+[2026-05-04 16:32:04] [INFO   ] [RANKING        ] Mathis FRANCES (50SF - 00:21.03) | Ancien Clt : 29 -> Nouveau : 32
+[2026-05-04 16:32:05] [INFO   ] [API_CALL       ] Requete: 100SF | F
+[2026-05-04 16:32:05] [SUCCESS] [API_JSON       ] Succès JSON : 356 temps reçus.
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Maelys LE BIGOT  (100SF - 00:56.84) | Ancien Clt : 46 -> Nouveau : 51
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Anne LAVIGNE  (100SF - 01:00.54) | Ancien Clt : 6 -> Nouveau : 7
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Florie BOUTOUILLER (100SF - 01:02.32) | Ancien Clt : 59 -> Nouveau : 62
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Pauline CAMUS (100SF - 01:03.06) | Ancien Clt : 31 -> Nouveau : 30
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Tifenn GOBIN (100SF - 01:03.83) | Ancien Clt : 14 -> Nouveau : 15
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Elodie STEPHAN (100SF - 01:08.47) | Ancien Clt : 65 -> Nouveau : 68
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Anne FEAT (100SF - 01:12.08) | Ancien Clt : 12 -> Nouveau : 13
+[2026-05-04 16:32:05] [INFO   ] [RANKING        ] Sandra KERGOURLAY (100SF - 01:18.39) | Ancien Clt : 33 -> Nouveau : 34
+[2026-05-04 16:32:06] [INFO   ] [API_CALL       ] Requete: 100SF | M
+[2026-05-04 16:32:06] [SUCCESS] [API_JSON       ] Succès JSON : 318 temps reçus.
+[2026-05-04 16:32:06] [SUCCESS] [UPDATE         ] Mathis FRANCES (100SF) | Ancien: 00:48.17 -> Nouveau: 00:45.73 à Aix en provence
+[2026-05-04 16:32:06] [INFO   ] [INSERT         ] Killian TORC'H (100SF) | Ajout 1er temps : 00:50.18 à Angers
+[2026-05-04 16:32:06] [INFO   ] [RANKING        ] Luca SOLLAZZO (100SF - 00:54.04) | Ancien Clt : 12 -> Nouveau : 13
+[2026-05-04 16:32:06] [INFO   ] [RANKING        ] Matthieu SANCEAU (100SF - 01:13.27) | Ancien Clt : 16 -> Nouveau : 15
+[2026-05-04 16:32:07] [INFO   ] [API_CALL       ] Requete: 200SF | F
+[2026-05-04 16:32:07] [SUCCESS] [API_JSON       ] Succès JSON : 270 temps reçus.
+[2026-05-04 16:32:07] [INFO   ] [RANKING        ] Florie BOUTOUILLER (200SF - 02:10.80) | Ancien Clt : 40 -> Nouveau : 45
+[2026-05-04 16:32:07] [INFO   ] [RANKING        ] Pauline CAMUS (200SF - 02:30.59) | Ancien Clt : 27 -> Nouveau : 26
+[2026-05-04 16:32:08] [INFO   ] [API_CALL       ] Requete: 200SF | M
+[2026-05-04 16:32:08] [SUCCESS] [API_JSON       ] Succès JSON : 214 temps reçus.
+[2026-05-04 16:32:08] [INFO   ] [RANKING        ] Luca SOLLAZZO (200SF - 02:02.42) | Ancien Clt : 10 -> Nouveau : 11
+[2026-05-04 16:32:08] [INFO   ] [API_CALL       ] Requete: 400SF | F
+[2026-05-04 16:32:09] [SUCCESS] [API_JSON       ] Succès JSON : 203 temps reçus.
+[2026-05-04 16:32:09] [INFO   ] [RANKING        ] Florie BOUTOUILLER (400SF - 04:20.71) | Ancien Clt : 18 -> Nouveau : 21
+[2026-05-04 16:32:09] [INFO   ] [RANKING        ] Emma ROZE (400SF - 04:48.76) | Ancien Clt : 26 -> Nouveau : 27
+[2026-05-04 16:32:09] [INFO   ] [RANKING        ] Garance LEBEE (400SF - 05:40.80) | Ancien Clt : 32 -> Nouveau : 33
+[2026-05-04 16:32:09] [INFO   ] [API_CALL       ] Requete: 400SF | M
+[2026-05-04 16:32:10] [SUCCESS] [API_JSON       ] Succès JSON : 166 temps reçus.
+[2026-05-04 16:32:10] [INFO   ] [RANKING        ] Luca SOLLAZZO (400SF - 04:26.15) | Ancien Clt : 9 -> Nouveau : 10
+[2026-05-04 16:32:10] [INFO   ] [RANKING        ] Maxime LE POGAM (400SF - 05:06.02) | Ancien Clt : 18 -> Nouveau : 19
+[2026-05-04 16:32:10] [INFO   ] [API_CALL       ] Requete: 800SF | F
+[2026-05-04 16:32:10] [SUCCESS] [API_JSON       ] Succès JSON : 117 temps reçus.
+[2026-05-04 16:32:11] [INFO   ] [API_CALL       ] Requete: 800SF | M
+[2026-05-04 16:32:11] [SUCCESS] [API_JSON       ] Succès JSON : 102 temps reçus.
+[2026-05-04 16:32:11] [INFO   ] [API_CALL       ] Requete: 1500SF | F
+[2026-05-04 16:32:12] [SUCCESS] [API_JSON       ] Succès JSON : 23 temps reçus.
+[2026-05-04 16:32:12] [INFO   ] [API_CALL       ] Requete: 1500SF | M
+[2026-05-04 16:32:12] [SUCCESS] [API_JSON       ] Succès JSON : 27 temps reçus.
+[2026-05-04 16:32:13] [INFO   ] [API_CALL       ] Requete: 50AP | F
+[2026-05-04 16:32:13] [SUCCESS] [API_JSON       ] Succès JSON : 145 temps reçus.
+[2026-05-04 16:32:13] [INFO   ] [RANKING        ] Maelys LE BIGOT  (50AP - 00:23.08) | Ancien Clt : 32 -> Nouveau : 36
+[2026-05-04 16:32:13] [INFO   ] [RANKING        ] Anne FEAT (50AP - 00:27.01) | Ancien Clt : 1 -> Nouveau : 2
+[2026-05-04 16:32:13] [INFO   ] [API_CALL       ] Requete: 50AP | M
+[2026-05-04 16:32:14] [SUCCESS] [API_JSON       ] Succès JSON : 156 temps reçus.
+[2026-05-04 16:32:14] [SUCCESS] [UPDATE         ] Mathis FRANCES (50AP) | Ancien: 00:18.61 -> Nouveau: 00:17.50 à Aix en provence
+[2026-05-04 16:32:14] [INFO   ] [RANKING        ] Luca SOLLAZZO (50AP - 00:21.60) | Ancien Clt : 5 -> Nouveau : 7
+[2026-05-04 16:32:14] [INFO   ] [API_CALL       ] Requete: 100IS | F
+[2026-05-04 16:32:14] [SUCCESS] [API_JSON       ] Succès JSON : 121 temps reçus.
+[2026-05-04 16:32:14] [INFO   ] [RANKING        ] Garance LEBEE (100IS - 01:02.64) | Ancien Clt : 11 -> Nouveau : 12
+[2026-05-04 16:32:14] [INFO   ] [RANKING        ] Emma ROZE (100IS - 01:07.83) | Ancien Clt : 12 -> Nouveau : 13
+[2026-05-04 16:32:14] [INFO   ] [RANKING        ] Nina VIGOUROUX (100IS - 01:10.33) | Ancien Clt : 16 -> Nouveau : 17
+[2026-05-04 16:32:15] [INFO   ] [API_CALL       ] Requete: 100IS | M
+[2026-05-04 16:32:15] [SUCCESS] [API_JSON       ] Succès JSON : 115 temps reçus.
+[2026-05-04 16:32:15] [INFO   ] [API_CALL       ] Requete: 800IS | F
+[2026-05-04 16:32:16] [SUCCESS] [API_JSON       ] Succès JSON : 0 temps reçus.
+[2026-05-04 16:32:16] [INFO   ] [API_CALL       ] Requete: 800IS | M
+[2026-05-04 16:32:16] [SUCCESS] [API_JSON       ] Succès JSON : 0 temps reçus.
+[2026-05-04 16:32:16] [INFO   ] [API_CALL       ] Requete: 200IS | F
+[2026-05-04 16:32:17] [SUCCESS] [API_JSON       ] Succès JSON : 59 temps reçus.
+[2026-05-04 16:32:17] [INFO   ] [API_CALL       ] Requete: 200IS | M
+[2026-05-04 16:32:17] [SUCCESS] [API_JSON       ] Succès JSON : 61 temps reçus.
+[2026-05-04 16:32:17] [INFO   ] [API_CALL       ] Requete: 400IS | F
+[2026-05-04 16:32:18] [SUCCESS] [API_JSON       ] Succès JSON : 27 temps reçus.
+[2026-05-04 16:32:18] [INFO   ] [API_CALL       ] Requete: 400IS | M
+[2026-05-04 16:32:18] [SUCCESS] [API_JSON       ] Succès JSON : 23 temps reçus.
+[2026-05-04 16:32:19] [INFO   ] [API_CALL       ] Requete: 50BI | F
+[2026-05-04 16:32:19] [SUCCESS] [API_JSON       ] Succès JSON : 403 temps reçus.
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Florie BOUTOUILLER (50BI - 00:24.63) | Ancien Clt : 16 -> Nouveau : 20
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Maelys LE BIGOT  (50BI - 00:29.13) | Ancien Clt : 53 -> Nouveau : 56
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Anne LAVIGNE  (50BI - 00:29.13) | Ancien Clt : 6 -> Nouveau : 7
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Nina VIGOUROUX (50BI - 00:30.20) | Ancien Clt : 17 -> Nouveau : 18
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Emma ROZE (50BI - 00:30.29) | Ancien Clt : 42 -> Nouveau : 41
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Sandra KERGOURLAY (50BI - 00:32.59) | Ancien Clt : 36 -> Nouveau : 37
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Elodie STEPHAN (50BI - 00:36.14) | Ancien Clt : 72 -> Nouveau : 75
+[2026-05-04 16:32:19] [INFO   ] [RANKING        ] Sandra PRIGENT (50BI - 00:41.63) | Ancien Clt : 53 -> Nouveau : 54
+[2026-05-04 16:32:20] [INFO   ] [API_CALL       ] Requete: 50BI | M
+[2026-05-04 16:32:20] [SUCCESS] [API_JSON       ] Succès JSON : 420 temps reçus.
+[2026-05-04 16:32:20] [INFO   ] [INSERT         ] Killian TORC'H (50BI) | Ajout 1er temps : 00:21.86 à Aix en provence
+[2026-05-04 16:32:20] [SUCCESS] [UPDATE         ] Luca SOLLAZZO (50BI) | Ancien: 00:23.41 -> Nouveau: 00:22.41 à Aix en provence
+[2026-05-04 16:32:20] [INFO   ] [RANKING        ] Mathis FRANCES (50BI - 00:23.50) | Ancien Clt : 44 -> Nouveau : 48
+[2026-05-04 16:32:20] [INFO   ] [RANKING        ] Nore SEGALEN (50BI - 00:24.73) | Ancien Clt : 19 -> Nouveau : 20
+[2026-05-04 16:32:20] [INFO   ] [API_CALL       ] Requete: 100BI | F
+[2026-05-04 16:32:21] [SUCCESS] [API_JSON       ] Succès JSON : 366 temps reçus.
+[2026-05-04 16:32:21] [INFO   ] [RANKING        ] Florie BOUTOUILLER (100BI - 00:53.80) | Ancien Clt : 18 -> Nouveau : 20
+[2026-05-04 16:32:21] [INFO   ] [RANKING        ] Pauline CAMUS (100BI - 01:02.88) | Ancien Clt : 26 -> Nouveau : 27
+[2026-05-04 16:32:21] [INFO   ] [RANKING        ] Maelys LE BIGOT  (100BI - 01:07.25) | Ancien Clt : 53 -> Nouveau : 54
+[2026-05-04 16:32:21] [INFO   ] [RANKING        ] Garance LEBEE (100BI - 01:07.97) | Ancien Clt : 38 -> Nouveau : 37
+[2026-05-04 16:32:21] [INFO   ] [RANKING        ] Sandra KERGOURLAY (100BI - 01:12.67) | Ancien Clt : 19 -> Nouveau : 20
+[2026-05-04 16:32:21] [INFO   ] [RANKING        ] Emma ROZE (100BI - 01:20.96) | Ancien Clt : 51 -> Nouveau : 50
+[2026-05-04 16:32:21] [INFO   ] [API_CALL       ] Requete: 100BI | M
+[2026-05-04 16:32:22] [SUCCESS] [API_JSON       ] Succès JSON : 402 temps reçus.
+[2026-05-04 16:32:22] [INFO   ] [INSERT         ] Killian TORC'H (100BI) | Ajout 1er temps : 00:48.60 à Aix en provence
+[2026-05-04 16:32:22] [SUCCESS] [UPDATE         ] Luca SOLLAZZO (100BI) | Ancien: 00:53.04 -> Nouveau: 00:49.91 à Aix en provence
+[2026-05-04 16:32:22] [INFO   ] [RANKING        ] Mathis FRANCES (100BI - 00:53.41) | Ancien Clt : 44 -> Nouveau : 45
+[2026-05-04 16:32:22] [INFO   ] [RANKING        ] Nevis VIGOUROUX (100BI - 00:58.67) | Ancien Clt : 15 -> Nouveau : 16
+[2026-05-04 16:32:22] [INFO   ] [RANKING        ] Maxime LE POGAM (100BI - 01:00.54) | Ancien Clt : 21 -> Nouveau : 22
+[2026-05-04 16:32:22] [INFO   ] [API_CALL       ] Requete: 200BI | F
+[2026-05-04 16:32:23] [SUCCESS] [API_JSON       ] Succès JSON : 272 temps reçus.
+[2026-05-04 16:32:23] [INFO   ] [RANKING        ] Florie BOUTOUILLER (200BI - 01:57.65) | Ancien Clt : 9 -> Nouveau : 11
+[2026-05-04 16:32:23] [INFO   ] [RANKING        ] Eloise KERJEAN (200BI - 02:07.63) | Ancien Clt : 11 -> Nouveau : 12
+[2026-05-04 16:32:23] [INFO   ] [RANKING        ] Tifenn GOBIN (200BI - 02:11.53) | Ancien Clt : 2 -> Nouveau : 3
+[2026-05-04 16:32:23] [INFO   ] [RANKING        ] Sandra KERGOURLAY (200BI - 02:48.78) | Ancien Clt : 18 -> Nouveau : 19
+[2026-05-04 16:32:23] [INFO   ] [API_CALL       ] Requete: 200BI | M
+[2026-05-04 16:32:23] [SUCCESS] [API_JSON       ] Succès JSON : 300 temps reçus.
+[2026-05-04 16:32:23] [INFO   ] [INSERT         ] Killian TORC'H (200BI) | Ajout 1er temps : 01:51.21 à Quimper
+[2026-05-04 16:32:23] [INFO   ] [RANKING        ] Zacharie LEDUC (200BI - 02:00.40) | Ancien Clt : 8 -> Nouveau : 9
+[2026-05-04 16:32:24] [INFO   ] [RANKING        ] Celian PRIGENT (200BI - 02:03.22) | Ancien Clt : 10 -> Nouveau : 11
+[2026-05-04 16:32:24] [INFO   ] [API_CALL       ] Requete: 400BI | F
+[2026-05-04 16:32:24] [SUCCESS] [API_JSON       ] Succès JSON : 171 temps reçus.
+[2026-05-04 16:32:24] [INFO   ] [RANKING        ] Eloise KERJEAN (400BI - 04:34.68) | Ancien Clt : 7 -> Nouveau : 10
+[2026-05-04 16:32:24] [INFO   ] [RANKING        ] Pauline CAMUS (400BI - 05:24.69) | Ancien Clt : 25 -> Nouveau : 27
+[2026-05-04 16:32:24] [INFO   ] [RANKING        ] Emma ROZE (400BI - 05:31.75) | Ancien Clt : 25 -> Nouveau : 27
+[2026-05-04 16:32:24] [INFO   ] [RANKING        ] Sandra KERGOURLAY (400BI - 05:45.62) | Ancien Clt : 12 -> Nouveau : 13
+[2026-05-04 16:32:24] [INFO   ] [API_CALL       ] Requete: 400BI | M
+[2026-05-04 16:32:25] [SUCCESS] [API_JSON       ] Succès JSON : 189 temps reçus.
+[2026-05-04 16:32:25] [SUCCESS] [UPDATE         ] Luca SOLLAZZO (400BI) | Ancien: 04:21.89 -> Nouveau: 04:09.50 à Aix en provence
+[2026-05-04 16:32:25] [INFO   ] [RANKING        ] Celian PRIGENT (400BI - 04:27.46) | Ancien Clt : 10 -> Nouveau : 11
+[2026-05-04 16:32:25] [INFO   ] [RANKING        ] Zacharie LEDUC (400BI - 04:28.17) | Ancien Clt : 11 -> Nouveau : 12
+[2026-05-04 16:32:25] [INFO   ] [INSERT         ] Killian TORC'H (400BI) | Ajout 1er temps : 05:04.56 à Baud
+[2026-05-04 16:32:25] [INFO   ] [RANKING        ] Matthieu SANCEAU (400BI - 05:31.18) | Ancien Clt : 5 -> Nouveau : 6
+[2026-05-04 16:32:25] [INFO   ] [END            ] --- FIN DE SYNCHRONISATION ---
