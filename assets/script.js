@@ -1,56 +1,76 @@
 // --- 1. FONCTION DE SYNCHRONISATION ---
-function lancerSync() {
+async function lancerSync() {
     const btn = document.getElementById('btnSync');
     const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
 
+    // Verrouillage de l'interface
     btn.disabled = true;
     btn.style.backgroundColor = "#ccc";
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
-    progressBar.style.backgroundColor = '#28a745';
+    progressBar.style.backgroundColor = 'var(--succes)';
     progressBar.innerText = '0%';
-    progressText.innerText = 'Connexion à la base FFESSM...';
+    progressText.innerText = 'Initialisation de la synchronisation...';
 
-    
-const evtSource = new EventSource("index.php?action=sync&token=" + encodeURIComponent(CSRF_TOKEN));
+    // Liste des tâches à accomplir (basée sur vos 15 épreuves x 2 genres)
+    const liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
+    const genres = ['F', 'M'];
+    const tasks = [];
 
-    evtSource.onmessage = function(event) {
-        const data = JSON.parse(event.data);
+    for (let epreuve of liste_epreuves) {
+        for (let genre of genres) {
+            tasks.push({ epreuve: epreuve, genre: genre });
+        }
+    }
 
-        if (data.error) {
-            progressBar.style.backgroundColor = '#d9534f';
-            progressText.innerText = data.message;
-            evtSource.close();
+    const totalSteps = tasks.length;
+    let currentStep = 0;
+
+    // Boucle asynchrone : on attend que chaque requête soit finie avant de lancer la suivante
+    for (let i = 0; i < totalSteps; i++) {
+        let task = tasks[i];
+        let etapeStr = 'suite';
+        if (i === 0) etapeStr = 'debut'; // Pour gérer le log d'ouverture
+        if (i === totalSteps - 1) etapeStr = 'fin'; // Pour gérer le log de fermeture
+
+        progressText.innerText = `Synchronisation en cours : ${task.epreuve} (${task.genre === 'F' ? 'Femmes' : 'Hommes'})...`;
+
+        try {
+            // Création de l'URL avec les paramètres spécifiques
+            let url = `index.php?action=sync&token=${encodeURIComponent(CSRF_TOKEN)}&epreuve=${task.epreuve}&genre=${task.genre}&etape=${etapeStr}`;
+
+            let response = await fetch(url);
+            let data = await response.json();
+
+            // Gestion des erreurs renvoyées par le PHP
+            if (data.error) {
+                progressBar.style.backgroundColor = 'var(--danger)';
+                progressText.innerText = "Erreur : " + data.message;
+                btn.disabled = false;
+                btn.style.backgroundColor = "var(--couleur-secondaire)";
+                return; // On stoppe tout
+            }
+
+            // Mise à jour de la barre de progression
+            currentStep++;
+            let percent = Math.round((currentStep / totalSteps) * 100);
+            progressBar.style.width = percent + '%';
+            progressBar.innerText = percent + '%';
+
+        } catch (err) {
+            progressBar.style.backgroundColor = 'var(--danger)';
+            progressText.innerText = "Erreur réseau. L'hébergeur a peut-être bloqué la requête.";
             btn.disabled = false;
-            btn.style.backgroundColor = "var(--secondary)";
-            return;
+            btn.style.backgroundColor = "var(--couleur-secondaire)";
+            return; // On stoppe tout
         }
+    }
 
-        progressBar.style.width = data.progress + '%';
-        progressBar.innerText = data.progress + '%';
-        progressText.innerText = data.message;
-
-        if (data.done) {
-            evtSource.close();
-            progressBar.style.backgroundColor = '#28a745';
-            progressText.innerHTML = "<strong>✅ " + data.message + " La page va se recharger.</strong>";
-            setTimeout(() => { location.reload(); }, 2000);
-        }
-    };
-
-    evtSource.onerror = function(event) {
-        if (evtSource.readyState === EventSource.CLOSED) {
-            progressBar.style.backgroundColor = '#d9534f';
-            progressText.innerText = "❌ Connexion perdue avec le serveur.";
-            evtSource.close();
-            btn.disabled = false;
-            btn.style.backgroundColor = "var(--secondary)";
-        } else {
-            progressText.innerText = "⚠️ Reconnexion en cours...";
-        }
-    };
+    // Une fois la boucle terminée avec succès
+    progressText.innerHTML = "<strong>Synchronisation terminée ! La page va se recharger.</strong>";
+    setTimeout(() => { location.reload(); }, 2000);
 }
 
 // --- 2. FONCTION POUR LE FILTRE DES NAGEURS ---
@@ -81,7 +101,7 @@ let myChart = null;
 async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
     document.getElementById('chartModal').style.display = 'block';
     document.getElementById('chartTitle').innerText = "📈 Évolution : " + nomComplet; // Titre plus court
-    
+
     let url = 'index.php?action=history&nageur_id=' + nageurId + '&epreuve=' + epreuve;
     if (categorie !== '') {
         url += '&categorie=' + encodeURIComponent(categorie);
@@ -89,22 +109,22 @@ async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
 
     let response = await fetch(url);
     let responseData = await response.json();
-    
+
     let data = responseData.history;
     let tempsRefSec = responseData.temps_ref_sec;
     let tempsRefStr = responseData.temps_ref_str;
-    
+
     // 🔴 1. On ne met plus que la DATE sur l'axe X pour gagner de la place
     const labels = data.map(d => d.date);
     // 🔴 2. On prépare le détail complet (Date + Lieu) pour l'afficher au clic (Tooltip)
     const fullDetails = data.map(d => d.date + " - " + d.lieu);
-    
+
     const values = data.map(d => d.temps_sec);
     const tooltips = data.map(d => d.temps_str);
-    
+
     const ctx = document.getElementById('evolutionChart').getContext('2d');
     if (myChart) { myChart.destroy(); }
-    
+
     let datasets = [{
         label: 'Temps',
         data: values,
@@ -126,51 +146,51 @@ async function showChart(nageurId, epreuve, nomComplet, categorie = '') {
             tension: 0
         });
     }
-    
+
     myChart = new Chart(ctx, {
         type: 'line',
         data: { labels: labels, datasets: datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false, // 🔴 INDISPENSABLE : Laisse le CSS (60vh) décider de la hauteur !
-            plugins: { 
+            plugins: {
                 legend: {
                     position: 'bottom' // On descend la légende pour libérer le haut
                 },
-                tooltip: { 
-                    callbacks: { 
-                        title: function(context) {
+                tooltip: {
+                    callbacks: {
+                        title: function (context) {
                             // 🔴 Affiche le Date + Lieu complet en gras dans la bulle
                             return fullDetails[context[0].dataIndex];
                         },
-                        label: function(c) { 
+                        label: function (c) {
                             if (c.datasetIndex === 0) {
-                                return " ⏱️ Chrono : " + tooltips[c.dataIndex]; 
+                                return " ⏱️ Chrono : " + tooltips[c.dataIndex];
                             } else {
                                 return " 🎯 Objectif : " + tempsRefStr;
                             }
-                        } 
-                    } 
-                } 
+                        }
+                    }
+                }
             },
-            scales: { 
+            scales: {
                 x: {
                     ticks: {
                         maxRotation: 45, // Incline légèrement les dates, mais pas trop (évite le texte vertical)
                         minRotation: 45
                     }
                 },
-                y: { 
-                    reverse: true, 
+                y: {
+                    reverse: true,
                     title: { display: false } // On retire le texte "Plus rapide ⬆️" qui écrase le graph à gauche
-                } 
+                }
             }
         }
     });
 }
 
 function closeChart() { document.getElementById('chartModal').style.display = 'none'; }
-window.onclick = function(event) {
+window.onclick = function (event) {
     let modal = document.getElementById('chartModal');
     if (event.target == modal) { closeChart(); }
 }
@@ -179,7 +199,7 @@ window.onclick = function(event) {
 function exporterCsv() {
     // On récupère l'année actuellement sélectionnée dans la liste déroulante
     let saisonSelect = document.getElementById('saisonSelect');
-    
+
     // Si l'ID n'est pas trouvé, on tente de le récupérer par son nom
     if (!saisonSelect) {
         saisonSelect = document.querySelector('select[name="saison"]');
@@ -200,16 +220,16 @@ function toggleStats() {
     // Si les stats sont cachées, on les affiche et on cache le tableau
     if (statsContainer.style.display === 'none') {
         statsContainer.style.display = 'block';
-        if(tableContainer) tableContainer.style.display = 'none';
-        
+        if (tableContainer) tableContainer.style.display = 'none';
+
         btnToggle.innerHTML = '📋 Retour au Tableau';
         btnToggle.style.backgroundColor = 'var(--couleur-principale)';
-    } 
+    }
     // Sinon, on fait l'inverse
     else {
         statsContainer.style.display = 'none';
-        if(tableContainer) tableContainer.style.display = 'block';
-        
+        if (tableContainer) tableContainer.style.display = 'block';
+
         btnToggle.innerHTML = '📊 Afficher les Statistiques';
         btnToggle.style.backgroundColor = '#17a2b8';
     }
@@ -219,7 +239,7 @@ function toggleStats() {
 async function voirLogs() {
     const modal = document.getElementById('logModal');
     const container = document.getElementById('logContent');
-    
+
     if (!modal || !container) return;
 
     modal.style.display = 'block';
@@ -228,7 +248,7 @@ async function voirLogs() {
     try {
         const response = await fetch('index.php?action=get_logs');
         const rawText = await response.text();
-        
+
         if (rawText.includes("Aucun historique") || rawText.trim() === "") {
             container.innerHTML = "<div style='padding:20px; text-align:center;'>Aucun historique de synchronisation pour le moment.</div>";
             return;
@@ -274,20 +294,20 @@ async function voirLogs() {
         sessions.forEach(session => {
             html += `<div class="log-session">`;
             html += `<div class="log-session-title">📅 Synchronisation du ${session.date}</div>`;
-            
+
             // Plus besoin de vérifier si c'est vide, on a déjà filtré
             session.logs.forEach(logLine => {
                 html += parseLogLine(logLine);
             });
-            
+
             html += `</div>`;
         });
 
         container.style.background = "transparent";
-        
+
         // S'il n'y a eu aucune modification dans aucune session, on affiche un message global
         container.innerHTML = html || "<div style='padding:20px; text-align:center;'>Aucune modification trouvée dans l'historique récent.</div>";
-        
+
     } catch (e) {
         console.error("Erreur d'affichage des logs:", e);
         container.innerHTML = "❌ Erreur de chargement de l'historique.";
@@ -298,11 +318,11 @@ function parseLogLine(line) {
     try {
         // Extraction de l'heure
         let dateMatch = line.match(/\[(.*?)\]/);
-        let heure = dateMatch ? dateMatch[1].split(' ')[1] : ""; 
-        
+        let heure = dateMatch ? dateMatch[1].split(' ')[1] : "";
+
         // Extraction du contenu après la date
         let content = line.substring(line.indexOf(']') + 1).trim();
-        
+
         let type = "Info", icon = "ℹ️", css = "type-ajout", label = "Modification";
         let detailHtml = "";
 
@@ -314,7 +334,7 @@ function parseLogLine(line) {
             let namePart = parts[0] ? parts[0].trim() : "Nageur inconnu";
             let changePart = parts[1] ? parts[1].replace('Ancien temps :', '').replace('Nouveau :', '→').trim() : "";
             detailHtml = `<div class="log-name">${namePart}</div><div class="log-change">${changePart}</div>`;
-        } 
+        }
         else if (content.includes("[MAJ CLASSEMENT]")) {
             type = "Classement"; icon = "📈"; css = "type-classement"; label = "Évolution Rang";
             let rawData = content.replace("[MAJ CLASSEMENT]", "").trim();
@@ -337,23 +357,23 @@ function parseLogLine(line) {
                 </div>
                 <div style="font-size:0.75rem; color:var(--texte-secondaire); min-width: 40px; text-align: right; font-weight: bold;">${heure}</div>
             </div>`;
-            
+
     } catch (err) {
         console.error("Erreur de parsing sur la ligne :", line, err);
         return `<div class="log-card type-ajout"><div class="log-details">Détail technique : ${line}</div></div>`;
     }
 }
 
-function closeLogs() { 
+function closeLogs() {
     const modal = document.getElementById('logModal');
-    if(modal) modal.style.display = 'none'; 
+    if (modal) modal.style.display = 'none';
 }
 
 // MISE À JOUR DE LA FERMETURE AU CLIC EN DEHORS DES MODALES
-window.onclick = function(event) {
+window.onclick = function (event) {
     let chartModal = document.getElementById('chartModal');
     let logModal = document.getElementById('logModal');
-    
+
     if (event.target == chartModal) { closeChart(); }
     if (event.target == logModal) { closeLogs(); }
 }
@@ -361,7 +381,7 @@ window.onclick = function(event) {
 // --- 7. FONCTIONS RGPD (Cookies & Mentions Légales) ---
 
 // Vérifie au chargement de la page si l'utilisateur a déjà cliqué sur "Compris"
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     if (!localStorage.getItem("rgpd_accepted")) {
         document.getElementById("cookieBanner").style.display = "flex";
         document.getElementById("cookieBanner").style.alignItems = "center";
@@ -386,11 +406,11 @@ function closePrivacy() {
 }
 
 // MISE À JOUR DE LA FERMETURE AU CLIC EN DEHORS DES MODALES
-window.onclick = function(event) {
+window.onclick = function (event) {
     let chartModal = document.getElementById('chartModal');
     let logModal = document.getElementById('logModal');
     let privacyModal = document.getElementById('privacyModal');
-    
+
     if (event.target == chartModal) { closeChart(); }
     if (event.target == logModal) { closeLogs(); }
     if (event.target == privacyModal) { closePrivacy(); }
