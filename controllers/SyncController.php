@@ -85,13 +85,27 @@ class SyncController
                     foreach ($categories_genre as $cat_code => $cat_nom) {
                         ++$current_step;
 
-                        $params = ['action' => 'gettop', 'course' => $epreuve, 'saison' => $saison, 'category' => $cat_code, 'token' => $this->token, 'clubid' => '0', 'order' => 'tps'];
+                        // 1. Ajout d'un paramètre 'nocache' avec un timestamp pour forcer le téléchargement de données fraîches
+                        $params = [
+                            'action' => 'gettop',
+                            'course' => $epreuve,
+                            'saison' => $saison,
+                            'category' => $cat_code,
+                            'token' => $this->token,
+                            'clubid' => '0',
+                            'order' => 'tps',
+                            'nocache' => time()  // <-- Contournement du cache
+                        ];
 
                         $ch = curl_init();
                         curl_setopt($ch, CURLOPT_URL, $this->url . '?' . http_build_query($params));
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
                         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+                        // 2. Ajout d'un faux User-Agent pour simuler un vrai navigateur et éviter le blocage WAF (Cloudflare/FFESSM)
+                        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
                         $response = curl_exec($ch);
 
                         if (curl_errno($ch)) {
@@ -102,9 +116,14 @@ class SyncController
                         curl_close($ch);
 
                         $modifs_session = [];
-
                         if ($response) {
                             $donnees = json_decode($response, true);
+
+                            if (json_last_error() !== JSON_ERROR_NONE) {
+                                $this->writeToLog("ERREUR API ($epreuve - $cat_nom) : L'API n'a pas renvoyé de JSON valide. (Blocage FFESSM probable)");
+                                continue;
+                            }
+
                             if (is_array($donnees)) {
                                 $compteur_lignes = [];
                                 $vraie_position = [];
@@ -135,7 +154,7 @@ class SyncController
                                         // 🔴 2. VÉRIFICATION BLACKLIST POUR CE NAGEUR
                                         $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
                                         $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
-                                        
+
                                         $est_blacklist = false;
                                         foreach ($blacklist as $bl_nom) {
                                             if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
@@ -149,16 +168,16 @@ class SyncController
                                             // On tente de le supprimer de la base (si jamais il y était avant son ajout à la liste)
                                             $stmtDel = $this->pdo->prepare('DELETE FROM nageurs WHERE nom = ? AND prenom = ?');
                                             $stmtDel->execute([$nom_nageur, $prenom_nageur]);
-                                            
+
                                             // Si on a bien supprimé quelqu'un, on le loggue pour information
                                             if ($stmtDel->rowCount() > 0) {
                                                 $info = "Suppression des données de : {$prenom_nageur} {$nom_nageur}";
-                                                $modifs_session[] = "[BLACKLIST] " . $info;
-                                                $this->writeToLog("[BLACKLIST] " . $info);
+                                                $modifs_session[] = '[BLACKLIST] ' . $info;
+                                                $this->writeToLog('[BLACKLIST] ' . $info);
                                             }
-                                            
+
                                             // On saute ce nageur et on passe au suivant (aucune insertion)
-                                            continue; 
+                                            continue;
                                         }
 
                                         $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
