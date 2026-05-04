@@ -98,12 +98,23 @@ class SyncController
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url_complete);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+            // 1. Ignorer les erreurs de certificat SSL (très fréquent sur les hébergeurs mutualisés)
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+            // 2. Simuler un vrai navigateur avec une gestion des cookies
+            $cookie_file = __DIR__ . '/../cookie_ffessm.txt';
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
+
             curl_setopt($ch, CURLOPT_TIMEOUT, 15);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_REFERER, 'https://nap.ffessm.fr/index.php');
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-            curl_setopt($ch, CURLOPT_ENCODING, '');
+
+            // 3. Un User-Agent encore plus standard et récent
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+            curl_setopt($ch, CURLOPT_ENCODING, 'gzip, deflate, br');  // Accepter la compression moderne
 
             $headers = [
                 'Accept: application/json, text/javascript, */*; q=0.01',
@@ -112,9 +123,15 @@ class SyncController
                 'X-Requested-With: XMLHttpRequest',
                 'Sec-Fetch-Dest: empty',
                 'Sec-Fetch-Mode: cors',
-                'Sec-Fetch-Site: same-origin'
+                'Sec-Fetch-Site: same-origin',
+                'Pragma: no-cache',
+                'Cache-Control: no-cache'
             ];
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+            // 4. Ajouter un délai humain totalement aléatoire (entre 0.8 et 2.5 secondes)
+            // Cela évite que le pare-feu détecte 30 requêtes envoyées à la vitesse de la lumière
+            usleep(rand(800000, 2500000));
 
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
