@@ -8,8 +8,8 @@ class SyncController
     private $token;
     private $url;
     private $club_cible;
-    private $log_file; // Fichier pour l'interface web
-    private $logger;   // Fichier pour le débogage technique
+    private $log_file;  // Fichier pour l'interface web
+    private $logger;  // Fichier pour le débogage technique
 
     public function __construct()
     {
@@ -17,10 +17,10 @@ class SyncController
         $this->url = $_ENV['API_URL'] ?? '';
         $this->token = $_ENV['API_TOKEN'] ?? '';
         $this->club_cible = $_ENV['API_CLUB'] ?? '';
-        
+
         // Log historique pour l'interface web (inchangé)
         $this->log_file = __DIR__ . '/../sync_modifications.log';
-        
+
         // Log technique pour trouver les erreurs (Nouveau)
         $this->logger = new SyncLogger('sync_debug.log');
     }
@@ -60,9 +60,9 @@ class SyncController
         set_time_limit(0);
 
         // --- Démarrage des logs ---
-        $this->writeToLog('--- DÉBUT DE SYNCHRONISATION ---'); // Log Interface
+        $this->writeToLog('--- DÉBUT DE SYNCHRONISATION ---');  // Log Interface
         $this->logger->separator();
-        $this->logger->info('START', '--- DÉBUT DE SYNCHRONISATION ---'); // Log Technique
+        $this->logger->info('START', '--- DÉBUT DE SYNCHRONISATION ---');  // Log Technique
 
         $blacklist = [];
         $chemin_blacklist = __DIR__ . '/../blacklist.txt';
@@ -79,7 +79,7 @@ class SyncController
         $saisons = [date('Y')];
         $liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
         $categories_genre = ['F' => 'Femmes', 'M' => 'Hommes'];
-        
+
         $total_steps = count($saisons) * count($liste_epreuves) * count($categories_genre);
         $current_step = 0;
 
@@ -87,10 +87,10 @@ class SyncController
             foreach ($saisons as $saison) {
                 foreach ($liste_epreuves as $epreuve) {
                     $epreuve_id = $this->getOrCreateSimple('epreuves', 'nom_epreuve', $epreuve);
-                    
+
                     foreach ($categories_genre as $cat_code => $cat_nom) {
                         $current_step++;
-                        
+
                         $params = [
                             'action' => 'gettop', 'course' => $epreuve, 'saison' => $saison,
                             'category' => $cat_code, 'token' => $this->token, 'clubid' => '0',
@@ -105,11 +105,15 @@ class SyncController
                         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
                         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
+                        // NOUVEAUTÉS CRUCIALES POUR L'HÉBERGEUR :
+                        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);  // Force PHP à suivre les redirections
+                        curl_setopt($ch, CURLOPT_REFERER, 'https://nap.ffessm.fr/');  // Fait croire qu'on vient du site officiel
                         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-                        
+
                         $response = curl_exec($ch);
                         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                        
+
                         if (curl_errno($ch)) {
                             $erreur = curl_error($ch);
                             $this->logger->error('API_CURL', "Erreur réseau ($http_code) : $erreur");
@@ -120,97 +124,103 @@ class SyncController
 
                         $modifs_session = [];
 
-                        if ($response) {
-                            $donnees = json_decode($response, true);
-                            
-                            if (json_last_error() !== JSON_ERROR_NONE) {
-                                $this->logger->error('API_JSON', "L'API a renvoyé du HTML. HttpCode: $http_code. Extrait: " . substr(strip_tags($response), 0, 100));
-                                continue;
-                            }
+                        // DÉTECTION DU VIDE ABSOLU
+                        if ($response === false || trim($response) === '') {
+                            $this->logger->warning('API_EMPTY', "L'API a renvoyé une page 100% blanche. Code HTTP: $http_code");
+                            continue;  // On passe à l'épreuve suivante
+                        }
 
-                            if (is_array($donnees)) {
-                                $this->logger->success('API_JSON', "Succès JSON : " . count($donnees) . " temps reçus.");
-                                $compteur_lignes = [];
-                                $vraie_position = [];
-                                $dernier_temps = [];
+                        $donnees = json_decode($response, true);
 
-                                foreach ($donnees as $n) {
-                                    $cat_nageur = $n['categorie'] ?? 'NC';
-                                    if (!isset($compteur_lignes[$cat_nageur])) {
-                                        $compteur_lignes[$cat_nageur] = 0;
-                                        $vraie_position[$cat_nageur] = 0;
-                                        $dernier_temps[$cat_nageur] = null;
-                                    }
-                                    
-                                    $compteur_lignes[$cat_nageur]++;
-                                    if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
-                                        $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
-                                        $dernier_temps[$cat_nageur] = $n['temps'];
-                                    }
-                                    $position_nationale = $vraie_position[$cat_nageur];
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            $this->logger->error('API_JSON', "L'API a renvoyé du HTML ou du texte invalide. HttpCode: $http_code. Extrait: " . substr(strip_tags($response), 0, 100));
+                            continue;
+                        }
 
-                                    if (isset($n['club']) && $n['club'] === $this->club_cible) {
-                                        $nom_nageur = $n['nom'] ?? '';
-                                        $prenom_nageur = $n['prenom'] ?? '';
+                        if (is_array($donnees)) {
+                            $this->logger->success('API_JSON', 'Succès JSON : ' . count($donnees) . ' temps reçus.');
 
-                                        $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
-                                        $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
-                                        
-                                        $est_blacklist = false;
-                                        foreach ($blacklist as $bl_nom) {
-                                            if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
-                                                $est_blacklist = true;
-                                                break;
-                                            }
+                            // ... La suite de votre code reste identique à partir d'ici ...
+                            $compteur_lignes = [];
+                            $vraie_position = [];
+                            $dernier_temps = [];
+
+                            foreach ($donnees as $n) {
+                                $cat_nageur = $n['categorie'] ?? 'NC';
+                                if (!isset($compteur_lignes[$cat_nageur])) {
+                                    $compteur_lignes[$cat_nageur] = 0;
+                                    $vraie_position[$cat_nageur] = 0;
+                                    $dernier_temps[$cat_nageur] = null;
+                                }
+
+                                $compteur_lignes[$cat_nageur]++;
+                                if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
+                                    $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
+                                    $dernier_temps[$cat_nageur] = $n['temps'];
+                                }
+                                $position_nationale = $vraie_position[$cat_nageur];
+
+                                if (isset($n['club']) && $n['club'] === $this->club_cible) {
+                                    $nom_nageur = $n['nom'] ?? '';
+                                    $prenom_nageur = $n['prenom'] ?? '';
+
+                                    $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
+                                    $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
+
+                                    $est_blacklist = false;
+                                    foreach ($blacklist as $bl_nom) {
+                                        if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
+                                            $est_blacklist = true;
+                                            break;
                                         }
+                                    }
 
-                                        if ($est_blacklist) {
-                                            $stmtDel = $this->pdo->prepare('DELETE FROM nageurs WHERE nom = ? AND prenom = ?');
-                                            $stmtDel->execute([$nom_nageur, $prenom_nageur]);
-                                            if ($stmtDel->rowCount() > 0) {
-                                                $info = "Suppression des données de : {$prenom_nageur} {$nom_nageur}";
-                                                $modifs_session[] = '[BLACKLIST] ' . $info;
-                                                $this->writeToLog('[BLACKLIST] ' . $info); // Interface
-                                                $this->logger->warning('BLACKLIST', $info); // Technique
-                                            }
-                                            continue;
+                                    if ($est_blacklist) {
+                                        $stmtDel = $this->pdo->prepare('DELETE FROM nageurs WHERE nom = ? AND prenom = ?');
+                                        $stmtDel->execute([$nom_nageur, $prenom_nageur]);
+                                        if ($stmtDel->rowCount() > 0) {
+                                            $info = "Suppression des données de : {$prenom_nageur} {$nom_nageur}";
+                                            $modifs_session[] = '[BLACKLIST] ' . $info;
+                                            $this->writeToLog('[BLACKLIST] ' . $info);  // Interface
+                                            $this->logger->warning('BLACKLIST', $info);  // Technique
                                         }
+                                        continue;
+                                    }
 
-                                        $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
-                                        $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
-                                        $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
+                                    $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
+                                    $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
+                                    $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
 
-                                        $stmtBest = $this->pdo->prepare('SELECT temps FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? ORDER BY temps ASC LIMIT 1');
-                                        $stmtBest->execute([$nageur_id, $epreuve_id, $saison]);
-                                        $old_best = $stmtBest->fetch(PDO::FETCH_ASSOC);
+                                    $stmtBest = $this->pdo->prepare('SELECT temps FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? ORDER BY temps ASC LIMIT 1');
+                                    $stmtBest->execute([$nageur_id, $epreuve_id, $saison]);
+                                    $old_best = $stmtBest->fetch(PDO::FETCH_ASSOC);
 
-                                        $stmtExact = $this->pdo->prepare('SELECT classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND temps = ? AND date_perf = ?');
-                                        $stmtExact->execute([$nageur_id, $epreuve_id, $n['temps'], $n['date'] ?? '']);
-                                        $old_exact = $stmtExact->fetch(PDO::FETCH_ASSOC);
+                                    $stmtExact = $this->pdo->prepare('SELECT classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND temps = ? AND date_perf = ?');
+                                    $stmtExact->execute([$nageur_id, $epreuve_id, $n['temps'], $n['date'] ?? '']);
+                                    $old_exact = $stmtExact->fetch(PDO::FETCH_ASSOC);
 
-                                        $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
+                                    $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
 
-                                        if ($affectedRows > 0) {
-                                            if ($affectedRows === 1) {
-                                                if ($old_best && $old_best['temps'] !== $n['temps']) {
-                                                    $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ancien: {$old_best['temps']} -> Nouveau: {$n['temps']} à {$n['lieu']}";
-                                                    $modifs_session[] = '[NOUVEAU TEMPS] ' . $info;
-                                                    $this->writeToLog('[NOUVEAU TEMPS] ' . $info); // Interface
-                                                    $this->logger->success('UPDATE', $info); // Technique
-                                                } else {
-                                                    $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
-                                                    $modifs_session[] = '[AJOUT] ' . $info;
-                                                    $this->writeToLog('[AJOUT] ' . $info); // Interface
-                                                    $this->logger->info('INSERT', $info); // Technique
-                                                }
-                                            } elseif ($affectedRows === 2) {
-                                                $ancien_clt = ($old_exact && $old_exact['classement'] !== null) ? $old_exact['classement'] : 'NC';
-                                                if ($ancien_clt != $position_nationale) {
-                                                    $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau : {$position_nationale}";
-                                                    $modifs_session[] = '[MAJ CLASSEMENT] ' . $info;
-                                                    $this->writeToLog('[MAJ CLASSEMENT] ' . $info); // Interface
-                                                    $this->logger->info('RANKING', $info); // Technique
-                                                }
+                                    if ($affectedRows > 0) {
+                                        if ($affectedRows === 1) {
+                                            if ($old_best && $old_best['temps'] !== $n['temps']) {
+                                                $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ancien: {$old_best['temps']} -> Nouveau: {$n['temps']} à {$n['lieu']}";
+                                                $modifs_session[] = '[NOUVEAU TEMPS] ' . $info;
+                                                $this->writeToLog('[NOUVEAU TEMPS] ' . $info);  // Interface
+                                                $this->logger->success('UPDATE', $info);  // Technique
+                                            } else {
+                                                $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve}) | Ajout 1er temps : {$n['temps']} à {$n['lieu']}";
+                                                $modifs_session[] = '[AJOUT] ' . $info;
+                                                $this->writeToLog('[AJOUT] ' . $info);  // Interface
+                                                $this->logger->info('INSERT', $info);  // Technique
+                                            }
+                                        } elseif ($affectedRows === 2) {
+                                            $ancien_clt = ($old_exact && $old_exact['classement'] !== null) ? $old_exact['classement'] : 'NC';
+                                            if ($ancien_clt != $position_nationale) {
+                                                $info = "{$prenom_nageur} {$nom_nageur} ({$epreuve} - {$n['temps']}) | Ancien Clt : {$ancien_clt} -> Nouveau : {$position_nationale}";
+                                                $modifs_session[] = '[MAJ CLASSEMENT] ' . $info;
+                                                $this->writeToLog('[MAJ CLASSEMENT] ' . $info);  // Interface
+                                                $this->logger->info('RANKING', $info);  // Technique
                                             }
                                         }
                                     }
@@ -229,7 +239,6 @@ class SyncController
             $this->writeToLog('--- FIN DE SYNCHRONISATION ---');
             $this->logger->info('END', '--- FIN DE SYNCHRONISATION ---');
             $this->sendSSE(100, 'Synchronisation terminée !', true);
-
         } catch (Exception $e) {
             $this->writeToLog('ERREUR CRITIQUE : ' . $e->getMessage());
             $this->logger->error('FATAL', 'Erreur critique : ' . $e->getMessage());
