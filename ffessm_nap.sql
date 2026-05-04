@@ -2723,3 +2723,4 @@ ALTER TABLE `performances`
   ADD CONSTRAINT `performances_ibfk_3` FOREIGN KEY (`categorie_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `performances_ibfk_4` FOREIGN KEY (`lieu_id`) REFERENCES `lieux` (`id`) ON DELETE CASCADE;
 COMMIT;
+INSERT INTO `performances` (`nageur_id`, `epreuve_id`, `categorie_id`, `lieu_id`, `saison`, `temps`, `date_perf`, `classement`) VALUES (13, 9, 13, 1033, 2026, '00:17.50', '24/04/2026', 15) ON DUPLICATE KEY UPDATE `classement` = VALUES(`classement`);

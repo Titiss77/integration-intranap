@@ -1,0 +1,34 @@
+--------------------------------------------------------------------------------
+[2026-05-04 23:00:59] [INFO   ] [START          ] --- DÉBUT DE SYNCHRONISATION ---
+[2026-05-04 23:00:59] [INFO   ] [API_CALL       ] Requete: 50SF | F
+[2026-05-04 23:01:01] [INFO   ] [API_CALL       ] Requete: 50SF | M
+[2026-05-04 23:01:03] [INFO   ] [API_CALL       ] Requete: 100SF | F
+[2026-05-04 23:01:06] [INFO   ] [API_CALL       ] Requete: 100SF | M
+[2026-05-04 23:01:07] [INFO   ] [API_CALL       ] Requete: 200SF | F
+[2026-05-04 23:01:09] [INFO   ] [API_CALL       ] Requete: 200SF | M
+[2026-05-04 23:01:12] [INFO   ] [API_CALL       ] Requete: 400SF | F
+[2026-05-04 23:01:14] [INFO   ] [API_CALL       ] Requete: 400SF | M
+[2026-05-04 23:01:16] [INFO   ] [API_CALL       ] Requete: 800SF | F
+[2026-05-04 23:01:18] [INFO   ] [API_CALL       ] Requete: 800SF | M
+[2026-05-04 23:01:19] [INFO   ] [API_CALL       ] Requete: 1500SF | F
+[2026-05-04 23:01:21] [INFO   ] [API_CALL       ] Requete: 1500SF | M
+[2026-05-04 23:01:23] [INFO   ] [API_CALL       ] Requete: 50AP | F
+[2026-05-04 23:01:24] [INFO   ] [API_CALL       ] Requete: 50AP | M
+[2026-05-04 23:01:26] [SUCCESS] [UPDATE         ] Mathis FRANCES (50AP) | Ancien: 00:18.61 -> Nouveau: 00:17.50 à Aix en provence
+[2026-05-04 23:01:26] [INFO   ] [API_CALL       ] Requete: 100IS | F
+[2026-05-04 23:01:28] [INFO   ] [API_CALL       ] Requete: 100IS | M
+[2026-05-04 23:01:29] [INFO   ] [API_CALL       ] Requete: 800IS | F
+[2026-05-04 23:01:31] [INFO   ] [API_CALL       ] Requete: 800IS | M
+[2026-05-04 23:01:33] [INFO   ] [API_CALL       ] Requete: 200IS | F
+[2026-05-04 23:01:35] [INFO   ] [API_CALL       ] Requete: 200IS | M
+[2026-05-04 23:01:37] [INFO   ] [API_CALL       ] Requete: 400IS | F
+[2026-05-04 23:01:39] [INFO   ] [API_CALL       ] Requete: 400IS | M
+[2026-05-04 23:01:40] [INFO   ] [API_CALL       ] Requete: 50BI | F
+[2026-05-04 23:01:43] [INFO   ] [API_CALL       ] Requete: 50BI | M
+[2026-05-04 23:01:45] [INFO   ] [API_CALL       ] Requete: 100BI | F
+[2026-05-04 23:01:47] [INFO   ] [API_CALL       ] Requete: 100BI | M
+[2026-05-04 23:01:50] [INFO   ] [API_CALL       ] Requete: 200BI | F
+[2026-05-04 23:01:51] [INFO   ] [API_CALL       ] Requete: 200BI | M
+[2026-05-04 23:01:53] [INFO   ] [API_CALL       ] Requete: 400BI | F
+[2026-05-04 23:01:55] [INFO   ] [API_CALL       ] Requete: 400BI | M
+[2026-05-04 23:01:56] [INFO   ] [END            ] --- FIN DE SYNCHRONISATION ---
