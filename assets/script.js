@@ -1,56 +1,76 @@
 // --- 1. FONCTION DE SYNCHRONISATION ---
-function lancerSync() {
+async function lancerSync() {
     const btn = document.getElementById('btnSync');
     const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
-
+    
+    // Verrouillage de l'interface
     btn.disabled = true;
     btn.style.backgroundColor = "#ccc";
     progressContainer.style.display = 'block';
     progressBar.style.width = '0%';
-    progressBar.style.backgroundColor = '#28a745';
+    progressBar.style.backgroundColor = 'var(--succes)';
     progressBar.innerText = '0%';
-    progressText.innerText = 'Connexion à la base FFESSM...';
+    progressText.innerText = 'Initialisation de la synchronisation...';
 
+    // Liste des tâches à accomplir (basée sur vos 15 épreuves x 2 genres)
+    const liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
+    const genres = ['F', 'M'];
+    const tasks = [];
     
-const evtSource = new EventSource("index.php?action=sync&token=" + encodeURIComponent(CSRF_TOKEN));
+    for (let epreuve of liste_epreuves) {
+        for (let genre of genres) {
+            tasks.push({ epreuve: epreuve, genre: genre });
+        }
+    }
 
-    evtSource.onmessage = function(event) {
-        const data = JSON.parse(event.data);
+    const totalSteps = tasks.length;
+    let currentStep = 0;
 
-        if (data.error) {
-            progressBar.style.backgroundColor = '#d9534f';
-            progressText.innerText = data.message;
-            evtSource.close();
+    // Boucle asynchrone : on attend que chaque requête soit finie avant de lancer la suivante
+    for (let i = 0; i < totalSteps; i++) {
+        let task = tasks[i];
+        let etapeStr = 'suite';
+        if (i === 0) etapeStr = 'debut'; // Pour gérer le log d'ouverture
+        if (i === totalSteps - 1) etapeStr = 'fin'; // Pour gérer le log de fermeture
+
+        progressText.innerText = `Synchronisation en cours : ${task.epreuve} (${task.genre === 'F' ? 'Femmes' : 'Hommes'})...`;
+        
+        try {
+            // Création de l'URL avec les paramètres spécifiques
+            let url = `index.php?action=sync&token=${encodeURIComponent(CSRF_TOKEN)}&epreuve=${task.epreuve}&genre=${task.genre}&etape=${etapeStr}`;
+            
+            let response = await fetch(url);
+            let data = await response.json();
+            
+            // Gestion des erreurs renvoyées par le PHP
+            if (data.error) {
+                progressBar.style.backgroundColor = 'var(--danger)';
+                progressText.innerText = "Erreur : " + data.message;
+                btn.disabled = false;
+                btn.style.backgroundColor = "var(--couleur-secondaire)";
+                return; // On stoppe tout
+            }
+            
+            // Mise à jour de la barre de progression
+            currentStep++;
+            let percent = Math.round((currentStep / totalSteps) * 100);
+            progressBar.style.width = percent + '%';
+            progressBar.innerText = percent + '%';
+            
+        } catch (err) {
+            progressBar.style.backgroundColor = 'var(--danger)';
+            progressText.innerText = "Erreur réseau. L'hébergeur a peut-être bloqué la requête.";
             btn.disabled = false;
-            btn.style.backgroundColor = "var(--secondary)";
-            return;
+            btn.style.backgroundColor = "var(--couleur-secondaire)";
+            return; // On stoppe tout
         }
-
-        progressBar.style.width = data.progress + '%';
-        progressBar.innerText = data.progress + '%';
-        progressText.innerText = data.message;
-
-        if (data.done) {
-            evtSource.close();
-            progressBar.style.backgroundColor = '#28a745';
-            progressText.innerHTML = "<strong>✅ " + data.message + " La page va se recharger.</strong>";
-            setTimeout(() => { location.reload(); }, 2000);
-        }
-    };
-
-    evtSource.onerror = function(event) {
-        if (evtSource.readyState === EventSource.CLOSED) {
-            progressBar.style.backgroundColor = '#d9534f';
-            progressText.innerText = "❌ Connexion perdue avec le serveur.";
-            evtSource.close();
-            btn.disabled = false;
-            btn.style.backgroundColor = "var(--secondary)";
-        } else {
-            progressText.innerText = "⚠️ Reconnexion en cours...";
-        }
-    };
+    }
+    
+    // Une fois la boucle terminée avec succès
+    progressText.innerHTML = "<strong>Synchronisation terminée ! La page va se recharger.</strong>";
+    setTimeout(() => { location.reload(); }, 2000);
 }
 
 // --- 2. FONCTION POUR LE FILTRE DES NAGEURS ---
