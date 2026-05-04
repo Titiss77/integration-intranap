@@ -5,8 +5,8 @@ SET time_zone = "+00:00";
 DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` int NOT NULL,
-  `nom_categorie` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `libelle` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `nom_categorie` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `libelle` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 TRUNCATE TABLE `categories`;
@@ -34,7 +34,7 @@ INSERT INTO `categories` (`id`, `nom_categorie`, `libelle`) VALUES
 DROP TABLE IF EXISTS `epreuves`;
 CREATE TABLE `epreuves` (
   `id` int NOT NULL,
-  `nom_epreuve` varchar(20) COLLATE utf8mb4_general_ci NOT NULL
+  `nom_epreuve` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 TRUNCATE TABLE `epreuves`;
@@ -60,7 +60,7 @@ CREATE TABLE `grille_qualifs` (
   `id` int NOT NULL,
   `epreuve_id` int NOT NULL,
   `categorie_id` int NOT NULL,
-  `temps_de_ref` varchar(20) COLLATE utf8mb4_general_ci NOT NULL
+  `temps_de_ref` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 TRUNCATE TABLE `grille_qualifs`;
@@ -125,7 +125,7 @@ INSERT INTO `grille_qualifs` (`id`, `epreuve_id`, `categorie_id`, `temps_de_ref`
 DROP TABLE IF EXISTS `lieux`;
 CREATE TABLE `lieux` (
   `id` int NOT NULL,
-  `nom_lieu` varchar(150) COLLATE utf8mb4_general_ci NOT NULL
+  `nom_lieu` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 TRUNCATE TABLE `lieux`;
@@ -178,9 +178,9 @@ INSERT INTO `lieux` (`id`, `nom_lieu`) VALUES
 DROP TABLE IF EXISTS `nageurs`;
 CREATE TABLE `nageurs` (
   `id` int NOT NULL,
-  `nom` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `prenom` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `genre` varchar(10) COLLATE utf8mb4_general_ci NOT NULL,
+  `nom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `prenom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `genre` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `date_naissance` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -235,7 +235,7 @@ INSERT INTO `nageurs` (`id`, `nom`, `prenom`, `genre`, `date_naissance`) VALUES
 (47, 'COATHALEM', 'Lou', 'Femmes', '2015-01-21'),
 (48, 'LE TREUT', 'Emy', 'Femmes', '2014-05-24'),
 (49, 'CARRENO NICOLAS', 'Celia', 'Femmes', '2015-03-09'),
-(50, 'TORC-H', 'Killian', 'Hommes', '2003-08-13'),
+(50, 'TORC\'H', 'Killian', 'Hommes', '2003-08-13'),
 (51, 'LE TREUT', 'Julie', 'Femmes', '1989-04-07'),
 (52, 'LE GALL', 'Helene', 'Femmes', '1982-11-25'),
 (53, 'LE TREUT', 'Maë', 'Femmes', '2017-04-01'),
@@ -330,8 +330,7 @@ INSERT INTO `nageurs` (`id`, `nom`, `prenom`, `genre`, `date_naissance`) VALUES
 (142, 'PARISSE', 'Anne', 'Femmes', '1966-06-23'),
 (143, 'PERON', 'Sophie', 'Femmes', '1974-07-14'),
 (144, 'DESILLE', 'Anne', 'Femmes', '1970-11-05'),
-(145, 'BOISTUAUD', 'Laurent', 'Hommes', '1971-04-20'),
-(146, 'TORC\'H', 'Killian', 'Hommes', NULL);
+(145, 'BOISTUAUD', 'Laurent', 'Hommes', '1971-04-20');
 
 DROP TABLE IF EXISTS `performances`;
 CREATE TABLE `performances` (
@@ -341,8 +340,8 @@ CREATE TABLE `performances` (
   `categorie_id` int NOT NULL,
   `lieu_id` int NOT NULL,
   `saison` int NOT NULL,
-  `temps` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `date_perf` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `temps` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `date_perf` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `classement` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -641,7 +640,7 @@ INSERT INTO `performances` (`id`, `nageur_id`, `epreuve_id`, `categorie_id`, `li
 (291, 48, 4, 6, 279, 2026, '01:23.82', '29/03/2026', 45),
 (292, 49, 4, 290, 279, 2026, '01:46.48', '29/03/2026', 21),
 (293, 13, 4, 13, 261, 2026, '00:48.17', '14/03/2026', 27),
-(294, 50, 4, 13, 12, 2026, '00:50.18', '25/01/2026', 35),
+(294, 50, 4, 13, 12, 2026, '00:50.18', '25/01/2026', 38),
 (295, 15, 4, 15, 2, 2026, '00:51.04', '07/02/2026', 16),
 (296, 16, 4, 16, 2, 2026, '00:54.04', '07/02/2026', 13),
 (297, 20, 4, 15, 2, 2026, '00:58.56', '07/02/2026', 21),
@@ -817,7 +816,7 @@ INSERT INTO `performances` (`id`, `nageur_id`, `epreuve_id`, `categorie_id`, `li
 (472, 15, 17, 15, 264, 2026, '04:28.17', '16/11/2025', 12),
 (473, 30, 17, 47, 2, 2026, '04:37.71', '07/02/2026', 2),
 (474, 21, 17, 16, 22, 2026, '04:47.74', '18/01/2026', 13),
-(475, 50, 17, 13, 33, 2026, '05:04.56', '12/10/2025', 39),
+(475, 50, 17, 13, 33, 2026, '05:04.56', '12/10/2025', 41),
 (476, 19, 17, 16, 261, 2026, '05:05.62', '14/03/2026', 19),
 (477, 22, 17, 21, 2, 2026, '05:11.85', '07/02/2026', 3),
 (478, 32, 17, 18, 33, 2026, '05:15.92', '12/10/2025', 18),
@@ -2657,9 +2656,13 @@ INSERT INTO `performances` (`id`, `nageur_id`, `epreuve_id`, `categorie_id`, `li
 (3822, 58, 15, 6, 22, 2023, '01:19.15', '08/01/2023', 36),
 (3917, 59, 5, 15, 12, 2022, '01:38.94', '16/01/2022', 7),
 (3918, 32, 5, 18, 11, 2022, '02:28.64', '27/03/2022', 26),
-(7511, 146, 4, 13, 12, 2026, '00:50.18', '25/01/2026', 38),
-(7662, 146, 16, 13, 279, 2026, '01:51.21', '29/03/2026', 23),
-(7687, 146, 17, 13, 33, 2026, '05:04.56', '12/10/2025', 41);
+(7720, 13, 4, 13, 1033, 2026, '00:45.73', '24/04/2026', 23),
+(7793, 13, 9, 13, 1033, 2026, '00:17.50', '24/04/2026', 15),
+(7824, 50, 14, 13, 1033, 2026, '00:21.86', '24/04/2026', 27),
+(7825, 16, 14, 16, 1033, 2026, '00:22.41', '24/04/2026', 2),
+(7848, 50, 15, 13, 1033, 2026, '00:48.60', '24/04/2026', 18),
+(7849, 16, 15, 16, 1033, 2026, '00:49.91', '24/04/2026', 1),
+(7892, 16, 17, 16, 1033, 2026, '04:09.50', '24/04/2026', 1);
 
 
 ALTER TABLE `categories`
@@ -2692,22 +2695,22 @@ ALTER TABLE `performances`
 
 
 ALTER TABLE `categories`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7209;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7425;
 
 ALTER TABLE `epreuves`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=602;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=617;
 
 ALTER TABLE `grille_qualifs`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 ALTER TABLE `lieux`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7493;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7709;
 
 ALTER TABLE `nageurs`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=147;
 
 ALTER TABLE `performances`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7688;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7904;
 
 
 ALTER TABLE `grille_qualifs`
