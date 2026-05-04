@@ -106,10 +106,24 @@ class SyncController
                         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
                         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
-                        // NOUVEAUTÉS CRUCIALES POUR L'HÉBERGEUR :
-                        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);  // Force PHP à suivre les redirections
-                        curl_setopt($ch, CURLOPT_REFERER, 'https://nap.ffessm.fr/');  // Fait croire qu'on vient du site officiel
+                        // --- MODE FURTIF AVANCÉ ---
+                        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                        curl_setopt($ch, CURLOPT_REFERER, 'https://nap.ffessm.fr/index.php');
                         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+                        curl_setopt($ch, CURLOPT_ENCODING, '');  // Accepte gzip, deflate (crucial pour Cloudflare)
+
+                        // Ajout des en-têtes exacts d'une requête AJAX de navigateur
+                        $headers = [
+                            'Accept: application/json, text/javascript, */*; q=0.01',
+                            'Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+                            'Connection: keep-alive',
+                            'X-Requested-With: XMLHttpRequest',  // Indique que c'est une requête AJAX légitime
+                            'Sec-Fetch-Dest: empty',
+                            'Sec-Fetch-Mode: cors',
+                            'Sec-Fetch-Site: same-origin'
+                        ];
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                        // ---------------------------
 
                         $response = curl_exec($ch);
                         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
