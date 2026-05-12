@@ -49,7 +49,11 @@ class SyncController
         // Récupération des paramètres envoyés par le script JS
         $epreuve = $_GET['epreuve'] ?? '';
         $cat_code = $_GET['genre'] ?? '';
+<<<<<<< HEAD
         $etape = $_GET['etape'] ?? 'suite'; // 'debut', 'suite', ou 'fin'
+=======
+        $etape = $_GET['etape'] ?? 'suite';  // 'debut', 'suite', ou 'fin'
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
         $saison = date('Y');
 
         if (empty($epreuve) || empty($cat_code)) {
@@ -98,6 +102,7 @@ class SyncController
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url_complete);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+<<<<<<< HEAD
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 15);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -124,6 +129,51 @@ class SyncController
             }
             curl_close($ch);
 
+=======
+
+            // 1. Ignorer les erreurs de certificat SSL (très fréquent sur les hébergeurs mutualisés)
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+            // 2. Simuler un vrai navigateur avec une gestion des cookies
+            $cookie_file = __DIR__ . '/../cookie_ffessm.txt';
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
+
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_REFERER, 'https://nap.ffessm.fr/index.php');
+
+            // 3. Un User-Agent encore plus standard et récent
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+            curl_setopt($ch, CURLOPT_ENCODING, 'gzip, deflate, br');  // Accepter la compression moderne
+
+            $headers = [
+                'Accept: application/json, text/javascript, */*; q=0.01',
+                'Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Connection: keep-alive',
+                'X-Requested-With: XMLHttpRequest',
+                'Sec-Fetch-Dest: empty',
+                'Sec-Fetch-Mode: cors',
+                'Sec-Fetch-Site: same-origin',
+                'Pragma: no-cache',
+                'Cache-Control: no-cache'
+            ];
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+            // 4. Ajouter un délai humain totalement aléatoire (entre 0.8 et 2.5 secondes)
+            // Cela évite que le pare-feu détecte 30 requêtes envoyées à la vitesse de la lumière
+            usleep(rand(800000, 2500000));
+
+            $response = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (curl_errno($ch)) {
+                throw new Exception("Erreur réseau cURL ($http_code) : " . curl_error($ch));
+            }
+            curl_close($ch);
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
             // Si page blanche ou erreur
             if ($response === false || trim($response) === '') {
                 $this->logger->warning('API_EMPTY', "L'API a renvoyé une page blanche pour $epreuve $cat_code.");
@@ -135,13 +185,18 @@ class SyncController
                     $compteur_lignes = [];
                     $vraie_position = [];
                     $dernier_temps = [];
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
                     foreach ($donnees as $n) {
                         $cat_nageur = $n['categorie'] ?? 'NC';
                         if (!isset($compteur_lignes[$cat_nageur])) {
                             $compteur_lignes[$cat_nageur] = 0;
                             $vraie_position[$cat_nageur] = 0;
                             $dernier_temps[$cat_nageur] = null;
+<<<<<<< HEAD
                         }
                         
                         $compteur_lignes[$cat_nageur]++;
@@ -152,12 +207,28 @@ class SyncController
                         
                         $position_nationale = $vraie_position[$cat_nageur];
                         
+=======
+                        }
+
+                        $compteur_lignes[$cat_nageur]++;
+                        if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
+                            $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
+                            $dernier_temps[$cat_nageur] = $n['temps'];
+                        }
+
+                        $position_nationale = $vraie_position[$cat_nageur];
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
                         if (isset($n['club']) && $n['club'] === $this->club_cible) {
                             $nom_nageur = $n['nom'] ?? '';
                             $prenom_nageur = $n['prenom'] ?? '';
                             $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
                             $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
+<<<<<<< HEAD
                             
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
                             $est_blacklist = false;
                             foreach ($blacklist as $bl_nom) {
                                 if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
@@ -165,7 +236,11 @@ class SyncController
                                     break;
                                 }
                             }
+<<<<<<< HEAD
                             
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
                             if ($est_blacklist) {
                                 $stmtDel = $this->pdo->prepare('DELETE FROM nageurs WHERE nom = ? AND prenom = ?');
                                 $stmtDel->execute([$nom_nageur, $prenom_nageur]);
@@ -191,6 +266,23 @@ class SyncController
                             
                             $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
                             
+=======
+
+                            $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
+                            $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
+                            $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
+
+                            $stmtBest = $this->pdo->prepare('SELECT temps FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? ORDER BY temps ASC LIMIT 1');
+                            $stmtBest->execute([$nageur_id, $epreuve_id, $saison]);
+                            $old_best = $stmtBest->fetch(PDO::FETCH_ASSOC);
+
+                            $stmtExact = $this->pdo->prepare('SELECT classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND temps = ? AND date_perf = ?');
+                            $stmtExact->execute([$nageur_id, $epreuve_id, $n['temps'], $n['date'] ?? '']);
+                            $old_exact = $stmtExact->fetch(PDO::FETCH_ASSOC);
+
+                            $affectedRows = $this->insertPerformance($nageur_id, $epreuve_id, $categorie_id, $lieu_id, $saison, $n['temps'], $n['date'] ?? '', $position_nationale);
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
                             if ($affectedRows > 0) {
                                 if ($affectedRows === 1) {
                                     if ($old_best && $old_best['temps'] !== $n['temps']) {
@@ -224,7 +316,10 @@ class SyncController
 
             // On envoie un succès JSON au navigateur
             echo json_encode(['error' => false, 'message' => "Traitement de {$epreuve} ({$cat_nom}) terminé."]);
+<<<<<<< HEAD
 
+=======
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
         } catch (Exception $e) {
             $this->logger->error('FATAL', 'Erreur sur ' . $epreuve . ' : ' . $e->getMessage());
             echo json_encode(['error' => true, 'message' => 'Erreur interne : ' . $e->getMessage()]);

@@ -4,7 +4,11 @@ async function lancerSync() {
     const progressContainer = document.getElementById('progressContainer');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
     // Verrouillage de l'interface
     btn.disabled = true;
     btn.style.backgroundColor = "#ccc";
@@ -18,6 +22,7 @@ async function lancerSync() {
     const liste_epreuves = ['50SF', '100SF', '200SF', '400SF', '800SF', '1500SF', '50AP', '100IS', '800IS', '200IS', '400IS', '50BI', '100BI', '200BI', '400BI'];
     const genres = ['F', 'M'];
     const tasks = [];
+<<<<<<< HEAD
     
     for (let epreuve of liste_epreuves) {
         for (let genre of genres) {
@@ -28,6 +33,18 @@ async function lancerSync() {
     const totalSteps = tasks.length;
     let currentStep = 0;
 
+=======
+
+    for (let epreuve of liste_epreuves) {
+        for (let genre of genres) {
+            tasks.push({ epreuve: epreuve, genre: genre });
+        }
+    }
+
+    const totalSteps = tasks.length;
+    let currentStep = 0;
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
     // Boucle asynchrone : on attend que chaque requête soit finie avant de lancer la suivante
     for (let i = 0; i < totalSteps; i++) {
         let task = tasks[i];
@@ -36,6 +53,7 @@ async function lancerSync() {
         if (i === totalSteps - 1) etapeStr = 'fin'; // Pour gérer le log de fermeture
 
         progressText.innerText = `Synchronisation en cours : ${task.epreuve} (${task.genre === 'F' ? 'Femmes' : 'Hommes'})...`;
+<<<<<<< HEAD
         
         try {
             // Création de l'URL avec les paramètres spécifiques
@@ -44,6 +62,16 @@ async function lancerSync() {
             let response = await fetch(url);
             let data = await response.json();
             
+=======
+
+        try {
+            // Création de l'URL avec les paramètres spécifiques
+            let url = `index.php?action=sync&token=${encodeURIComponent(CSRF_TOKEN)}&epreuve=${task.epreuve}&genre=${task.genre}&etape=${etapeStr}`;
+
+            let response = await fetch(url);
+            let data = await response.json();
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
             // Gestion des erreurs renvoyées par le PHP
             if (data.error) {
                 progressBar.style.backgroundColor = 'var(--danger)';
@@ -52,13 +80,21 @@ async function lancerSync() {
                 btn.style.backgroundColor = "var(--couleur-secondaire)";
                 return; // On stoppe tout
             }
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
             // Mise à jour de la barre de progression
             currentStep++;
             let percent = Math.round((currentStep / totalSteps) * 100);
             progressBar.style.width = percent + '%';
             progressBar.innerText = percent + '%';
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
         } catch (err) {
             progressBar.style.backgroundColor = 'var(--danger)';
             progressText.innerText = "Erreur réseau. L'hébergeur a peut-être bloqué la requête.";
@@ -67,7 +103,11 @@ async function lancerSync() {
             return; // On stoppe tout
         }
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> e16c99c0e6b9de48892d277cf71535b9a1a4b08f
     // Une fois la boucle terminée avec succès
     progressText.innerHTML = "<strong>Synchronisation terminée ! La page va se recharger.</strong>";
     setTimeout(() => { location.reload(); }, 2000);

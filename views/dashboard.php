@@ -21,9 +21,11 @@
         <h1>🏆 Meilleurs Temps du PEC</h1>
 
         <div style="margin-bottom: 20px;">
+            <!--
             <button id="btnSync" class="btn-primary" onclick="lancerSync()">
                 🔄 Synchroniser avec la FFESSM
             </button>
+            -->
             <button onclick="voirLogs()"
                 style="background: none; padding: 4px 10px; font-size: 0.8rem; color: var(--texte-secondaire);">
                 📜 Voir les dernières modifs
