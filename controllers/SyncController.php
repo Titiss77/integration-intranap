@@ -251,6 +251,7 @@ class SyncController
                                 }
                                 continue;
                             }
+<<<<<<< HEAD
                             
                             $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
                             $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
