@@ -35,6 +35,29 @@ class SyncController
         return (float) str_replace(',', '.', $timeStr);
     }
 
+    /**
+     * Normalise un temps reçu de l'API (ex: "17.50") vers le format BDD (ex: "00:17.50")
+     */
+    private function normalizeTime($temps_brut)
+    {
+        $t = trim(str_replace(',', '.', $temps_brut));
+        if (empty($t)) return '';
+
+        if (strpos($t, ':') !== false) {
+            $parts = explode(':', $t);
+            $minutes = str_pad($parts[0], 2, '0', STR_PAD_LEFT);
+            $secParts = explode('.', $parts[1]);
+            $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
+            $ms = isset($secParts[1]) ? str_pad($secParts[1], 2, '0', STR_PAD_RIGHT) : '00';
+            return "$minutes:$secondes.$ms";
+        } else {
+            $secParts = explode('.', $t);
+            $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
+            $ms = isset($secParts[1]) ? str_pad($secParts[1], 2, '0', STR_PAD_RIGHT) : '00';
+            return "00:$secondes.$ms";
+        }
+    }
+
     public function syncData($token_recu = '')
     {
         // On renvoie du JSON standard
@@ -100,7 +123,7 @@ class SyncController
             $epreuve_id = $this->getOrCreateSimple('epreuves', 'nom_epreuve', $epreuve);
 
             // PRÉPARATION DES REQUÊTES MYSQL POUR LES CLASSEMENTS
-            $stmtCheckPerf = $this->pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? AND temps = ? AND date_perf = ? LIMIT 1');
+            $stmtCheckPerf = $this->pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? AND temps = ? LIMIT 1');
             $stmtUpdatePerf = $this->pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
             $stmtAddPerf = $this->pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
@@ -160,27 +183,21 @@ class SyncController
                     $this->logger->error('API_JSON', "JSON invalide pour $epreuve $cat_code (HTTP $http_code). Extrait: " . $extrait);
                 } elseif (is_array($donnees)) {
                     
-                    $compteur_lignes = [];
-                    $vraie_position = [];
-                    $dernier_temps = [];
+                    // CORRECTION ICI : Le compteur est maintenant GLOBAL pour refléter le classement général
+                    $compteur_lignes = 0;
+                    $vraie_position = 0;
+                    $dernier_temps = null;
 
                     foreach ($donnees as $n) {
-                        $cat_nageur = $n['categorie'] ?? 'NC';
+                        
+                        $compteur_lignes++;
 
-                        if (!isset($compteur_lignes[$cat_nageur])) {
-                            $compteur_lignes[$cat_nageur] = 0;
-                            $vraie_position[$cat_nageur] = 0;
-                            $dernier_temps[$cat_nageur] = null;
+                        if ($n['temps'] !== $dernier_temps) {
+                            $vraie_position = $compteur_lignes;
+                            $dernier_temps = $n['temps'];
                         }
 
-                        $compteur_lignes[$cat_nageur]++;
-
-                        if ($n['temps'] !== $dernier_temps[$cat_nageur]) {
-                            $vraie_position[$cat_nageur] = $compteur_lignes[$cat_nageur];
-                            $dernier_temps[$cat_nageur] = $n['temps'];
-                        }
-
-                        $position_nationale = $vraie_position[$cat_nageur];
+                        $position_nationale = $vraie_position;
 
                         if (isset($n['club']) && $n['club'] === $this->club_cible) {
                             $nom_nageur = $n['nom'] ?? '';
@@ -204,17 +221,19 @@ class SyncController
                             $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
                             $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
                             $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
-                            $temps_final = $n['temps'];
+                            
+                            // CORRECTION ICI : Normalisation du temps pour correspondre à la base de données PDF
+                            $temps_final = $this->normalizeTime($n['temps']);
                             $date_perf = $n['date'] ?? '';
 
                             // --- GESTION EN BASE DE DONNÉES (AJOUT OU MISE À JOUR DU CLASSEMENT) ---
                             if (!empty($temps_final)) {
+                                
                                 $stmtCheckPerf->execute([
                                     $nageur_id,
                                     $epreuve_id ?? null,
                                     $saison,
-                                    $temps_final,
-                                    $date_perf
+                                    $temps_final
                                 ]);
                                 
                                 $existingPerf = $stmtCheckPerf->fetch(PDO::FETCH_ASSOC);
