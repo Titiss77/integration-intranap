@@ -3,6 +3,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $error = null;
 $successCount = 0;
+$updateCount = 0; // Compteur pour les mises à jour de classement
 
 // 1. CHARGEMENT DE L'ENVIRONNEMENT ET CONNEXION BDD
 $envConfig = [];
@@ -10,8 +11,8 @@ $envPath = __DIR__ . '/.env';
 if (file_exists($envPath)) {
     $envConfig = parse_ini_file($envPath);
 }
-$api_club = strtoupper(trim($_ENV['API_CLUB'] ?? $envConfig['API_CLUB'] ?? ''));
 
+$api_club = strtoupper(trim($_ENV['API_CLUB'] ?? $envConfig['API_CLUB'] ?? ''));
 $db_host = $_ENV['DB_HOST'] ?? $envConfig['DB_HOST'] ?? 'localhost';
 $db_name = $_ENV['DB_NAME'] ?? $envConfig['DB_NAME'] ?? 'b7_41910034_intranap_club';
 $db_user = $_ENV['DB_USER'] ?? $envConfig['DB_USER'] ?? 'root';
@@ -47,29 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
             $stmtGetNageur = $pdo->prepare('SELECT id FROM nageurs WHERE nom = ? AND prenom = ?');
             $stmtAddNageur = $pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
 
-            // INSERT IGNORE permet d'ignorer la ligne si elle existe déjà (grâce à votre UNIQUE KEY unique_perf)
-            $stmtAddPerf = $pdo->prepare('INSERT IGNORE INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            // --- REQUÊTES POUR LA GESTION DES DOUBLONS & CLASSEMENTS ---
+            $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? AND temps = ? AND date_perf = ? LIMIT 1');
+            $stmtUpdatePerf = $pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
+            $stmtAddPerf = $pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
             // Variables de contexte par défaut
             $epreuve_courante = 'Épreuve inconnue';
-            $lieu_texte = 'Compétition Inconnue';
-            $date_texte = date('Y-m-d');
-            $saison = (int) date('Y');
-
-            // Extraction du Lieu et de la Date/Saison dans l'en-tête du PDF
-            foreach (array_slice($lines, 0, 10) as $l) {
-                if (preg_match('/([A-Za-zÀ-ÿ\s]+)\s*-\s*(.*20\d{2})/u', $l, $m)) {
-                    $lieu_texte = trim($m[1]);
-                    $date_texte = trim($m[2]);
-                    if (preg_match('/(20\d{2})/', $date_texte, $y)) {
-                        $saison = (int) $y[1];
-                    }
-                    break;
-                }
-            }
-
-            // Variables de contexte par défaut
-            $epreuve_courante = 'INCONNU';  // Plus court pour éviter l'erreur si aucune épreuve n'est trouvée
             $lieu_texte = 'Compétition Inconnue';
             $date_texte = date('Y-m-d');
             $saison = (int) date('Y');
@@ -225,21 +210,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                         $nageur_id = $pdo->lastInsertId();
                     }
 
-                    // --- INSERTION DE LA PERFORMANCE ---
+                    // --- INSERTION OU MISE À JOUR DE LA PERFORMANCE ---
                     if (!empty($temps_final)) {
-                        $stmtAddPerf->execute([
+                        // On cherche d'abord si ce temps existe déjà pour ce nageur/épreuve/date
+                        $stmtCheckPerf->execute([
                             $nageur_id,
                             $epreuve_id ?? null,
-                            $categorie_id,
-                            $lieu_id,
                             $saison,
                             $temps_final,
-                            $date_texte,
-                            $place
+                            $date_texte
                         ]);
-                        // rowCount() permet de vérifier si on a vraiment inséré (sinon IGNORE l'a skippé)
-                        if ($stmtAddPerf->rowCount() > 0) {
-                            $successCount++;
+                        $existingPerf = $stmtCheckPerf->fetch(PDO::FETCH_ASSOC);
+
+                        if ($existingPerf) {
+                            // La performance existe déjà : on compare le classement
+                            $ancienClassement = $existingPerf['classement'] !== null ? (int)$existingPerf['classement'] : null;
+                            $nouveauClassement = $place !== null ? (int)$place : null;
+
+                            if ($nouveauClassement !== null && $ancienClassement !== $nouveauClassement) {
+                                // La position a changé (ex: quelqu'un a fait un meilleur temps dans l'année)
+                                $stmtUpdatePerf->execute([$nouveauClassement, $existingPerf['id']]);
+                                $updateCount++;
+
+                                // On laisse une trace dans le log
+                                $logMessage = sprintf(
+                                    "[%s] [UPDATE] %s %s (%s) | Position : %s -> %s (Temps : %s)\n",
+                                    date('Y-m-d H:i:s'),
+                                    $nom,
+                                    $prenom,
+                                    $epreuve_courante,
+                                    $ancienClassement !== null ? $ancienClassement . 'e' : 'N/C',
+                                    $nouveauClassement . 'e',
+                                    $temps_final
+                                );
+                                file_put_contents(__DIR__ . '/sync_modifications.log', $logMessage, FILE_APPEND | LOCK_EX);
+                            }
+                        } else {
+                            // La performance n'existe pas, on l'ajoute
+                            $stmtAddPerf->execute([
+                                $nageur_id,
+                                $epreuve_id ?? null,
+                                $categorie_id,
+                                $lieu_id,
+                                $saison,
+                                $temps_final,
+                                $date_texte,
+                                $place
+                            ]);
+                            if ($stmtAddPerf->rowCount() > 0) {
+                                $successCount++;
+                            }
                         }
                     }
                 }
@@ -247,7 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
 
             // Redirection vers le dashboard avec un message de succès
             echo "<script>
-                    alert('Traitement terminé ! {$successCount} nouvelle(s) performance(s) importée(s) en base de données.');
+                    alert('Traitement terminé ! {$successCount} nouvelles perf(s) ajoutée(s) et {$updateCount} classement(s) mis à jour.');
                     window.location.href = 'index.php?action=dashboard'; // ou l'url de votre tableau de bord
                   </script>";
             exit;
