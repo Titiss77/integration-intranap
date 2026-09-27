@@ -18,9 +18,15 @@
 
 <body>
     <div class="container">
+        <button style="background: none; padding: 4px 10px; font-size: 0.8rem; color: var(--texte-secondaire);">
+            <a href="https://livepalmes.web.app/" target="_blank" style=" text-decoration: none; color: crimson;">📜
+                LivePalmes
+                Officiel</a>
+        </button>
+
         <h1>🏆 Meilleurs Temps du PEC</h1>
 
-        <div style="margin-bottom: 20px;">
+        <div style=" margin-bottom: 20px;">
             <?php if ($_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1'): ?>
             <button id="btnSync" class="btn-primary" onclick="lancerSync()">
                 🔄 Synchroniser avec la FFESSM
@@ -35,11 +41,13 @@
             <div id="pdfModal" class="modal">
                 <div class="modal-content" style="max-width: 500px; text-align: center;">
                     <span class="close-btn" onclick="closePdfModal()">&times;</span>
-                    <h2 style="color: var(--couleur-principale); margin-bottom: 15px; font-size: 1.3rem;">📄 Convertir
+                    <h2 style="color: var(--couleur-principale); margin-bottom: 15px; font-size: 1.3rem;">📄
+                        Convertir
                         un
                         PDF en CSV</h2>
                     <p style="color: var(--texte-secondaire); margin-bottom: 20px; font-size: 0.9rem;">
-                        Uploadez un fichier de résultats PDF. Il sera automatiquement converti et téléchargé au format
+                        Uploadez un fichier de résultats PDF. Il sera automatiquement converti et téléchargé au
+                        format
                         CSV.
                     </p>
 
@@ -102,12 +110,14 @@
 
         <div id="statsContainer"
             style="display: none; background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--bordure); margin-bottom: 20px;">
-            <h2 style="color: var(--couleur-principale); text-align: center; margin-bottom: 20px;">📊 Statistiques de la
+            <h2 style="color: var(--couleur-principale); text-align: center; margin-bottom: 20px;">📊 Statistiques
+                de la
                 sélection</h2>
 
             <?php if ('all' !== $annee_selectionnee) { ?>
             <h3 style="color: #dc3545; font-size: medium; font-weight: 600; margin: 1rem;">* Attention il y a un
-                problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)</h3>
+                problème au niveau de la FFESSM pour les nageurs qualifiés au 400IS (en <?php echo date('Y'); ?>)
+            </h3>
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3 style="color: var(--couleur-principale);"><?php echo $statistiques['total_nageurs']; ?></h3>
@@ -145,7 +155,8 @@
                 <?php } ?>
             </ul>
             <?php } else { ?>
-            <p style="text-align: center; color: var(--avertissement); font-weight: bold; padding: 20px;">Aucun nageur
+            <p style="text-align: center; color: var(--avertissement); font-weight: bold; padding: 20px;">Aucun
+                nageur
                 qualifié n'a été trouvé.</p>
             <?php } ?>
             <?php } else { ?>
@@ -179,7 +190,8 @@
                     ?>
                 <div id="ep-<?php echo $epreuve; ?>" class="tab-pane"
                     style="display: <?php echo $premiere ? 'block' : 'none'; ?>;">
-                    <h2 style="color: var(--couleur-principale); margin-bottom: 20px; text-align: center;">🥇 Classement
+                    <h2 style="color: var(--couleur-principale); margin-bottom: 20px; text-align: center;">🥇
+                        Classement
                         <?php echo htmlspecialchars($epreuve); ?></h2>
 
                     <table class="table-rank">
@@ -242,7 +254,8 @@
 
                                     <?php if (!empty($perf['classement'])) { ?>
                                     <div>
-                                        <small class="classement-badge">🏅 <?php echo $perf['classement']; ?>e</small>
+                                        <small class="classement-badge">🏅
+                                            <?php echo $perf['classement']; ?>e</small>
                                     </div>
                                     <?php } ?>
                                 </td>
