@@ -83,7 +83,9 @@ class SyncController
         $epreuve = $_GET['epreuve'] ?? '';
         $cat_code = $_GET['genre'] ?? '';
         $etape = $_GET['etape'] ?? 'suite';
-        $saison = date('Y');
+        
+        // On autorise la sélection de la saison depuis le JS s'il l'envoie, sinon année en cours
+        $saison = $_GET['saison'] ?? date('Y');
 
         if (empty($epreuve) || empty($cat_code)) {
             echo json_encode(['error' => true, 'message' => 'Paramètres manquants.']);
@@ -105,7 +107,7 @@ class SyncController
             $this->logger->info('START', '--- DÉBUT DE SYNCHRONISATION ---');
         }
 
-        $this->logger->info('API_CALL', "Requete: $epreuve | $cat_code");
+        $this->logger->info('API_CALL', "Requete: $epreuve | $cat_code | Saison: $saison");
 
         // Chargement de la blacklist
         $blacklist = [];
@@ -183,32 +185,40 @@ class SyncController
                     $this->logger->error('API_JSON', "JSON invalide pour $epreuve $cat_code (HTTP $http_code). Extrait: " . $extrait);
                 } elseif (is_array($donnees)) {
                     
-                    // CORRECTION ICI : Le compteur est maintenant GLOBAL pour refléter le classement général
+                    // CORRECTION : Groupement par nageur pour répliquer le classement "humain" de la FFESSM
                     $compteur_lignes = 0;
                     $vraie_position = 0;
                     $dernier_temps = null;
+                    $nageurs_vus = [];
 
                     foreach ($donnees as $n) {
-                        
-                        $compteur_lignes++;
+                        $nom_nageur = trim($n['nom'] ?? '');
+                        $prenom_nageur = trim($n['prenom'] ?? '');
+                        $cle_nageur = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
 
-                        if ($n['temps'] !== $dernier_temps) {
-                            $vraie_position = $compteur_lignes;
-                            $dernier_temps = $n['temps'];
+                        // Si on n'a pas encore vu ce nageur, il compte pour avancer dans le classement général
+                        if (!isset($nageurs_vus[$cle_nageur])) {
+                            $compteur_lignes++;
+                            
+                            // Gestion des ex aequo parufs
+                            if ($n['temps'] !== $dernier_temps) {
+                                $vraie_position = $compteur_lignes;
+                                $dernier_temps = $n['temps'];
+                            }
+                            
+                            $nageurs_vus[$cle_nageur] = $vraie_position;
                         }
 
-                        $position_nationale = $vraie_position;
+                        // Le nageur garde sa meilleure position nationale pour toutes ses perfs
+                        $position_nationale = $nageurs_vus[$cle_nageur];
 
                         if (isset($n['club']) && $n['club'] === $this->club_cible) {
-                            $nom_nageur = $n['nom'] ?? '';
-                            $prenom_nageur = $n['prenom'] ?? '';
 
-                            $nom_complet_1 = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
-                            $nom_complet_2 = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
                             $est_blacklist = false;
+                            $nom_complet_inverse = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
 
                             foreach ($blacklist as $bl_nom) {
-                                if ($nom_complet_1 === $bl_nom || $nom_complet_2 === $bl_nom) {
+                                if ($cle_nageur === $bl_nom || $nom_complet_inverse === $bl_nom) {
                                     $est_blacklist = true;
                                     break;
                                 }
@@ -221,14 +231,10 @@ class SyncController
                             $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
                             $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
                             $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
-                            
-                            // CORRECTION ICI : Normalisation du temps pour correspondre à la base de données PDF
                             $temps_final = $this->normalizeTime($n['temps']);
                             $date_perf = $n['date'] ?? '';
 
-                            // --- GESTION EN BASE DE DONNÉES (AJOUT OU MISE À JOUR DU CLASSEMENT) ---
                             if (!empty($temps_final)) {
-                                
                                 $stmtCheckPerf->execute([
                                     $nageur_id,
                                     $epreuve_id ?? null,
@@ -239,15 +245,12 @@ class SyncController
                                 $existingPerf = $stmtCheckPerf->fetch(PDO::FETCH_ASSOC);
 
                                 if ($existingPerf) {
-                                    // La performance existe déjà : on compare le classement
                                     $ancienClassement = $existingPerf['classement'] !== null ? (int)$existingPerf['classement'] : null;
                                     $nouveauClassement = $position_nationale !== null ? (int)$position_nationale : null;
 
                                     if ($nouveauClassement !== null && $ancienClassement !== $nouveauClassement) {
-                                        // La position a changé ! Mise à jour en base de données.
                                         $stmtUpdatePerf->execute([$nouveauClassement, $existingPerf['id']]);
 
-                                        // Trace dans les logs
                                         $info = sprintf(
                                             "%s %s (%s) | Position : %s -> %s (Temps : %s)",
                                             $prenom_nageur,
@@ -261,7 +264,6 @@ class SyncController
                                         $this->logger->info('RANKING', $info);
                                     }
                                 } else {
-                                    // La performance n'existe pas, c'est un nouveau temps, on l'ajoute
                                     $stmtAddPerf->execute([
                                         $nageur_id,
                                         $epreuve_id ?? null,
