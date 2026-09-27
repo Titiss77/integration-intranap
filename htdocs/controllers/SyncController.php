@@ -22,21 +22,8 @@ class SyncController
     }
 
     /**
-     * Convertit un temps MM:SS en secondes (utilisé pour identifier le meilleur temps localement)
-     */
-    private function timeToSecondsSync($timeStr)
-    {
-        if (strpos($timeStr, ':') !== false) {
-            $parts = explode(':', str_replace(',', '.', $timeStr));
-            if (count($parts) === 2) {
-                return ($parts[0] * 60) + (float) $parts[1];
-            }
-        }
-        return (float) str_replace(',', '.', $timeStr);
-    }
-
-    /**
-     * Normalise un temps reçu de l'API (ex: "17.50") vers le format BDD (ex: "00:17.50")
+     * Convertit un temps reçu de l'API (ex: "17.50") vers le format BDD (ex: "00:17.50")
+     * Indispensable pour que le SELECT trouve la ligne correspondante insérée par le PDF.
      */
     private function normalizeTime($temps_brut)
     {
@@ -60,7 +47,6 @@ class SyncController
 
     public function syncData($token_recu = '')
     {
-        // On renvoie du JSON standard
         header('Content-Type: application/json');
         header('Cache-Control: no-cache, must-revalidate');
 
@@ -68,24 +54,19 @@ class SyncController
             session_start();
         }
 
-        // Vérification CSRF
         if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token_recu)) {
             echo json_encode(['error' => true, 'message' => 'Erreur de sécurité (Jeton CSRF invalide).']);
             return;
         }
 
-        // On libère la session pour ne pas bloquer les requêtes suivantes
         if (PHP_SESSION_ACTIVE === session_status()) {
             session_write_close();
         }
 
-        // Récupération des paramètres envoyés par le script JS
         $epreuve = $_GET['epreuve'] ?? '';
         $cat_code = $_GET['genre'] ?? '';
         $etape = $_GET['etape'] ?? 'suite';
-        
-        // On autorise la sélection de la saison depuis le JS s'il l'envoie, sinon année en cours
-        $saison = $_GET['saison'] ?? date('Y');
+        $saison = $_GET['saison'] ?? date('Y'); // S'assure qu'on utilise la bonne saison
 
         if (empty($epreuve) || empty($cat_code)) {
             echo json_encode(['error' => true, 'message' => 'Paramètres manquants.']);
@@ -100,7 +81,6 @@ class SyncController
 
         $cat_nom = $categories_genre[$cat_code];
 
-        // Gestion des logs d'ouverture et de fermeture
         if ($etape === 'debut') {
             $this->writeToLog('--- DÉBUT DE SYNCHRONISATION ---');
             $this->logger->separator();
@@ -109,7 +89,6 @@ class SyncController
 
         $this->logger->info('API_CALL', "Requete: $epreuve | $cat_code | Saison: $saison");
 
-        // Chargement de la blacklist
         $blacklist = [];
         $chemin_blacklist = __DIR__ . '/../blacklist.txt';
         if (file_exists($chemin_blacklist)) {
@@ -124,8 +103,8 @@ class SyncController
         try {
             $epreuve_id = $this->getOrCreateSimple('epreuves', 'nom_epreuve', $epreuve);
 
-            // PRÉPARATION DES REQUÊTES MYSQL POUR LES CLASSEMENTS
-            $stmtCheckPerf = $this->pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? AND temps = ? LIMIT 1');
+            // Requêtes SQL : On vérifie avec la date pour garantir qu'on modifie la course exacte
+            $stmtCheckPerf = $this->pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? AND temps = ? AND date_perf = ? LIMIT 1');
             $stmtUpdatePerf = $this->pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
             $stmtAddPerf = $this->pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
@@ -147,104 +126,96 @@ class SyncController
             curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
             curl_setopt($ch, CURLOPT_TIMEOUT, 15);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_REFERER, 'https://nap.ffessm.fr/index.php');
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0');
             curl_setopt($ch, CURLOPT_ENCODING, '');
             
-            $headers = [
-                'Accept: application/json, text/javascript, */*; q=0.01',
-                'Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Connection: keep-alive',
-                'X-Requested-With: XMLHttpRequest',
-                'Sec-Fetch-Dest: empty',
-                'Sec-Fetch-Mode: cors',
-                'Sec-Fetch-Site: same-origin',
-                'Pragma: no-cache',
-                'Cache-Control: no-cache'
-            ];
+            $headers = ['Accept: application/json', 'Cache-Control: no-cache'];
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-            usleep(rand(800000, 2500000));
+            usleep(rand(800000, 2000000));
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
             if (curl_errno($ch)) {
-                $err = curl_error($ch);
-                curl_close($ch);
-                throw new Exception("Erreur réseau cURL ($http_code) : " . $err);
+                throw new Exception("Erreur réseau cURL ($http_code)");
             }
             curl_close($ch);
 
-            if ($response === false || trim($response) === '') {
-                $this->logger->warning('API_EMPTY', "L'API a renvoyé une page blanche pour $epreuve $cat_code (HTTP $http_code).");
-            } else {
+            if ($response !== false && trim($response) !== '') {
                 $donnees = json_decode($response, true);
 
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    $extrait = substr(trim($response), 0, 300);
-                    $this->logger->error('API_JSON', "JSON invalide pour $epreuve $cat_code (HTTP $http_code). Extrait: " . $extrait);
-                } elseif (is_array($donnees)) {
+                if (is_array($donnees)) {
                     
-                    // CORRECTION : Groupement par nageur pour répliquer le classement "humain" de la FFESSM
+                    // On utilise un compteur global pour générer le "Classement Absolu"
                     $compteur_lignes = 0;
                     $vraie_position = 0;
                     $dernier_temps = null;
                     $nageurs_vus = [];
 
                     foreach ($donnees as $n) {
+                        
+                        // Exclusion des étrangers (souvent présents dans l'API mais absents du TOP France)
+                        $nat = isset($n['nat']) ? strtoupper(trim($n['nat'])) : 'FRA';
+                        if ($nat !== 'FRA') {
+                            continue;
+                        }
+
                         $nom_nageur = trim($n['nom'] ?? '');
                         $prenom_nageur = trim($n['prenom'] ?? '');
                         $cle_nageur = mb_strtolower($nom_nageur . ' ' . $prenom_nageur, 'UTF-8');
 
-                        // Si on n'a pas encore vu ce nageur, il compte pour avancer dans le classement général
+                        $position_nationale = null;
+
+                        // On ne compte la position que sur le MEILLEUR TEMPS de la saison du nageur
                         if (!isset($nageurs_vus[$cle_nageur])) {
                             $compteur_lignes++;
                             
-                            // Gestion des ex aequo parufs
+                            // Gère les ex-aequo
                             if ($n['temps'] !== $dernier_temps) {
                                 $vraie_position = $compteur_lignes;
                                 $dernier_temps = $n['temps'];
                             }
                             
-                            $nageurs_vus[$cle_nageur] = $vraie_position;
-                        }
-
-                        // Le nageur garde sa meilleure position nationale pour toutes ses perfs
-                        $position_nationale = $nageurs_vus[$cle_nageur];
+                            $nageurs_vus[$cle_nageur] = true;
+                            $position_nationale = $vraie_position; // Affecte le rang (ex: 17e)
+                        } 
+                        // Note : Si on a déjà vu le nageur, $position_nationale reste null 
+                        // (ce temps secondaire n'est pas classé nationalement)
 
                         if (isset($n['club']) && $n['club'] === $this->club_cible) {
-
                             $est_blacklist = false;
-                            $nom_complet_inverse = mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8');
-
                             foreach ($blacklist as $bl_nom) {
-                                if ($cle_nageur === $bl_nom || $nom_complet_inverse === $bl_nom) {
+                                if ($cle_nageur === $bl_nom || mb_strtolower($prenom_nageur . ' ' . $nom_nageur, 'UTF-8') === $bl_nom) {
                                     $est_blacklist = true;
                                     break;
                                 }
                             }
 
-                            if ($est_blacklist) {
-                                continue;
-                            }
+                            if ($est_blacklist) continue;
 
+                            // Extraction des data
                             $nageur_id = $this->getOrCreateNageur($nom_nageur, $prenom_nageur, $cat_nom, null);
                             $categorie_id = $this->getOrCreateSimple('categories', 'nom_categorie', $n['categorie'] ?? 'NC');
                             $lieu_id = $this->getOrCreateSimple('lieux', 'nom_lieu', $n['lieu'] ?? 'NC');
+                            
+                            // Normalisation indispensable !
                             $temps_final = $this->normalizeTime($n['temps']);
                             $date_perf = $n['date'] ?? '';
 
                             if (!empty($temps_final)) {
+                                
                                 $stmtCheckPerf->execute([
                                     $nageur_id,
                                     $epreuve_id ?? null,
                                     $saison,
-                                    $temps_final
+                                    $temps_final,
+                                    $date_perf
                                 ]);
                                 
                                 $existingPerf = $stmtCheckPerf->fetch(PDO::FETCH_ASSOC);
 
                                 if ($existingPerf) {
+                                    // La perf existe, on met juste à jour sa place 
                                     $ancienClassement = $existingPerf['classement'] !== null ? (int)$existingPerf['classement'] : null;
                                     $nouveauClassement = $position_nationale !== null ? (int)$position_nationale : null;
 
@@ -253,35 +224,24 @@ class SyncController
 
                                         $info = sprintf(
                                             "%s %s (%s) | Position : %s -> %s (Temps : %s)",
-                                            $prenom_nageur,
-                                            $nom_nageur,
-                                            $epreuve,
+                                            $prenom_nageur, $nom_nageur, $epreuve,
                                             $ancienClassement !== null ? $ancienClassement . 'e' : 'N/C',
-                                            $nouveauClassement . 'e',
-                                            $temps_final
+                                            $nouveauClassement . 'e', $temps_final
                                         );
                                         $this->writeToLog('[MAJ CLASSEMENT] ' . $info);
                                         $this->logger->info('RANKING', $info);
                                     }
                                 } else {
+                                    // C'est un vrai nouveau temps non présent en base
                                     $stmtAddPerf->execute([
-                                        $nageur_id,
-                                        $epreuve_id ?? null,
-                                        $categorie_id,
-                                        $lieu_id,
-                                        $saison,
-                                        $temps_final,
-                                        $date_perf,
-                                        $position_nationale
+                                        $nageur_id, $epreuve_id ?? null, $categorie_id, $lieu_id,
+                                        $saison, $temps_final, $date_perf, $position_nationale
                                     ]);
                                     
                                     if ($stmtAddPerf->rowCount() > 0) {
                                         $info = sprintf(
                                             "%s %s (%s) | Ajout temps : %s (%se) @ %s",
-                                            $prenom_nageur,
-                                            $nom_nageur,
-                                            $epreuve,
-                                            $temps_final,
+                                            $prenom_nageur, $nom_nageur, $epreuve, $temps_final,
                                             $position_nationale !== null ? $position_nationale : 'N/C',
                                             $n['lieu'] ?? 'NC'
                                         );
@@ -300,25 +260,21 @@ class SyncController
                 $this->logger->info('END', '--- FIN DE SYNCHRONISATION ---');
             }
 
-            echo json_encode(['error' => false, 'message' => "Traitement de {$epreuve} ({$cat_nom}) terminé."]);
+            echo json_encode(['error' => false, 'message' => "Traitement de {$epreuve} terminé."]);
         } catch (Exception $e) {
-            $this->logger->error('FATAL', 'Erreur sur ' . $epreuve . ' : ' . $e->getMessage());
-            echo json_encode(['error' => true, 'message' => 'Erreur interne : ' . $e->getMessage()]);
+            echo json_encode(['error' => true, 'message' => 'Erreur : ' . $e->getMessage()]);
         }
     }
 
     private function writeToLog($message)
     {
-        $date = date('Y-m-d H:i:s');
-        $format = "[$date] $message" . PHP_EOL;
-        file_put_contents($this->log_file, $format, FILE_APPEND);
+        file_put_contents($this->log_file, "[" . date('Y-m-d H:i:s') . "] $message\n", FILE_APPEND);
     }
 
     private function getOrCreateSimple($table, $column, $value)
     {
         $stmt = $this->pdo->prepare("INSERT IGNORE INTO {$table} ({$column}) VALUES (?)");
         $stmt->execute([$value]);
-
         $stmt = $this->pdo->prepare("SELECT id FROM {$table} WHERE {$column} = ?");
         $stmt->execute([$value]);
         return $stmt->fetchColumn();
@@ -326,12 +282,15 @@ class SyncController
 
     private function getOrCreateNageur($nom, $prenom, $genre, $date_naissance)
     {
-        $stmt = $this->pdo->prepare('SELECT id FROM nageurs WHERE nom = ? AND prenom = ?');
+        $nom = trim($nom);
+        $prenom = trim($prenom);
+        
+        // TRIM() empêche de recréer un nageur s'il y a un espace en trop dans l'API
+        $stmt = $this->pdo->prepare('SELECT id FROM nageurs WHERE TRIM(nom) = ? AND TRIM(prenom) = ?');
         $stmt->execute([$nom, $prenom]);
         $nageur = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($nageur)
-            return $nageur['id'];
+        if ($nageur) return $nageur['id'];
 
         $stmt = $this->pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
         $stmt->execute([$nom, $prenom, $genre, $date_naissance]);
@@ -340,10 +299,6 @@ class SyncController
 
     public function getLogs()
     {
-        if (file_exists($this->log_file)) {
-            echo file_get_contents($this->log_file);
-        } else {
-            echo 'Aucun historique.';
-        }
+        echo file_exists($this->log_file) ? file_get_contents($this->log_file) : 'Aucun historique.';
     }
 }
