@@ -609,8 +609,17 @@ class PerformanceModel
     }
 
     /**
-     * Retourne la grille des temps
-     * de qualification.
+     * Retourne la grille des qualifications.
+     *
+     * temps_de_ref :
+     * - non NULL => qualification au temps
+     *
+     * position :
+     * - non NULL => qualification à la position
+     *   dans le classement temporairement calculé
+     *
+     * Les deux peuvent exister, mais le temps de référence
+     * est prioritaire.
      */
     public function getGrilleQualifs()
     {
@@ -618,7 +627,8 @@ class PerformanceModel
             'SELECT
                 c.nom_categorie,
                 e.nom_epreuve,
-                g.temps_de_ref
+                g.temps_de_ref,
+                g.position
              FROM grille_qualifs g
              JOIN categories c
                 ON g.categorie_id = c.id
@@ -641,8 +651,16 @@ class PerformanceModel
                 $row['nom_categorie']
             ][
                 $row['nom_epreuve']
-            ] =
-                $row['temps_de_ref'];
+            ] = [
+
+                'temps_de_ref' =>
+                    $row['temps_de_ref'],
+
+                'position' =>
+                    $row['position'] !== null
+                        ? (int)$row['position']
+                        : null
+            ];
         }
 
         return $result;

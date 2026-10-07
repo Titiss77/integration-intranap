@@ -27,6 +27,211 @@ class PerformanceController
             ($anneeDebut + 1);
     }
 
+    /**
+     * Calcule les positions temporaires par :
+     *
+     * - épreuve
+     * - catégorie
+     *
+     * La position n'est jamais enregistrée en BDD.
+     *
+     * Une égalité de temps donne la même position.
+     *
+     * Exemple :
+     *
+     * 00:20.00 -> 1
+     * 00:21.00 -> 2
+     * 00:21.00 -> 2
+     * 00:22.00 -> 4
+     */
+    private function calculateQualificationPositions(
+        $lignes_bdd
+    ) {
+        $groupes = [];
+
+        foreach (
+            $lignes_bdd as $ligne
+        ) {
+
+            $categorie =
+                $ligne['categorie'];
+
+            $epreuve =
+                $ligne['epreuve'];
+
+            $key =
+                $categorie .
+                '|' .
+                $epreuve;
+
+            if (
+                !isset(
+                    $groupes[$key]
+                )
+            ) {
+                $groupes[$key] = [];
+            }
+
+            $groupes[$key][] = $ligne;
+        }
+
+        $positions = [];
+
+        foreach (
+            $groupes as $key => $nageurs
+        ) {
+
+            usort(
+                $nageurs,
+                function ($a, $b) {
+
+                    $tempsA =
+                        $this->timeToSeconds(
+                            $a['temps']
+                        );
+
+                    $tempsB =
+                        $this->timeToSeconds(
+                            $b['temps']
+                        );
+
+                    if (
+                        $tempsA ===
+                        $tempsB
+                    ) {
+                        return 0;
+                    }
+
+                    return
+                        $tempsA <=>
+                        $tempsB;
+                }
+            );
+
+            $position = 0;
+            $temps_precedent = null;
+
+            foreach (
+                $nageurs as $index => $nageur
+            ) {
+
+                $temps_actuel =
+                    $this->timeToSeconds(
+                        $nageur['temps']
+                    );
+
+                /*
+                 * Même temps = même position.
+                 */
+                if (
+                    $temps_precedent === null ||
+                    $temps_actuel !==
+                    $temps_precedent
+                ) {
+
+                    $position =
+                        $index + 1;
+                }
+
+                $positions[
+                    $nageur['nageur_id'] .
+                    '|' .
+                    $nageur['epreuve']
+                ] = $position;
+
+                $temps_precedent =
+                    $temps_actuel;
+            }
+        }
+
+        return $positions;
+    }
+
+    /**
+     * Détermine si une performance est qualifiante.
+     *
+     * Règle :
+     *
+     * 1. Si temps_de_ref existe :
+     *    qualification au temps.
+     *
+     * 2. Sinon, si position existe :
+     *    qualification si position <= limite.
+     *
+     * 3. Sinon :
+     *    pas de qualification définie.
+     */
+    private function isQualified(
+        $categorie,
+        $epreuve,
+        $temps,
+        $position,
+        $grille_qualifs
+    ) {
+
+        if (
+            !isset(
+                $grille_qualifs[
+                    $categorie
+                ][
+                    $epreuve
+                ]
+            )
+        ) {
+            return null;
+        }
+
+        $regle =
+            $grille_qualifs[
+                $categorie
+            ][
+                $epreuve
+            ];
+
+        /*
+         * PRIORITE AU TEMPS DE REFERENCE
+         */
+        if (
+            $regle['temps_de_ref'] !== null &&
+            $regle['temps_de_ref'] !== ''
+        ) {
+
+            return
+                $this->timeToSeconds(
+                    $temps
+                )
+                <=
+                $this->timeToSeconds(
+                    $regle['temps_de_ref']
+                );
+        }
+
+        /*
+         * PAS DE TEMPS :
+         * on utilise la position.
+         */
+        if (
+            $regle['position'] !== null &&
+            $regle['position'] > 0
+        ) {
+
+            if (
+                $position === null
+            ) {
+                return false;
+            }
+
+            return
+                $position <=
+                (int)$regle['position'];
+        }
+
+        /*
+         * Aucun mode de qualification défini.
+         */
+        return null;
+    }
+
     public function index()
     {
         $pdo = Database::getConnection();
@@ -49,6 +254,20 @@ class PerformanceController
 
         $grille_qualifs =
             $model->getGrilleQualifs();
+
+        /*
+         * ------------------------------------------------------------
+         * POSITIONS TEMPORAIRES
+         * ------------------------------------------------------------
+         *
+         * Elles servent uniquement aux qualifications.
+         *
+         * Aucun classement n'est sauvegardé.
+         */
+        $positions_qualification =
+            $this->calculateQualificationPositions(
+                $lignes_bdd
+            );
 
         $categories_actuelles = [];
 
@@ -157,47 +376,42 @@ class PerformanceController
                 $temps_nageur =
                     $ligne['temps'];
 
-                $est_qualifie = null;
-
                 /*
-                 * Qualification uniquement
-                 * sur le temps de référence.
+                 * Position temporaire.
                  *
-                 * Aucun classement n'est utilisé.
+                 * Elle est utilisée uniquement
+                 * pour la qualification.
                  */
+                $position =
+                    null;
+
+                $position_key =
+                    $nageur_id .
+                    '|' .
+                    $ligne['epreuve'];
+
                 if (
                     isset(
-                        $grille_qualifs[
-                            $categorie_a_afficher
-                        ][
-                            $ligne['epreuve']
+                        $positions_qualification[
+                            $position_key
                         ]
                     )
                 ) {
 
-                    $temps_ref =
-                        $grille_qualifs[
-                            $categorie_a_afficher
-                        ][
-                            $ligne['epreuve']
+                    $position =
+                        $positions_qualification[
+                            $position_key
                         ];
-
-                    $sec_nageur =
-                        $this->timeToSeconds(
-                            $temps_nageur
-                        );
-
-                    $sec_ref =
-                        $this->timeToSeconds(
-                            $temps_ref
-                        );
-
-                    $est_qualifie =
-                        (
-                            $sec_nageur <=
-                            $sec_ref
-                        );
                 }
+
+                $est_qualifie =
+                    $this->isQualified(
+                        $categorie_a_afficher,
+                        $ligne['epreuve'],
+                        $temps_nageur,
+                        $position,
+                        $grille_qualifs
+                    );
 
                 $profils_nageurs[
                     $nageur_id
@@ -589,12 +803,19 @@ class PerformanceController
                 $temps_ref_str =
                     $grille[
                         $categorie
-                    ][$epreuve];
+                    ][$epreuve
+                    ]['temps_de_ref'];
 
-                $temps_ref_sec =
-                    $this->timeToSeconds(
-                        $temps_ref_str
-                    );
+                if (
+                    $temps_ref_str !== null &&
+                    $temps_ref_str !== ''
+                ) {
+
+                    $temps_ref_sec =
+                        $this->timeToSeconds(
+                            $temps_ref_str
+                        );
+                }
             }
         }
 
@@ -634,6 +855,15 @@ class PerformanceController
 
         $grille_qualifs =
             $model->getGrilleQualifs();
+
+        /*
+         * Les positions sont calculées uniquement
+         * pour déterminer les qualifications.
+         */
+        $positions_qualification =
+            $this->calculateQualificationPositions(
+                $lignes_bdd
+            );
 
         $nom_saison =
             (
@@ -728,37 +958,41 @@ class PerformanceController
                         $ligne['categorie'];
                 }
 
-                $est_qualifie =
-                    'Non';
+                $position =
+                    null;
+
+                $position_key =
+                    $nageur_id .
+                    '|' .
+                    $ligne['epreuve'];
 
                 if (
                     isset(
-                        $grille_qualifs[
-                            $categorie
-                        ][
-                            $ligne['epreuve']
+                        $positions_qualification[
+                            $position_key
                         ]
                     )
                 ) {
 
-                    if (
-                        $this->timeToSeconds(
-                            $ligne['temps']
-                        )
-                        <=
-                        $this->timeToSeconds(
-                            $grille_qualifs[
-                                $categorie
-                            ][
-                                $ligne['epreuve']
-                            ]
-                        )
-                    ) {
-
-                        $est_qualifie =
-                            'Oui';
-                    }
+                    $position =
+                        $positions_qualification[
+                            $position_key
+                        ];
                 }
+
+                $qualification =
+                    $this->isQualified(
+                        $categorie,
+                        $ligne['epreuve'],
+                        $ligne['temps'],
+                        $position,
+                        $grille_qualifs
+                    );
+
+                $est_qualifie =
+                    $qualification === true
+                        ? 'Oui'
+                        : 'Non';
 
                 fputcsv(
                     $output,
@@ -784,6 +1018,13 @@ class PerformanceController
     private function timeToSeconds(
         $timeStr
     ) {
+        if (
+            $timeStr === null ||
+            $timeStr === ''
+        ) {
+            return PHP_FLOAT_MAX;
+        }
+
         $parts =
             explode(
                 ':',
