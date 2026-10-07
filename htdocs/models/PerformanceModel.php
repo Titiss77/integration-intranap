@@ -62,10 +62,9 @@ class PerformanceModel
     {
         $stmt =
             $this->pdo->query(
-                'SELECT DISTINCT saison
-                 FROM performances
-                 WHERE saison IS NOT NULL
-                 ORDER BY saison DESC'
+                'SELECT nom_saison
+                 FROM saisons
+                 ORDER BY nom_saison DESC'
             );
 
         return $stmt->fetchAll(

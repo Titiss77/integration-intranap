@@ -152,11 +152,8 @@ class PerformanceController
      *
      * Règle :
      *
-     * 1. Si temps_de_ref existe :
-     *    qualification au temps.
-     *
-     * 2. Sinon, si position existe :
-     *    qualification si position <= limite.
+     * 1. Si un temps de référence ou une position existe,
+     *    l'un ou l'autre critère suffit.
      *
      * 3. Sinon :
      *    pas de qualification définie.
@@ -188,48 +185,29 @@ class PerformanceController
                 $epreuve
             ];
 
-        /*
-         * PRIORITE AU TEMPS DE REFERENCE
-         */
-        if (
+        $a_temps_de_ref =
             $regle['temps_de_ref'] !== null &&
-            $regle['temps_de_ref'] !== ''
-        ) {
+            $regle['temps_de_ref'] !== '';
 
-            return
-                $this->timeToSeconds(
-                    $temps
-                )
-                <=
-                $this->timeToSeconds(
-                    $regle['temps_de_ref']
-                );
-        }
-
-        /*
-         * PAS DE TEMPS :
-         * on utilise la position.
-         */
-        if (
+        $a_position =
             $regle['position'] !== null &&
-            $regle['position'] > 0
-        ) {
+            $regle['position'] > 0;
 
-            if (
-                $position === null
-            ) {
-                return false;
-            }
-
-            return
-                $position <=
-                (int)$regle['position'];
+        if (!$a_temps_de_ref && !$a_position) {
+            return null;
         }
 
-        /*
-         * Aucun mode de qualification défini.
-         */
-        return null;
+        $qualifie_au_temps =
+            $a_temps_de_ref &&
+            $this->timeToSeconds($temps) <=
+                $this->timeToSeconds($regle['temps_de_ref']);
+
+        $qualifie_a_la_position =
+            $a_position &&
+            $position !== null &&
+            $position <= (int)$regle['position'];
+
+        return $qualifie_au_temps || $qualifie_a_la_position;
     }
 
     public function index()
