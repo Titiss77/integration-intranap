@@ -661,6 +661,14 @@ class PerformanceModel
             $saison = (string)$row['saison'];
             $prioritaire = $saison_prioritaire !== null && $saison === (string)$saison_prioritaire;
 
+            // Never apply a rule from a future season to an older selection.
+            if (
+                $saison_prioritaire !== null &&
+                strcmp($saison, (string)$saison_prioritaire) > 0
+            ) {
+                continue;
+            }
+
             $a_temps = $row['temps_de_ref'] !== null && $row['temps_de_ref'] !== '';
             $a_position = $row['position'] !== null && (int)$row['position'] > 0;
 
