@@ -336,6 +336,21 @@ class SyncController
                     $saison
                 );
 
+            $stmtSaison = $this->pdo->prepare(
+                'SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1'
+            );
+            $stmtSaison->execute([$saison]);
+            $saison_id = $stmtSaison->fetchColumn();
+
+            if (!$saison_id) {
+                $stmtCreateSaison = $this->pdo->prepare(
+                    'INSERT IGNORE INTO saisons (nom_saison) VALUES (?)'
+                );
+                $stmtCreateSaison->execute([$saison]);
+                $stmtSaison->execute([$saison]);
+                $saison_id = $stmtSaison->fetchColumn();
+            }
+
         } catch (
             Exception $e
         ) {
@@ -475,7 +490,7 @@ class SyncController
                      FROM performances
                      WHERE nageur_id = ?
                        AND epreuve_id = ?
-                       AND saison = ?
+                       AND saison_id = ?
                        AND temps = ?
                        AND date_perf = ?
                      LIMIT 1'
@@ -495,7 +510,7 @@ class SyncController
                         epreuve_id,
                         categorie_id,
                         lieu_id,
-                        saison,
+                        saison_id,
                         temps,
                         date_perf
                     )
@@ -852,7 +867,7 @@ class SyncController
                 $stmtCheckPerf->execute([
                     $nageur_id,
                     $epreuve_id,
-                    $saison,
+                    $saison_id,
                     $temps_final,
                     $date_perf
                 ]);
@@ -882,7 +897,7 @@ class SyncController
                     $epreuve_id,
                     $categorie_id,
                     $lieu_id,
-                    $saison,
+                    $saison_id,
                     $temps_final,
                     $date_perf
                 ]);

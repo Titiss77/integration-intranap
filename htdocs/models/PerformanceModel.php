@@ -148,17 +148,19 @@ class PerformanceModel
 
             $stmt =
                 $this->pdo->query(
-                    'SELECT *
-                     FROM performances'
+                    'SELECT p.*, s.nom_saison AS saison
+                     FROM performances p
+                     JOIN saisons s ON s.id = p.saison_id'
                 );
 
         } else {
 
             $stmt =
                 $this->pdo->prepare(
-                    'SELECT *
-                     FROM performances
-                     WHERE saison = ?'
+                    'SELECT p.*, s.nom_saison AS saison
+                     FROM performances p
+                     JOIN saisons s ON s.id = p.saison_id
+                     WHERE s.nom_saison = ?'
                 );
 
             $stmt->execute([
@@ -376,9 +378,11 @@ class PerformanceModel
                     p.id,
                     p.temps,
                     p.date_perf,
-                    p.saison,
+                    s.nom_saison AS saison,
                     l.nom_lieu AS lieu
                  FROM performances p
+                 JOIN saisons s
+                    ON p.saison_id = s.id
                  LEFT JOIN lieux l
                     ON p.lieu_id = l.id
                  WHERE p.nageur_id = ?
@@ -520,21 +524,21 @@ class PerformanceModel
             $this->pdo->query(
                 'SELECT
                     p.nageur_id,
-                    p.saison,
+                    p.saison_id,
                     p.categorie_id
                  FROM performances p
                  INNER JOIN (
                      SELECT
                         nageur_id,
-                        MAX(saison) AS derniere_saison
+                        MAX(saison_id) AS derniere_saison_id
                      FROM performances
                      GROUP BY nageur_id
                  ) derniere
                     ON derniere.nageur_id = p.nageur_id
-                    AND derniere.derniere_saison = p.saison
+                    AND derniere.derniere_saison_id = p.saison_id
                  GROUP BY
                     p.nageur_id,
-                    p.saison,
+                    p.saison_id,
                     p.categorie_id'
             );
 

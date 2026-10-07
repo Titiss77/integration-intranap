@@ -49,15 +49,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
             $stmtAddNageur = $pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
 
             // --- REQUÊTES POUR LA GESTION DES DOUBLONS & CLASSEMENTS ---
-            $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison = ? AND temps = ? AND date_perf = ? LIMIT 1');
+            $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison_id = ? AND temps = ? AND date_perf = ? LIMIT 1');
             $stmtUpdatePerf = $pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
-            $stmtAddPerf = $pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmtAddPerf = $pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison_id, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
             // Variables de contexte par défaut
             $epreuve_courante = 'Épreuve inconnue';
             $lieu_texte = 'Compétition Inconnue';
             $date_texte = date('Y-m-d');
-            $saison = (int) date('Y');
+            $anneeSaison = (int) date('Y');
+            if ((int) date('n') < 9) {
+                $anneeSaison--;
+            }
+            $saison = $anneeSaison . '-' . ($anneeSaison + 1);
 
             // Extraction du Lieu et de la Date/Saison dans l'en-tête du PDF
             foreach (array_slice($lines, 0, 10) as $l) {
@@ -65,10 +69,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                     $lieu_texte = trim($m[1]);
                     $date_texte = trim($m[2]);
                     if (preg_match('/(20\d{2})/', $date_texte, $y)) {
-                        $saison = (int) $y[1];
+                        $anneeSaison = (int) $y[1];
+                        if (preg_match('/\b\d{1,2}[\/.-](\d{1,2})[\/.-]20\d{2}\b/', $date_texte, $dateParts)) {
+                            if ((int) $dateParts[1] < 9) {
+                                $anneeSaison--;
+                            }
+                        }
+                        $saison = $anneeSaison . '-' . ($anneeSaison + 1);
                     }
                     break;
                 }
+            }
+
+            $stmtGetSaison = $pdo->prepare('SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1');
+            $stmtGetSaison->execute([$saison]);
+            $saison_id = $stmtGetSaison->fetchColumn();
+            if (!$saison_id) {
+                $stmtAddSaison = $pdo->prepare('INSERT INTO saisons (nom_saison) VALUES (?)');
+                $stmtAddSaison->execute([$saison]);
+                $saison_id = $pdo->lastInsertId();
             }
 
             // --- INSERTION DU LIEU ---
@@ -216,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                         $stmtCheckPerf->execute([
                             $nageur_id,
                             $epreuve_id ?? null,
-                            $saison,
+                            $saison_id,
                             $temps_final,
                             $date_texte
                         ]);
@@ -252,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                                 $epreuve_id ?? null,
                                 $categorie_id,
                                 $lieu_id,
-                                $saison,
+                                $saison_id,
                                 $temps_final,
                                 $date_texte,
                                 $place
