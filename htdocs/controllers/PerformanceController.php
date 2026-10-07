@@ -5,6 +5,28 @@ require_once __DIR__ . '/../models/PerformanceModel.php';
 
 class PerformanceController
 {
+    /**
+     * Retourne la saison sportive actuelle.
+     *
+     * Septembre 2026 -> 2026-2027
+     * Janvier 2027   -> 2026-2027
+     */
+    private function getCurrentSeason()
+    {
+        $annee = (int)date('Y');
+        $mois = (int)date('n');
+
+        $anneeDebut =
+            $mois >= 9
+                ? $annee
+                : $annee - 1;
+
+        return
+            $anneeDebut .
+            '-' .
+            ($anneeDebut + 1);
+    }
+
     public function index()
     {
         $pdo = Database::getConnection();
@@ -12,17 +34,17 @@ class PerformanceController
         $model =
             new PerformanceModel($pdo);
 
-        $annees_disponibles =
+        $saisons_disponibles =
             $model->getSaisons();
 
-        $annee_selectionnee =
+        $saison_selectionnee =
             isset($_GET['saison'])
                 ? $_GET['saison']
                 : 'all';
 
         $lignes_bdd =
             $model->getPerformances(
-                $annee_selectionnee
+                $saison_selectionnee
             );
 
         $grille_qualifs =
@@ -32,7 +54,7 @@ class PerformanceController
 
         if (
             'all' ===
-            $annee_selectionnee
+            $saison_selectionnee
         ) {
 
             $categories_actuelles =
@@ -57,7 +79,7 @@ class PerformanceController
 
                 if (
                     'all' ===
-                    $annee_selectionnee &&
+                    $saison_selectionnee &&
                     isset(
                         $categories_actuelles[
                             $nageur_id
@@ -83,7 +105,7 @@ class PerformanceController
                     $libelle_a_afficher =
                         $ligne['categorie_libelle'] .
                         ' (en ' .
-                        $annee_selectionnee .
+                        $saison_selectionnee .
                         ')';
                 }
 
@@ -452,6 +474,15 @@ class PerformanceController
             }
         }
 
+        /*
+         * Variables utilisées par dashboard.php.
+         */
+        $annees_disponibles =
+            $saisons_disponibles;
+
+        $annee_selectionnee =
+            $saison_selectionnee;
+
         require_once
             __DIR__ .
             '/../views/dashboard.php';
@@ -591,14 +622,14 @@ class PerformanceController
         $model =
             new PerformanceModel($pdo);
 
-        $annee_selectionnee =
+        $saison_selectionnee =
             isset($_GET['saison'])
                 ? $_GET['saison']
                 : 'all';
 
         $lignes_bdd =
             $model->getPerformances(
-                $annee_selectionnee
+                $saison_selectionnee
             );
 
         $grille_qualifs =
@@ -607,10 +638,10 @@ class PerformanceController
         $nom_saison =
             (
                 'all' ===
-                $annee_selectionnee
+                $saison_selectionnee
             )
                 ? 'toutes_saisons'
-                : $annee_selectionnee;
+                : $saison_selectionnee;
 
         $filename =
             "export_performances_{$nom_saison}_" .
@@ -658,7 +689,7 @@ class PerformanceController
 
         if (
             'all' ===
-            $annee_selectionnee
+            $saison_selectionnee
         ) {
 
             $categories_actuelles =
@@ -678,7 +709,7 @@ class PerformanceController
 
                 if (
                     'all' ===
-                    $annee_selectionnee &&
+                    $saison_selectionnee &&
                     isset(
                         $categories_actuelles[
                             $nageur_id

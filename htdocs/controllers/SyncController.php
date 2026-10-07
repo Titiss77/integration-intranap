@@ -26,6 +26,110 @@ class SyncController
     }
 
     /**
+     * Retourne la saison sportive actuelle.
+     *
+     * Exemple :
+     * - octobre 2026 -> 2026-2027
+     * - janvier 2027 -> 2026-2027
+     * - septembre 2027 -> 2027-2028
+     */
+    private function getCurrentSeason()
+    {
+        $annee = (int)date('Y');
+        $mois = (int)date('n');
+
+        if ($mois >= 9) {
+            $anneeDebut = $annee;
+        } else {
+            $anneeDebut = $annee - 1;
+        }
+
+        return $anneeDebut . '-' . ($anneeDebut + 1);
+    }
+
+    /**
+     * Normalise une saison.
+     *
+     * Accepte :
+     * - 2026
+     * - 2026-2027
+     *
+     * Retourne toujours :
+     * - 2026-2027
+     */
+    private function normalizeSeason($saison)
+    {
+        $saison = trim((string)$saison);
+
+        if ($saison === '') {
+            return $this->getCurrentSeason();
+        }
+
+        /*
+         * Ancien format :
+         * 2026
+         */
+        if (preg_match('/^(\d{4})$/', $saison, $matches)) {
+
+            $anneeDebut = (int)$matches[1];
+
+            return $anneeDebut . '-' . ($anneeDebut + 1);
+        }
+
+        /*
+         * Nouveau format :
+         * 2026-2027
+         */
+        if (
+            preg_match(
+                '/^(\d{4})-(\d{4})$/',
+                $saison,
+                $matches
+            )
+        ) {
+
+            $anneeDebut = (int)$matches[1];
+            $anneeFin = (int)$matches[2];
+
+            if ($anneeFin !== $anneeDebut + 1) {
+                throw new Exception(
+                    'Saison invalide. Format attendu : YYYY-YYYY.'
+                );
+            }
+
+            return $anneeDebut . '-' . $anneeFin;
+        }
+
+        throw new Exception(
+            'Saison invalide. Format attendu : YYYY ou YYYY-YYYY.'
+        );
+    }
+
+    /**
+     * Retourne l'année de début d'une saison.
+     *
+     * Exemple :
+     * 2026-2027 -> 2026
+     *
+     * Cette valeur est uniquement utilisée
+     * pour l'API FFESSM.
+     */
+    private function getApiYearFromSeason($saison)
+    {
+        if (
+            preg_match(
+                '/^(\d{4})-(\d{4})$/',
+                $saison,
+                $matches
+            )
+        ) {
+            return (int)$matches[1];
+        }
+
+        return (int)$saison;
+    }
+
+    /**
      * Normalise un temps vers le format :
      * MM:SS.CC
      */
@@ -146,6 +250,12 @@ class SyncController
      *
      * Aucun classement n'est calculé,
      * enregistré ou mis à jour.
+     *
+     * La BDD utilise une saison complète :
+     * 2026-2027
+     *
+     * L'API FFESSM reçoit uniquement :
+     * 2026
      */
     public function syncData($token_recu = '')
     {
@@ -197,7 +307,46 @@ class SyncController
 
         $etape = $_GET['etape'] ?? 'suite';
 
-        $saison = $_GET['saison'] ?? date('Y');
+        /*
+         * ------------------------------------------------------------
+         * SAISON SPORTIVE
+         * ------------------------------------------------------------
+         *
+         * Exemple :
+         * 2026-2027
+         */
+        $saison_recue =
+            $_GET['saison']
+            ?? $this->getCurrentSeason();
+
+        try {
+
+            $saison =
+                $this->normalizeSeason(
+                    $saison_recue
+                );
+
+            /*
+             * Année de début envoyée à la FFESSM.
+             *
+             * 2026-2027 -> 2026
+             */
+            $annee_api =
+                $this->getApiYearFromSeason(
+                    $saison
+                );
+
+        } catch (
+            Exception $e
+        ) {
+
+            echo json_encode([
+                'error' => true,
+                'message' => $e->getMessage()
+            ]);
+
+            return;
+        }
 
         if (
             $epreuve === '' ||
@@ -248,7 +397,7 @@ class SyncController
 
         $this->logger->info(
             'API_CALL',
-            "Requete: {$epreuve} | Genre: {$cat_code} | Saison: {$saison}"
+            "Requete: {$epreuve} | Genre: {$cat_code} | Saison: {$saison} | API: {$annee_api}"
         );
 
         /*
@@ -362,7 +511,14 @@ class SyncController
             $params = [
                 'action' => 'gettop',
                 'course' => $epreuve,
-                'saison' => $saison,
+
+                /*
+                 * IMPORTANT :
+                 * l'API reçoit 2026,
+                 * pas 2026-2027.
+                 */
+                'saison' => $annee_api,
+
                 'category' => $cat_code,
                 'token' => $this->token,
                 'clubid' => '0',
@@ -687,12 +843,6 @@ class SyncController
                         $n['date'] ?? ''
                     );
 
-                if (
-                    $temps_final === ''
-                ) {
-                    continue;
-                }
-
                 /*
                  * ----------------------------------------------------
                  * VERIFICATION D'EXISTENCE
@@ -714,7 +864,6 @@ class SyncController
 
                 /*
                  * La performance existe déjà.
-                 * Rien à modifier.
                  */
                 if (
                     $existingPerf
@@ -745,13 +894,14 @@ class SyncController
                     $nb_insertions++;
 
                     $info = sprintf(
-                        "%s %s (%s / %s) | Ajout temps : %s | Lieu : %s",
+                        "%s %s (%s / %s) | Saison : %s | Ajout temps : %s | Lieu : %s",
                         $prenom_nageur,
                         $nom_nageur,
                         $epreuve,
                         $categorie !== ''
                             ? $categorie
                             : 'NC',
+                        $saison,
                         $temps_final,
                         $n['lieu'] ?? 'NC'
                     );
@@ -791,7 +941,7 @@ class SyncController
             echo json_encode([
                 'error' => false,
                 'message' =>
-                    "Traitement de {$epreuve} terminé. " .
+                    "Traitement de {$epreuve} pour la saison {$saison} terminé. " .
                     "{$nb_insertions} nouvelle(s) performance(s)."
             ]);
 

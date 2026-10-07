@@ -100,8 +100,6 @@ input[type="text"] {
 
     color:
         var(--texte-principal);
-
-    -webkit-appearance: none;
 }
 
 button {

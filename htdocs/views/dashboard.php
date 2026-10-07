@@ -137,7 +137,7 @@
             <form method="GET" style="display:flex; align-items:center; gap:10px; width:100%;">
 
                 <label style="white-space:nowrap;">
-                    📅 <strong>Année :</strong>
+                    📅 <strong>Saison :</strong>
                 </label>
 
                 <select name="saison" onchange="this.form.submit()" style="flex:1;">
@@ -236,14 +236,15 @@
             <?php if (
             'all' !== $annee_selectionnee
         ) { ?>
-
+            <!---
             <h3 style="color:#dc3545; font-size:medium; font-weight:600; margin:1rem;">
 
                 * Attention il y a un problème au niveau de la FFESSM
                 pour les nageurs qualifiés au 400IS
-                (en <?php echo date('Y'); ?>)
+                (en <?php echo htmlspecialchars($saison_selectionnee); ?>)
 
             </h3>
+            --->
 
             <div class="stats-grid">
 
@@ -415,7 +416,7 @@
 
         <p style="text-align:center; color:var(--avertissement); font-size:1.2em; padding:40px;">
 
-            ⚠️ Aucun record trouvé pour l'année
+            ⚠️ Aucun record trouvé pour la saison
             <?php echo htmlspecialchars(
                 $annee_selectionnee
             ); ?>.
