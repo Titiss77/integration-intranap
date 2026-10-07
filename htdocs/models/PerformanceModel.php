@@ -621,24 +621,31 @@ class PerformanceModel
      * Les deux peuvent exister, mais le temps de référence
      * est prioritaire.
      */
-    public function getGrilleQualifs()
+    public function getGrilleQualifs($saison_prioritaire = null)
     {
         $sql =
             'SELECT
+                g.saison_id,
+                s.nom_saison AS saison,
                 c.nom_categorie,
                 e.nom_epreuve,
                 g.temps_de_ref,
                 g.position
              FROM grille_qualifs g
+             JOIN saisons s
+                ON g.saison_id = s.id
              JOIN categories c
                 ON g.categorie_id = c.id
              JOIN epreuves e
-                ON g.epreuve_id = e.id';
+                ON g.epreuve_id = e.id
+             ORDER BY s.nom_saison DESC, g.id DESC';
 
         $stmt =
             $this->pdo->query($sql);
 
         $result = [];
+
+        $priorite_saison = [];
 
         while (
             $row =
@@ -647,11 +654,18 @@ class PerformanceModel
                 )
         ) {
 
-            $result[
-                $row['nom_categorie']
-            ][
-                $row['nom_epreuve']
-            ] = [
+            $key = $row['nom_categorie'] . '|' . $row['nom_epreuve'];
+            $saison = (string)$row['saison'];
+            $prioritaire = $saison_prioritaire !== null && $saison === (string)$saison_prioritaire;
+
+            if (isset($priorite_saison[$key])) {
+                $ancienne_priorite = $priorite_saison[$key];
+                if ($ancienne_priorite === true || (!$prioritaire && strcmp($saison, $ancienne_priorite) <= 0)) {
+                    continue;
+                }
+            }
+
+            $result[$row['nom_categorie']][$row['nom_epreuve']] = [
 
                 'temps_de_ref' =>
                     $row['temps_de_ref'],
@@ -661,6 +675,7 @@ class PerformanceModel
                         ? (int)$row['position']
                         : null
             ];
+            $priorite_saison[$key] = $prioritaire ? true : $saison;
         }
 
         return $result;

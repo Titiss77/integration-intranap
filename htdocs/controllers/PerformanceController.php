@@ -253,7 +253,11 @@ class PerformanceController
             );
 
         $grille_qualifs =
-            $model->getGrilleQualifs();
+            $model->getGrilleQualifs(
+                $saison_selectionnee === 'all'
+                    ? $this->getCurrentSeason()
+                    : $saison_selectionnee
+            );
 
         /*
          * ------------------------------------------------------------
@@ -790,7 +794,9 @@ class PerformanceController
         ) {
 
             $grille =
-                $model->getGrilleQualifs();
+                $model->getGrilleQualifs(
+                    $this->getCurrentSeason()
+                );
 
             if (
                 isset(
@@ -854,7 +860,11 @@ class PerformanceController
             );
 
         $grille_qualifs =
-            $model->getGrilleQualifs();
+            $model->getGrilleQualifs(
+                $saison_selectionnee === 'all'
+                    ? $this->getCurrentSeason()
+                    : $saison_selectionnee
+            );
 
         /*
          * Les positions sont calculées uniquement
