@@ -661,6 +661,14 @@ class PerformanceModel
             $saison = (string)$row['saison'];
             $prioritaire = $saison_prioritaire !== null && $saison === (string)$saison_prioritaire;
 
+            $a_temps = $row['temps_de_ref'] !== null && $row['temps_de_ref'] !== '';
+            $a_position = $row['position'] !== null && (int)$row['position'] > 0;
+
+            // Ignore empty rules so they cannot hide the latest usable rule.
+            if (!$a_temps && !$a_position) {
+                continue;
+            }
+
             if (isset($priorite_saison[$key])) {
                 $ancienne_priorite = $priorite_saison[$key];
                 if ($ancienne_priorite === true || (!$prioritaire && strcmp($saison, $ancienne_priorite) <= 0)) {

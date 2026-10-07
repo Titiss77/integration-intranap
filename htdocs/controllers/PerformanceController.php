@@ -695,6 +695,9 @@ class PerformanceController
         $categorie =
             $_GET['categorie'] ?? '';
 
+        $saison_selectionnee =
+            $_GET['saison'] ?? 'all';
+
         $pdo =
             Database::getConnection();
 
@@ -773,7 +776,9 @@ class PerformanceController
 
             $grille =
                 $model->getGrilleQualifs(
-                    $this->getCurrentSeason()
+                    $saison_selectionnee === 'all'
+                        ? $this->getCurrentSeason()
+                        : $saison_selectionnee
                 );
 
             if (

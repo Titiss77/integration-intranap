@@ -291,6 +291,15 @@ async function showChart(
         '&epreuve=' +
         epreuve;
 
+    const saisonSelect =
+        document.querySelector('select[name="saison"]');
+
+    if (saisonSelect) {
+        url +=
+            '&saison=' +
+            encodeURIComponent(saisonSelect.value);
+    }
+
     if (
         categorie !== ''
     ) {

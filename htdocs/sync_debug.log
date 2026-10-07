@@ -1,0 +1,33 @@
+--------------------------------------------------------------------------------
+[2026-10-07 15:16:49] [INFO   ] [START          ] --- DÉBUT DE SYNCHRONISATION ---
+[2026-10-07 15:16:49] [INFO   ] [API_CALL       ] Requete: 50SF | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:16:50] [INFO   ] [API_CALL       ] Requete: 50SF | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:16:52] [INFO   ] [API_CALL       ] Requete: 100SF | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:16:54] [INFO   ] [API_CALL       ] Requete: 100SF | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:16:56] [INFO   ] [API_CALL       ] Requete: 200SF | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:16:59] [INFO   ] [API_CALL       ] Requete: 200SF | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:00] [INFO   ] [API_CALL       ] Requete: 400SF | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:02] [INFO   ] [API_CALL       ] Requete: 400SF | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:04] [INFO   ] [API_CALL       ] Requete: 800SF | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:06] [INFO   ] [API_CALL       ] Requete: 800SF | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:07] [INFO   ] [API_CALL       ] Requete: 1500SF | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:09] [INFO   ] [API_CALL       ] Requete: 1500SF | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:10] [INFO   ] [API_CALL       ] Requete: 50AP | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:13] [INFO   ] [API_CALL       ] Requete: 50AP | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:15] [INFO   ] [API_CALL       ] Requete: 100IS | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:16] [INFO   ] [API_CALL       ] Requete: 100IS | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:18] [INFO   ] [API_CALL       ] Requete: 800IS | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:20] [INFO   ] [API_CALL       ] Requete: 800IS | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:22] [INFO   ] [API_CALL       ] Requete: 200IS | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:24] [INFO   ] [API_CALL       ] Requete: 200IS | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:25] [INFO   ] [API_CALL       ] Requete: 400IS | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:27] [INFO   ] [API_CALL       ] Requete: 400IS | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:29] [INFO   ] [API_CALL       ] Requete: 50BI | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:31] [INFO   ] [API_CALL       ] Requete: 50BI | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:33] [INFO   ] [API_CALL       ] Requete: 100BI | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:34] [INFO   ] [API_CALL       ] Requete: 100BI | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:36] [INFO   ] [API_CALL       ] Requete: 200BI | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:38] [INFO   ] [API_CALL       ] Requete: 200BI | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:40] [INFO   ] [API_CALL       ] Requete: 400BI | Genre: F | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:42] [INFO   ] [API_CALL       ] Requete: 400BI | Genre: M | Saison: 2026-2027 | API: 2026
+[2026-10-07 15:17:43] [INFO   ] [END            ] --- FIN DE SYNCHRONISATION ---

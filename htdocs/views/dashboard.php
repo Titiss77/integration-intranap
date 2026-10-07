@@ -416,7 +416,7 @@
 
         <p style="text-align:center; color:var(--avertissement); font-size:1.2em; padding:40px;">
 
-            ⚠️ Aucun record trouvé pour la saison
+            ⚠️ Aucun temps trouvé pour la saison
             <?php echo htmlspecialchars(
                 $annee_selectionnee
             ); ?>.
