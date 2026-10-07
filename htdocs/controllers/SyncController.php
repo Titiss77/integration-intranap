@@ -129,6 +129,48 @@ class SyncController
         return (int)$saison;
     }
 
+    /** Retourne la saison sportive correspondant à une date de performance. */
+    private function getSeasonFromPerformanceDate($date, $fallbackSeason)
+    {
+        $date = trim((string)$date);
+
+        if (preg_match('/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/', $date, $matches)) {
+            $month = (int)$matches[2];
+            $year = (int)$matches[3];
+        } elseif (preg_match('/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})$/', $date, $matches)) {
+            $year = (int)$matches[1];
+            $month = (int)$matches[2];
+        } else {
+            return $fallbackSeason;
+        }
+
+        $startYear = $month >= 9 ? $year : $year - 1;
+        return $startYear . '-' . ($startYear + 1);
+    }
+
+    private function getOrCreateSeasonId($saison)
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1'
+        );
+        $stmt->execute([$saison]);
+        $saisonId = $stmt->fetchColumn();
+
+        if (!$saisonId) {
+            $stmt = $this->pdo->prepare(
+                'INSERT IGNORE INTO saisons (nom_saison) VALUES (?)'
+            );
+            $stmt->execute([$saison]);
+            $stmt = $this->pdo->prepare(
+                'SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1'
+            );
+            $stmt->execute([$saison]);
+            $saisonId = $stmt->fetchColumn();
+        }
+
+        return (int)$saisonId;
+    }
+
     /**
      * Normalise un temps vers le format :
      * MM:SS.CC
@@ -335,21 +377,6 @@ class SyncController
                 $this->getApiYearFromSeason(
                     $saison
                 );
-
-            $stmtSaison = $this->pdo->prepare(
-                'SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1'
-            );
-            $stmtSaison->execute([$saison]);
-            $saison_id = $stmtSaison->fetchColumn();
-
-            if (!$saison_id) {
-                $stmtCreateSaison = $this->pdo->prepare(
-                    'INSERT IGNORE INTO saisons (nom_saison) VALUES (?)'
-                );
-                $stmtCreateSaison->execute([$saison]);
-                $stmtSaison->execute([$saison]);
-                $saison_id = $stmtSaison->fetchColumn();
-            }
 
         } catch (
             Exception $e
@@ -858,6 +885,14 @@ class SyncController
                         $n['date'] ?? ''
                     );
 
+                $saison_performance =
+                    $this->getSeasonFromPerformanceDate(
+                        $date_perf,
+                        $saison
+                    );
+                $saison_performance_id =
+                    $this->getOrCreateSeasonId($saison_performance);
+
                 /*
                  * ----------------------------------------------------
                  * VERIFICATION D'EXISTENCE
@@ -867,7 +902,7 @@ class SyncController
                 $stmtCheckPerf->execute([
                     $nageur_id,
                     $epreuve_id,
-                    $saison_id,
+                    $saison_performance_id,
                     $temps_final,
                     $date_perf
                 ]);
@@ -897,7 +932,7 @@ class SyncController
                     $epreuve_id,
                     $categorie_id,
                     $lieu_id,
-                    $saison_id,
+                    $saison_performance_id,
                     $temps_final,
                     $date_perf
                 ]);
@@ -916,7 +951,7 @@ class SyncController
                         $categorie !== ''
                             ? $categorie
                             : 'NC',
-                        $saison,
+                        $saison_performance,
                         $temps_final,
                         $n['lieu'] ?? 'NC'
                     );

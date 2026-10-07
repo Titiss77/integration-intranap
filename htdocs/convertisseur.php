@@ -74,6 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                             if ((int) $dateParts[1] < 9) {
                                 $anneeSaison--;
                             }
+                        } elseif (preg_match('/\b20\d{2}[\/.-](\d{1,2})[\/.-]\d{1,2}\b/', $date_texte, $dateParts)) {
+                            if ((int) $dateParts[1] < 9) {
+                                $anneeSaison--;
+                            }
                         }
                         $saison = $anneeSaison . '-' . ($anneeSaison + 1);
                     }
