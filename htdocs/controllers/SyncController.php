@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/SyncLogger.php';
 
@@ -27,145 +28,181 @@ class SyncController
     /**
      * Normalise un temps vers le format :
      * MM:SS.CC
-     *
-     * Exemples :
-     * 17.50   -> 00:17.50
-     * 54.72   -> 00:54.72
-     * 1:02.35 -> 01:02.35
      */
     private function normalizeTime($temps_brut)
     {
-        $t = trim(str_replace(',', '.', (string)$temps_brut));
+        $t = trim(
+            str_replace(
+                ',',
+                '.',
+                (string)$temps_brut
+            )
+        );
 
         if ($t === '') {
             return '';
         }
 
         if (strpos($t, ':') !== false) {
+
             $parts = explode(':', $t, 2);
 
-            $minutes = str_pad(trim($parts[0]), 2, '0', STR_PAD_LEFT);
+            $minutes = str_pad(
+                trim($parts[0]),
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
 
-            $secParts = explode('.', trim($parts[1]), 2);
+            $secParts = explode(
+                '.',
+                trim($parts[1]),
+                2
+            );
 
-            $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
+            $secondes = str_pad(
+                $secParts[0],
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
 
             $centiemes = isset($secParts[1])
-                ? str_pad(substr($secParts[1], 0, 2), 2, '0', STR_PAD_RIGHT)
+                ? str_pad(
+                    substr(
+                        $secParts[1],
+                        0,
+                        2
+                    ),
+                    2,
+                    '0',
+                    STR_PAD_RIGHT
+                )
                 : '00';
 
             return $minutes . ':' . $secondes . '.' . $centiemes;
         }
 
-        $secParts = explode('.', $t, 2);
+        $secParts = explode(
+            '.',
+            $t,
+            2
+        );
 
-        $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
+        $secondes = str_pad(
+            $secParts[0],
+            2,
+            '0',
+            STR_PAD_LEFT
+        );
 
         $centiemes = isset($secParts[1])
-            ? str_pad(substr($secParts[1], 0, 2), 2, '0', STR_PAD_RIGHT)
+            ? str_pad(
+                substr(
+                    $secParts[1],
+                    0,
+                    2
+                ),
+                2,
+                '0',
+                STR_PAD_RIGHT
+            )
             : '00';
 
         return '00:' . $secondes . '.' . $centiemes;
     }
 
     /**
-     * Convertit un temps en secondes.
-     *
-     * Permet de comparer correctement :
-     * 9.95 < 10.02
-     *
-     * et évite les comparaisons de chaînes.
-     */
-    private function timeToSeconds($temps)
-    {
-        $temps = str_replace(',', '.', trim((string)$temps));
-
-        if ($temps === '') {
-            return PHP_FLOAT_MAX;
-        }
-
-        if (strpos($temps, ':') !== false) {
-            $parts = explode(':', $temps, 2);
-
-            $minutes = (float)$parts[0];
-            $secondes = (float)$parts[1];
-
-            return ($minutes * 60) + $secondes;
-        }
-
-        return (float)$temps;
-    }
-
-    /**
      * Normalise une catégorie.
-     *
-     * Exemples :
-     * SH -> SH
-     * sh -> SH
-     * "SH " -> SH
      */
     private function normalizeCategory($categorie)
     {
-        return strtoupper(trim((string)$categorie));
+        return strtoupper(
+            trim(
+                (string)$categorie
+            )
+        );
     }
 
     /**
-     * Crée une clé stable pour identifier un nageur.
-     *
-     * On utilise le nom + prénom car l'API gettop ne fournit
-     * pas nécessairement le même identifiant que notre BDD.
-     */
-    private function swimmerKey($nom, $prenom)
-    {
-        $nom = mb_strtolower(trim((string)$nom), 'UTF-8');
-        $prenom = mb_strtolower(trim((string)$prenom), 'UTF-8');
-
-        return $nom . '|' . $prenom;
-    }
-
-    /**
-     * Vérifie si une ligne correspond à un nageur français.
+     * Vérifie si une ligne correspond
+     * à un nageur français.
      */
     private function isFrench($n)
     {
         $nat = isset($n['nat'])
-            ? strtoupper(trim((string)$n['nat']))
+            ? strtoupper(
+                trim(
+                    (string)$n['nat']
+                )
+            )
             : 'FRA';
 
         return $nat === 'FRA';
     }
 
+    /**
+     * Synchronisation des performances.
+     *
+     * Aucun classement n'est calculé,
+     * enregistré ou mis à jour.
+     */
     public function syncData($token_recu = '')
     {
-        header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-cache, must-revalidate');
+        header(
+            'Content-Type: application/json; charset=utf-8'
+        );
 
-        if (PHP_SESSION_NONE === session_status()) {
+        header(
+            'Cache-Control: no-cache, must-revalidate'
+        );
+
+        if (
+            PHP_SESSION_NONE === session_status()
+        ) {
             session_start();
         }
 
         if (
             empty($_SESSION['csrf_token']) ||
-            !hash_equals($_SESSION['csrf_token'], $token_recu)
+            !hash_equals(
+                $_SESSION['csrf_token'],
+                $token_recu
+            )
         ) {
             echo json_encode([
                 'error' => true,
-                'message' => 'Erreur de sécurité (Jeton CSRF invalide).'
+                'message' =>
+                    'Erreur de sécurité (Jeton CSRF invalide).'
             ]);
 
             return;
         }
 
-        if (PHP_SESSION_ACTIVE === session_status()) {
+        if (
+            PHP_SESSION_ACTIVE === session_status()
+        ) {
             session_write_close();
         }
 
-        $epreuve = trim($_GET['epreuve'] ?? '');
-        $cat_code = strtoupper(trim($_GET['genre'] ?? ''));
+        $epreuve = trim(
+            $_GET['epreuve'] ?? ''
+        );
+
+        $cat_code = strtoupper(
+            trim(
+                $_GET['genre'] ?? ''
+            )
+        );
+
         $etape = $_GET['etape'] ?? 'suite';
+
         $saison = $_GET['saison'] ?? date('Y');
 
-        if ($epreuve === '' || $cat_code === '') {
+        if (
+            $epreuve === '' ||
+            $cat_code === ''
+        ) {
             echo json_encode([
                 'error' => true,
                 'message' => 'Paramètres manquants.'
@@ -179,7 +216,12 @@ class SyncController
             'M' => 'Hommes'
         ];
 
-        if (!array_key_exists($cat_code, $categories_genre)) {
+        if (
+            !array_key_exists(
+                $cat_code,
+                $categories_genre
+            )
+        ) {
             echo json_encode([
                 'error' => true,
                 'message' => 'Genre invalide.'
@@ -191,7 +233,10 @@ class SyncController
         $cat_nom = $categories_genre[$cat_code];
 
         if ($etape === 'debut') {
-            $this->writeToLog('--- DÉBUT DE SYNCHRONISATION ---');
+
+            $this->writeToLog(
+                '--- DÉBUT DE SYNCHRONISATION ---'
+            );
 
             $this->logger->separator();
 
@@ -214,29 +259,43 @@ class SyncController
 
         $blacklist = [];
 
-        $chemin_blacklist = __DIR__ . '/../blacklist.txt';
+        $chemin_blacklist =
+            __DIR__ . '/../blacklist.txt';
 
-        if (file_exists($chemin_blacklist)) {
+        if (
+            file_exists(
+                $chemin_blacklist
+            )
+        ) {
+
             $lignes = file(
                 $chemin_blacklist,
-                FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
+                FILE_IGNORE_NEW_LINES |
+                FILE_SKIP_EMPTY_LINES
             );
 
             foreach ($lignes as $ligne) {
+
                 $ligne = trim($ligne);
 
                 if ($ligne === '') {
                     continue;
                 }
 
-                if (strpos($ligne, '#') === 0) {
+                if (
+                    strpos(
+                        $ligne,
+                        '#'
+                    ) === 0
+                ) {
                     continue;
                 }
 
-                $blacklist[] = mb_strtolower(
-                    $ligne,
-                    'UTF-8'
-                );
+                $blacklist[] =
+                    mb_strtolower(
+                        $ligne,
+                        'UTF-8'
+                    );
             }
         }
 
@@ -248,53 +307,55 @@ class SyncController
              * --------------------------------------------------------
              */
 
-            $epreuve_id = $this->getOrCreateSimple(
-                'epreuves',
-                'nom_epreuve',
-                $epreuve
-            );
+            $epreuve_id =
+                $this->getOrCreateSimple(
+                    'epreuves',
+                    'nom_epreuve',
+                    $epreuve
+                );
 
             /*
              * --------------------------------------------------------
-             * REQUETES SQL
+             * REQUETE DE VERIFICATION
              * --------------------------------------------------------
              */
 
-            $stmtCheckPerf = $this->pdo->prepare(
-                'SELECT id, classement
-                 FROM performances
-                 WHERE nageur_id = ?
-                   AND epreuve_id = ?
-                   AND saison = ?
-                   AND temps = ?
-                   AND date_perf = ?
-                 LIMIT 1'
-            );
-
-            $stmtUpdatePerf = $this->pdo->prepare(
-                'UPDATE performances
-                 SET classement = ?
-                 WHERE id = ?'
-            );
-
-            $stmtAddPerf = $this->pdo->prepare(
-                'INSERT INTO performances
-                (
-                    nageur_id,
-                    epreuve_id,
-                    categorie_id,
-                    lieu_id,
-                    saison,
-                    temps,
-                    date_perf,
-                    classement
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-            );
+            $stmtCheckPerf =
+                $this->pdo->prepare(
+                    'SELECT id
+                     FROM performances
+                     WHERE nageur_id = ?
+                       AND epreuve_id = ?
+                       AND saison = ?
+                       AND temps = ?
+                       AND date_perf = ?
+                     LIMIT 1'
+                );
 
             /*
              * --------------------------------------------------------
-             * APPEL API
+             * INSERTION
+             * --------------------------------------------------------
+             */
+
+            $stmtAddPerf =
+                $this->pdo->prepare(
+                    'INSERT INTO performances
+                    (
+                        nageur_id,
+                        epreuve_id,
+                        categorie_id,
+                        lieu_id,
+                        saison,
+                        temps,
+                        date_perf
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)'
+                );
+
+            /*
+             * --------------------------------------------------------
+             * APPEL API FFESSM
              * --------------------------------------------------------
              */
 
@@ -309,25 +370,70 @@ class SyncController
                 'nocache' => time()
             ];
 
-            $url_complete = $this->url . '?' . http_build_query($params);
+            $url_complete =
+                $this->url .
+                '?' .
+                http_build_query($params);
 
             $ch = curl_init();
 
-            curl_setopt($ch, CURLOPT_URL, $url_complete);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt(
+                $ch,
+                CURLOPT_URL,
+                $url_complete
+            );
 
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt(
+                $ch,
+                CURLOPT_RETURNTRANSFER,
+                true
+            );
 
-            $cookie_file = __DIR__ . '/../cookie_ffessm.txt';
+            curl_setopt(
+                $ch,
+                CURLOPT_SSL_VERIFYPEER,
+                false
+            );
 
-            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
-            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
+            curl_setopt(
+                $ch,
+                CURLOPT_SSL_VERIFYHOST,
+                false
+            );
 
-            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            $cookie_file =
+                __DIR__ .
+                '/../cookie_ffessm.txt';
 
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt(
+                $ch,
+                CURLOPT_COOKIEJAR,
+                $cookie_file
+            );
+
+            curl_setopt(
+                $ch,
+                CURLOPT_COOKIEFILE,
+                $cookie_file
+            );
+
+            curl_setopt(
+                $ch,
+                CURLOPT_TIMEOUT,
+                20
+            );
+
+            curl_setopt(
+                $ch,
+                CURLOPT_CONNECTTIMEOUT,
+                10
+            );
+
+            curl_setopt(
+                $ch,
+                CURLOPT_FOLLOWLOCATION,
+                true
+            );
 
             curl_setopt(
                 $ch,
@@ -335,7 +441,11 @@ class SyncController
                 'Mozilla/5.0'
             );
 
-            curl_setopt($ch, CURLOPT_ENCODING, '');
+            curl_setopt(
+                $ch,
+                CURLOPT_ENCODING,
+                ''
+            );
 
             curl_setopt(
                 $ch,
@@ -346,37 +456,52 @@ class SyncController
                 ]
             );
 
-            usleep(rand(800000, 2000000));
+            usleep(
+                rand(
+                    800000,
+                    2000000
+                )
+            );
 
             $response = curl_exec($ch);
 
-            $http_code = curl_getinfo(
-                $ch,
-                CURLINFO_HTTP_CODE
-            );
+            $http_code =
+                curl_getinfo(
+                    $ch,
+                    CURLINFO_HTTP_CODE
+                );
 
-            $curl_error = curl_error($ch);
+            $curl_error =
+                curl_error($ch);
 
             curl_close($ch);
 
-            if ($response === false || $curl_error !== '') {
+            if (
+                $response === false ||
+                $curl_error !== ''
+            ) {
                 throw new Exception(
                     "Erreur réseau cURL ({$http_code}) : {$curl_error}"
                 );
             }
 
-            if (trim($response) === '') {
+            if (
+                trim($response) === ''
+            ) {
                 throw new Exception(
                     'La réponse de la FFESSM est vide.'
                 );
             }
 
-            $donnees = json_decode(
-                $response,
-                true
-            );
+            $donnees =
+                json_decode(
+                    $response,
+                    true
+                );
 
-            if (!is_array($donnees)) {
+            if (
+                !is_array($donnees)
+            ) {
                 throw new Exception(
                     'La réponse de la FFESSM n\'est pas un JSON valide.'
                 );
@@ -384,44 +509,48 @@ class SyncController
 
             /*
              * --------------------------------------------------------
-             * ETAPE 1 :
-             *
-             * On garde uniquement :
-             *
-             * - les nageurs français
-             * - du genre demandé
-             * - avec une catégorie valide
-             *
-             * IMPORTANT :
-             *
-             * On ne calcule PAS encore le classement.
-             *
+             * TRAITEMENT DES PERFORMANCES
              * --------------------------------------------------------
              */
 
-            $performances = [];
+            $nb_insertions = 0;
 
             foreach ($donnees as $n) {
 
-                if (!is_array($n)) {
+                if (
+                    !is_array($n)
+                ) {
                     continue;
                 }
 
                 /*
-                 * Exclusion des étrangers
+                 * Nageur français uniquement.
                  */
-                if (!$this->isFrench($n)) {
+                if (
+                    !$this->isFrench($n)
+                ) {
                     continue;
                 }
 
-                $nom_nageur = trim($n['nom'] ?? '');
-                $prenom_nageur = trim($n['prenom'] ?? '');
+                $nom_nageur =
+                    trim(
+                        $n['nom'] ?? ''
+                    );
 
-                $temps_brut = trim($n['temps'] ?? '');
+                $prenom_nageur =
+                    trim(
+                        $n['prenom'] ?? ''
+                    );
 
-                $categorie = $this->normalizeCategory(
-                    $n['categorie'] ?? ''
-                );
+                $temps_brut =
+                    trim(
+                        $n['temps'] ?? ''
+                    );
+
+                $categorie =
+                    $this->normalizeCategory(
+                        $n['categorie'] ?? ''
+                    );
 
                 if (
                     $nom_nageur === '' ||
@@ -432,350 +561,144 @@ class SyncController
                 }
 
                 /*
-                 * Le genre est contrôlé par le paramètre M/F.
-                 *
-                 * Si l'API fournit une catégorie comme SH, SF, JH,
-                 * JF, etc., son premier caractère permet également
-                 * de vérifier le sexe.
+                 * Normalisation du temps.
                  */
-                if ($categorie !== '') {
-
-                    $premiere_lettre = substr(
-                        $categorie,
-                        0,
-                        1
+                $temps_final =
+                    $this->normalizeTime(
+                        $temps_brut
                     );
-
-                    if (
-                        ($cat_code === 'M' && $premiere_lettre !== 'S' && $premiere_lettre !== 'J' && $premiere_lettre !== 'C')
-                        ||
-                        ($cat_code === 'F' && $premiere_lettre !== 'S' && $premiere_lettre !== 'J' && $premiere_lettre !== 'C')
-                    ) {
-                        /*
-                         * On ne filtre pas ici sur l'âge :
-                         * le classement sera séparé par catégorie
-                         * à l'étape suivante.
-                         */
-                    }
-                }
-
-                $temps_final = $this->normalizeTime(
-                    $temps_brut
-                );
-
-                if ($temps_final === '') {
-                    continue;
-                }
-
-                $performances[] = [
-                    'data' => $n,
-                    'nom' => $nom_nageur,
-                    'prenom' => $prenom_nageur,
-                    'categorie' => $categorie,
-                    'temps' => $temps_final,
-                    'temps_secondes' => $this->timeToSeconds(
-                        $temps_final
-                    )
-                ];
-            }
-
-            /*
-             * --------------------------------------------------------
-             * ETAPE 2 :
-             *
-             * Pour chaque nageur + catégorie :
-             *
-             * on conserve UNIQUEMENT son meilleur temps.
-             *
-             * C'est important car l'API peut retourner plusieurs
-             * performances pour un même nageur.
-             * --------------------------------------------------------
-             */
-
-            $meilleurs_temps = [];
-
-            foreach ($performances as $perf) {
-
-                $cle_nageur = $this->swimmerKey(
-                    $perf['nom'],
-                    $perf['prenom']
-                );
-
-                $categorie = $perf['categorie'];
-
-                /*
-                 * Le classement est indépendant pour chaque catégorie.
-                 *
-                 * Exemple :
-                 *
-                 * SH -> classement SH
-                 * JH -> classement JH
-                 * SF -> classement SF
-                 * JF -> classement JF
-                 */
-                $cle = $categorie . '|' . $cle_nageur;
 
                 if (
-                    !isset($meilleurs_temps[$cle]) ||
-                    $perf['temps_secondes'] <
-                    $meilleurs_temps[$cle]['temps_secondes']
+                    $temps_final === ''
                 ) {
-                    $meilleurs_temps[$cle] = $perf;
-                }
-            }
-
-            /*
-             * --------------------------------------------------------
-             * ETAPE 3 :
-             *
-             * On regroupe les nageurs par catégorie.
-             *
-             * C'est ici que se trouve la correction principale.
-             * --------------------------------------------------------
-             */
-
-            $classements_par_categorie = [];
-
-            foreach ($meilleurs_temps as $perf) {
-
-                $categorie = $perf['categorie'];
-
-                if (!isset($classements_par_categorie[$categorie])) {
-                    $classements_par_categorie[$categorie] = [];
-                }
-
-                $classements_par_categorie[$categorie][] = $perf;
-            }
-
-            /*
-             * --------------------------------------------------------
-             * ETAPE 4 :
-             *
-             * Tri numérique par temps.
-             *
-             * On ne dépend plus de l'ordre retourné par l'API.
-             * --------------------------------------------------------
-             */
-
-            foreach (
-                $classements_par_categorie
-                as $categorie => &$liste
-            ) {
-
-                usort(
-                    $liste,
-                    function ($a, $b) {
-
-                        if (
-                            $a['temps_secondes'] ==
-                            $b['temps_secondes']
-                        ) {
-                            /*
-                             * Départage stable en cas d'égalité parfaite.
-                             */
-                            $nomA = $a['nom'] . ' ' . $a['prenom'];
-                            $nomB = $b['nom'] . ' ' . $b['prenom'];
-
-                            return strcmp(
-                                $nomA,
-                                $nomB
-                            );
-                        }
-
-                        return $a['temps_secondes'] <=>
-                               $b['temps_secondes'];
-                    }
-                );
-            }
-
-            unset($liste);
-
-            /*
-             * --------------------------------------------------------
-             * ETAPE 5 :
-             *
-             * Attribution des rangs.
-             *
-             * On utilise le classement "compétition".
-             *
-             * Exemple :
-             *
-             * 1er
-             * 2e
-             * 2e
-             * 4e
-             *
-             * et non :
-             *
-             * 1er
-             * 2e
-             * 2e
-             * 3e
-             * --------------------------------------------------------
-             */
-
-            $rangs = [];
-
-            foreach (
-                $classements_par_categorie
-                as $categorie => $liste
-            ) {
-
-                $rang = 0;
-                $position = 0;
-                $dernier_temps = null;
-
-                foreach ($liste as $perf) {
-
-                    $position++;
-
-                    if (
-                        $dernier_temps === null ||
-                        $perf['temps_secondes'] != $dernier_temps
-                    ) {
-                        $rang = $position;
-                        $dernier_temps = $perf['temps_secondes'];
-                    }
-
-                    $cle_nageur = $this->swimmerKey(
-                        $perf['nom'],
-                        $perf['prenom']
-                    );
-
-                    $cle = $categorie . '|' . $cle_nageur;
-
-                    $rangs[$cle] = $rang;
-                }
-            }
-
-            /*
-             * --------------------------------------------------------
-             * ETAPE 6 :
-             *
-             * Mise à jour / insertion dans notre BDD.
-             * --------------------------------------------------------
-             */
-
-            $nb_updates = 0;
-            $nb_insertions = 0;
-
-            foreach ($performances as $perf) {
-
-                $n = $perf['data'];
-
-                $nom_nageur = $perf['nom'];
-                $prenom_nageur = $perf['prenom'];
-                $categorie = $perf['categorie'];
-                $temps_final = $perf['temps'];
-
-                /*
-                 * Le classement correspond au meilleur temps
-                 * du nageur dans sa catégorie.
-                 *
-                 * Une performance secondaire n'est donc pas
-                 * enregistrée avec un classement différent.
-                 */
-                $cle_nageur = $this->swimmerKey(
-                    $nom_nageur,
-                    $prenom_nageur
-                );
-
-                $cle = $categorie . '|' . $cle_nageur;
-
-                $position_nationale =
-                    $rangs[$cle] ?? null;
-
-                /*
-                 * Club
-                 */
-                $club_nageur = strtoupper(
-                    trim($n['club'] ?? '')
-                );
-
-                if ($club_nageur !== $this->club_cible) {
                     continue;
                 }
 
                 /*
-                 * Blacklist
+                 * Club.
+                 */
+                $club_nageur =
+                    strtoupper(
+                        trim(
+                            $n['club'] ?? ''
+                        )
+                    );
+
+                if (
+                    $club_nageur !==
+                    $this->club_cible
+                ) {
+                    continue;
+                }
+
+                /*
+                 * Blacklist.
                  */
                 $nom_complet_normalise =
                     mb_strtolower(
-                        $nom_nageur . ' ' . $prenom_nageur,
+                        $nom_nageur .
+                        ' ' .
+                        $prenom_nageur,
                         'UTF-8'
                     );
 
                 $prenom_nom_normalise =
                     mb_strtolower(
-                        $prenom_nageur . ' ' . $nom_nageur,
+                        $prenom_nageur .
+                        ' ' .
+                        $nom_nageur,
                         'UTF-8'
                     );
 
                 $est_blacklist = false;
 
-                foreach ($blacklist as $bl_nom) {
+                foreach (
+                    $blacklist
+                    as $bl_nom
+                ) {
 
                     if (
-                        $nom_complet_normalise === $bl_nom ||
-                        $prenom_nom_normalise === $bl_nom
+                        $nom_complet_normalise ===
+                        $bl_nom ||
+                        $prenom_nom_normalise ===
+                        $bl_nom
                     ) {
                         $est_blacklist = true;
                         break;
                     }
                 }
 
-                if ($est_blacklist) {
+                if (
+                    $est_blacklist
+                ) {
                     continue;
                 }
 
                 /*
-                 * Nageur
+                 * ----------------------------------------------------
+                 * NAGEUR
+                 * ----------------------------------------------------
                  */
-                $nageur_id = $this->getOrCreateNageur(
-                    $nom_nageur,
-                    $prenom_nageur,
-                    $cat_nom,
-                    null
-                );
+
+                $nageur_id =
+                    $this->getOrCreateNageur(
+                        $nom_nageur,
+                        $prenom_nageur,
+                        $cat_nom,
+                        null
+                    );
 
                 /*
-                 * Catégorie
+                 * ----------------------------------------------------
+                 * CATEGORIE
+                 * ----------------------------------------------------
                  */
-                $categorie_id = $this->getOrCreateSimple(
-                    'categories',
-                    'nom_categorie',
-                    $categorie !== ''
-                        ? $categorie
-                        : 'NC'
-                );
+
+                $categorie_id =
+                    $this->getOrCreateSimple(
+                        'categories',
+                        'nom_categorie',
+                        $categorie !== ''
+                            ? $categorie
+                            : 'NC'
+                    );
 
                 /*
-                 * Lieu
+                 * ----------------------------------------------------
+                 * LIEU
+                 * ----------------------------------------------------
                  */
-                $lieu_id = $this->getOrCreateSimple(
-                    'lieux',
-                    'nom_lieu',
-                    $n['lieu'] ?? 'NC'
-                );
+
+                $lieu_id =
+                    $this->getOrCreateSimple(
+                        'lieux',
+                        'nom_lieu',
+                        $n['lieu'] ?? 'NC'
+                    );
 
                 /*
-                 * Date
+                 * ----------------------------------------------------
+                 * DATE
+                 * ----------------------------------------------------
                  */
-                $date_perf = trim(
-                    $n['date'] ?? ''
-                );
 
-                /*
-                 * Sécurité : on ne tente pas de traiter
-                 * une performance sans temps.
-                 */
-                if ($temps_final === '') {
+                $date_perf =
+                    trim(
+                        $n['date'] ?? ''
+                    );
+
+                if (
+                    $temps_final === ''
+                ) {
                     continue;
                 }
 
                 /*
-                 * Recherche de la performance existante.
+                 * ----------------------------------------------------
+                 * VERIFICATION D'EXISTENCE
+                 * ----------------------------------------------------
                  */
+
                 $stmtCheckPerf->execute([
                     $nageur_id,
                     $epreuve_id,
@@ -789,105 +712,59 @@ class SyncController
                         PDO::FETCH_ASSOC
                     );
 
-                if ($existingPerf) {
+                /*
+                 * La performance existe déjà.
+                 * Rien à modifier.
+                 */
+                if (
+                    $existingPerf
+                ) {
+                    continue;
+                }
 
-                    /*
-                     * Performance déjà présente :
-                     * on actualise toujours le classement
-                     * si nous avons un rang valide.
-                     */
-                    $ancienClassement =
-                        $existingPerf['classement'] !== null
-                            ? (int)$existingPerf['classement']
-                            : null;
+                /*
+                 * ----------------------------------------------------
+                 * NOUVELLE PERFORMANCE
+                 * ----------------------------------------------------
+                 */
 
-                    $nouveauClassement =
-                        $position_nationale !== null
-                            ? (int)$position_nationale
-                            : null;
+                $stmtAddPerf->execute([
+                    $nageur_id,
+                    $epreuve_id,
+                    $categorie_id,
+                    $lieu_id,
+                    $saison,
+                    $temps_final,
+                    $date_perf
+                ]);
 
-                    if (
-                        $nouveauClassement !== null &&
-                        $ancienClassement !==
-                        $nouveauClassement
-                    ) {
+                if (
+                    $stmtAddPerf->rowCount() > 0
+                ) {
 
-                        $stmtUpdatePerf->execute([
-                            $nouveauClassement,
-                            $existingPerf['id']
-                        ]);
+                    $nb_insertions++;
 
-                        $nb_updates++;
-
-                        $info = sprintf(
-                            "%s %s (%s / %s) | Position : %s -> %s | Temps : %s",
-                            $prenom_nageur,
-                            $nom_nageur,
-                            $epreuve,
-                            $categorie !== ''
-                                ? $categorie
-                                : 'NC',
-                            $ancienClassement !== null
-                                ? $ancienClassement . 'e'
-                                : 'N/C',
-                            $nouveauClassement . 'e',
-                            $temps_final
-                        );
-
-                        $this->writeToLog(
-                            '[MAJ CLASSEMENT] ' . $info
-                        );
-
-                        $this->logger->info(
-                            'RANKING',
-                            $info
-                        );
-                    }
-
-                } else {
-
-                    /*
-                     * Nouvelle performance.
-                     */
-                    $stmtAddPerf->execute([
-                        $nageur_id,
-                        $epreuve_id,
-                        $categorie_id,
-                        $lieu_id,
-                        $saison,
+                    $info = sprintf(
+                        "%s %s (%s / %s) | Ajout temps : %s | Lieu : %s",
+                        $prenom_nageur,
+                        $nom_nageur,
+                        $epreuve,
+                        $categorie !== ''
+                            ? $categorie
+                            : 'NC',
                         $temps_final,
-                        $date_perf,
-                        $position_nationale
-                    ]);
+                        $n['lieu'] ?? 'NC'
+                    );
 
-                    if ($stmtAddPerf->rowCount() > 0) {
+                    $this->writeToLog(
+                        '[NOUVEAU TEMPS] ' .
+                        $info
+                    );
 
-                        $nb_insertions++;
-
-                        $info = sprintf(
-                            "%s %s (%s / %s) | Ajout temps : %s | Classement : %s | Lieu : %s",
-                            $prenom_nageur,
-                            $nom_nageur,
-                            $epreuve,
-                            $categorie !== ''
-                                ? $categorie
-                                : 'NC',
-                            $temps_final,
-                            $position_nationale !== null
-                                ? $position_nationale . 'e'
-                                : 'N/C',
-                            $n['lieu'] ?? 'NC'
-                        );
-
-                        $this->writeToLog(
-                            '[NOUVEAU TEMPS] ' . $info
-                        );
-
-                        $this->logger->info(
-                            'INSERT',
-                            $info
-                        );
-                    }
+                    $this->logger->info(
+                        'INSERT',
+                        $info
+                    );
                 }
             }
 
@@ -897,7 +774,9 @@ class SyncController
              * --------------------------------------------------------
              */
 
-            if ($etape === 'fin') {
+            if (
+                $etape === 'fin'
+            ) {
 
                 $this->writeToLog(
                     '--- FIN DE SYNCHRONISATION ---'
@@ -913,11 +792,12 @@ class SyncController
                 'error' => false,
                 'message' =>
                     "Traitement de {$epreuve} terminé. " .
-                    "{$nb_insertions} nouvelle(s) performance(s), " .
-                    "{$nb_updates} classement(s) mis à jour."
+                    "{$nb_insertions} nouvelle(s) performance(s)."
             ]);
 
-        } catch (Exception $e) {
+        } catch (
+            Exception $e
+        ) {
 
             $this->logger->info(
                 'ERROR',
@@ -926,20 +806,28 @@ class SyncController
 
             echo json_encode([
                 'error' => true,
-                'message' => 'Erreur : ' . $e->getMessage()
+                'message' =>
+                    'Erreur : ' .
+                    $e->getMessage()
             ]);
         }
     }
 
     /**
-     * Écrit dans le journal principal.
+     * Ecrit dans le journal principal.
      */
-    private function writeToLog($message)
-    {
+    private function writeToLog(
+        $message
+    ) {
         file_put_contents(
             $this->log_file,
-            '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL,
-            FILE_APPEND | LOCK_EX
+            '[' .
+            date('Y-m-d H:i:s') .
+            '] ' .
+            $message .
+            PHP_EOL,
+            FILE_APPEND |
+            LOCK_EX
         );
     }
 
@@ -951,19 +839,21 @@ class SyncController
         $column,
         $value
     ) {
-        $stmt = $this->pdo->prepare(
-            "INSERT IGNORE INTO {$table} ({$column}) VALUES (?)"
-        );
+        $stmt =
+            $this->pdo->prepare(
+                "INSERT IGNORE INTO {$table} ({$column}) VALUES (?)"
+            );
 
         $stmt->execute([
             $value
         ]);
 
-        $stmt = $this->pdo->prepare(
-            "SELECT id
-             FROM {$table}
-             WHERE {$column} = ?"
-        );
+        $stmt =
+            $this->pdo->prepare(
+                "SELECT id
+                 FROM {$table}
+                 WHERE {$column} = ?"
+            );
 
         $stmt->execute([
             $value
@@ -984,17 +874,14 @@ class SyncController
         $nom = trim($nom);
         $prenom = trim($prenom);
 
-        /*
-         * TRIM permet d'éviter les doublons causés
-         * par des espaces provenant de l'API.
-         */
-        $stmt = $this->pdo->prepare(
-            'SELECT id
-             FROM nageurs
-             WHERE TRIM(nom) = ?
-               AND TRIM(prenom) = ?
-             LIMIT 1'
-        );
+        $stmt =
+            $this->pdo->prepare(
+                'SELECT id
+                 FROM nageurs
+                 WHERE TRIM(nom) = ?
+                   AND TRIM(prenom) = ?
+                 LIMIT 1'
+            );
 
         $stmt->execute([
             $nom,
@@ -1002,22 +889,27 @@ class SyncController
         ]);
 
         $nageur =
-            $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->fetch(
+                PDO::FETCH_ASSOC
+            );
 
-        if ($nageur) {
+        if (
+            $nageur
+        ) {
             return $nageur['id'];
         }
 
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO nageurs
-            (
-                nom,
-                prenom,
-                genre,
-                date_naissance
-            )
-            VALUES (?, ?, ?, ?)'
-        );
+        $stmt =
+            $this->pdo->prepare(
+                'INSERT INTO nageurs
+                (
+                    nom,
+                    prenom,
+                    genre,
+                    date_naissance
+                )
+                VALUES (?, ?, ?, ?)'
+            );
 
         $stmt->execute([
             $nom,
@@ -1034,8 +926,12 @@ class SyncController
      */
     public function getLogs()
     {
-        echo file_exists($this->log_file)
-            ? file_get_contents($this->log_file)
+        echo file_exists(
+            $this->log_file
+        )
+            ? file_get_contents(
+                $this->log_file
+            )
             : 'Aucun historique.';
     }
 }
