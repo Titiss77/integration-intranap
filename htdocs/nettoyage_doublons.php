@@ -1,5 +1,4 @@
 <?php
-
 if (!in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', '::ffff:127.0.0.1'], true)) {
     http_response_code(403);
     exit('Nettoyage disponible uniquement en local.');
@@ -57,7 +56,7 @@ $doublons_count = 0;
 foreach ($data_ref as $p) {
     // On crée une empreinte unique pour chaque performance : nageur + epreuve + temps + date
     $key = $p['nageur_id'] . '_' . $p['epreuve_id'] . '_' . $p['temps'] . '_' . $p['date_perf'];
-
+    
     if (!isset($unique_perfs[$key])) {
         $unique_perfs[$key] = true;
         $cleaned_data[] = $p; // On garde cette performance (c'est la première occurrence)
@@ -70,7 +69,7 @@ foreach ($data_ref as $p) {
 $json_content[$data_index]['data'] = $cleaned_data;
 
 $saved = file_put_contents(
-    $file,
+    $file, 
     json_encode($json_content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
     LOCK_EX
 );

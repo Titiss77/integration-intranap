@@ -31,6 +31,7 @@ class PerformanceModel
                 ':'
             ) !== false
         ) {
+
             $parts = explode(
                 ':',
                 str_replace(
@@ -118,9 +119,7 @@ class PerformanceModel
 
         $stmt = $this->pdo->prepare($sql);
         $params = [$this->clubCode];
-        if ($saison !== 'all') {
-            $params[] = $saison;
-        }
+        if ($saison !== 'all') $params[] = $saison;
         $stmt->execute($params);
         $filtered = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -131,6 +130,7 @@ class PerformanceModel
         $best_times = [];
 
         foreach ($filtered as $p) {
+
             $nid =
                 $p['nageur_id'];
 
@@ -152,6 +152,7 @@ class PerformanceModel
                 $sec <
                 $best_times[$key]['sec']
             ) {
+
                 $best_times[$key] = [
                     'sec' => $sec,
                     'id' => $p['id']
@@ -162,6 +163,7 @@ class PerformanceModel
         $result = [];
 
         foreach ($filtered as $p) {
+
             $nid =
                 $p['nageur_id'];
 
@@ -212,6 +214,7 @@ class PerformanceModel
         usort(
             $result,
             function ($a, $b) {
+
                 $cmp = strcmp(
                     (string)(
                         $a['epreuve'] ?? ''
@@ -224,6 +227,7 @@ class PerformanceModel
                 if (
                     $cmp === 0
                 ) {
+
                     return
                         $this->timeToSeconds(
                             $a['temps']
@@ -250,6 +254,7 @@ class PerformanceModel
         $epreuve,
         $saison = 'all'
     ) {
+
         $stmtEpreuve =
             $this->pdo->prepare(
                 'SELECT id
@@ -312,6 +317,7 @@ class PerformanceModel
         foreach (
             $rows as $p
         ) {
+
             $result[] = [
 
                 'temps' =>
@@ -335,6 +341,7 @@ class PerformanceModel
         usort(
             $result,
             function ($a, $b) {
+
                 $dateA =
                     $this->dateToTimestamp(
                         $a['date_perf']
@@ -382,6 +389,7 @@ class PerformanceModel
                 $date
             )
         ) {
+
             $timestamp =
                 strtotime($date);
 
@@ -398,6 +406,7 @@ class PerformanceModel
                 $matches
             )
         ) {
+
             return mktime(
                 0,
                 0,
@@ -470,6 +479,7 @@ class PerformanceModel
         foreach (
             $rows as $row
         ) {
+
             $nid =
                 $row['nageur_id'];
 
@@ -497,6 +507,7 @@ class PerformanceModel
         uasort(
             $result,
             function ($a, $b) {
+
                 return strcmp(
                     (string)(
                         $b['libelle'] ?? ''
@@ -556,6 +567,7 @@ class PerformanceModel
                     PDO::FETCH_ASSOC
                 )
         ) {
+
             $key = $row['nom_categorie'] . '|' . $row['nom_epreuve'];
             $saison = (string)$row['saison'];
             $prioritaire = $saison_prioritaire !== null && $saison === (string)$saison_prioritaire;

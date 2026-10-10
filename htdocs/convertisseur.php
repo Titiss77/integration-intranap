@@ -57,240 +57,238 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
         if ($error !== null) {
             // The report below keeps the error visible without parsing or writing data.
         } else {
-            $parser = new \Smalot\PdfParser\Parser();
+        $parser = new \Smalot\PdfParser\Parser();
 
-            try {
-                $pdo->beginTransaction();
-                $pdf = $parser->parseFile($tmpFilePath);
-                $text = $pdf->getText();
-                $lines = explode("\n", $text);
+        try {
+            $pdo->beginTransaction();
+            $pdf = $parser->parseFile($tmpFilePath);
+            $text = $pdf->getText();
+            $lines = explode("\n", $text);
 
-                // Préparation des requêtes SQL pour éviter la redondance
-                $stmtGetEpreuve = $pdo->prepare('SELECT id FROM epreuves WHERE nom_epreuve = ?');
-                $stmtAddEpreuve = $pdo->prepare('INSERT INTO epreuves (nom_epreuve) VALUES (?)');
+            // Préparation des requêtes SQL pour éviter la redondance
+            $stmtGetEpreuve = $pdo->prepare('SELECT id FROM epreuves WHERE nom_epreuve = ?');
+            $stmtAddEpreuve = $pdo->prepare('INSERT INTO epreuves (nom_epreuve) VALUES (?)');
 
-                $stmtGetCat = $pdo->prepare('SELECT id FROM categories WHERE nom_categorie = ?');
-                $stmtAddCat = $pdo->prepare('INSERT INTO categories (nom_categorie, libelle) VALUES (?, ?)');
+            $stmtGetCat = $pdo->prepare('SELECT id FROM categories WHERE nom_categorie = ?');
+            $stmtAddCat = $pdo->prepare('INSERT INTO categories (nom_categorie, libelle) VALUES (?, ?)');
 
-                $stmtGetLieu = $pdo->prepare('SELECT id FROM lieux WHERE nom_lieu = ?');
-                $stmtAddLieu = $pdo->prepare('INSERT INTO lieux (nom_lieu) VALUES (?)');
+            $stmtGetLieu = $pdo->prepare('SELECT id FROM lieux WHERE nom_lieu = ?');
+            $stmtAddLieu = $pdo->prepare('INSERT INTO lieux (nom_lieu) VALUES (?)');
 
-                $stmtGetNageur = $pdo->prepare('SELECT id FROM nageurs WHERE nom = ? AND prenom = ?');
-                $stmtAddNageur = $pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
+            $stmtGetNageur = $pdo->prepare('SELECT id FROM nageurs WHERE nom = ? AND prenom = ?');
+            $stmtAddNageur = $pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
 
-                // --- REQUÊTES POUR LA GESTION DES DOUBLONS & CLASSEMENTS ---
-                $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison_id = ? AND lieu_id = ? AND temps = ? AND date_perf = ? LIMIT 1');
-                $stmtUpdatePerf = $pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
-                $stmtAddPerf = $pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison_id, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-                $stmtAddMembership = $pdo->prepare('INSERT IGNORE INTO club_memberships (club_id, nageur_id, saison_id) VALUES (?, ?, ?)');
+            // --- REQUÊTES POUR LA GESTION DES DOUBLONS & CLASSEMENTS ---
+            $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison_id = ? AND lieu_id = ? AND temps = ? AND date_perf = ? LIMIT 1');
+            $stmtUpdatePerf = $pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
+            $stmtAddPerf = $pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison_id, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmtAddMembership = $pdo->prepare('INSERT IGNORE INTO club_memberships (club_id, nageur_id, saison_id) VALUES (?, ?, ?)');
 
-                // Variables de contexte par défaut
-                $epreuve_courante = 'Épreuve inconnue';
-                $lieu_texte = 'Compétition Inconnue';
-                $date_texte = date('Y-m-d');
-                $anneeSaison = (int) date('Y');
-                if ((int) date('n') < 9) {
-                    $anneeSaison--;
-                }
-                $saison = $anneeSaison . '-' . ($anneeSaison + 1);
+            // Variables de contexte par défaut
+            $epreuve_courante = 'Épreuve inconnue';
+            $lieu_texte = 'Compétition Inconnue';
+            $date_texte = date('Y-m-d');
+            $anneeSaison = (int) date('Y');
+            if ((int) date('n') < 9) {
+                $anneeSaison--;
+            }
+            $saison = $anneeSaison . '-' . ($anneeSaison + 1);
 
-                // Extraction du Lieu et de la Date/Saison dans l'en-tête du PDF
-                foreach (array_slice($lines, 0, 10) as $l) {
-                    if (preg_match('/([A-Za-zÀ-ÿ\s]+)\s*-\s*(.*20\d{2})/u', $l, $m)) {
-                        $lieu_texte = trim($m[1]);
-                        $date_texte = trim($m[2]);
-                        if (preg_match('/(20\d{2})/', $date_texte, $y)) {
-                            $anneeSaison = (int) $y[1];
-                            if (preg_match('/\b\d{1,2}[\/.-](\d{1,2})[\/.-]20\d{2}\b/', $date_texte, $dateParts)) {
-                                if ((int) $dateParts[1] < 9) {
-                                    $anneeSaison--;
-                                }
-                            } elseif (preg_match('/\b20\d{2}[\/.-](\d{1,2})[\/.-]\d{1,2}\b/', $date_texte, $dateParts)) {
-                                if ((int) $dateParts[1] < 9) {
-                                    $anneeSaison--;
-                                }
+            // Extraction du Lieu et de la Date/Saison dans l'en-tête du PDF
+            foreach (array_slice($lines, 0, 10) as $l) {
+                if (preg_match('/([A-Za-zÀ-ÿ\s]+)\s*-\s*(.*20\d{2})/u', $l, $m)) {
+                    $lieu_texte = trim($m[1]);
+                    $date_texte = trim($m[2]);
+                    if (preg_match('/(20\d{2})/', $date_texte, $y)) {
+                        $anneeSaison = (int) $y[1];
+                        if (preg_match('/\b\d{1,2}[\/.-](\d{1,2})[\/.-]20\d{2}\b/', $date_texte, $dateParts)) {
+                            if ((int) $dateParts[1] < 9) {
+                                $anneeSaison--;
                             }
-                            $saison = $anneeSaison . '-' . ($anneeSaison + 1);
+                        } elseif (preg_match('/\b20\d{2}[\/.-](\d{1,2})[\/.-]\d{1,2}\b/', $date_texte, $dateParts)) {
+                            if ((int) $dateParts[1] < 9) {
+                                $anneeSaison--;
+                            }
                         }
-                        break;
+                        $saison = $anneeSaison . '-' . ($anneeSaison + 1);
                     }
+                    break;
+                }
+            }
+
+            $stmtGetSaison = $pdo->prepare('SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1');
+            $stmtGetSaison->execute([$saison]);
+            $saison_id = $stmtGetSaison->fetchColumn();
+            if (!$saison_id) {
+                $stmtAddSaison = $pdo->prepare('INSERT INTO saisons (nom_saison) VALUES (?)');
+                $stmtAddSaison->execute([$saison]);
+                $saison_id = $pdo->lastInsertId();
+            }
+
+            $stmtClub = $pdo->prepare('INSERT IGNORE INTO clubs (code, nom) VALUES (?, ?)');
+            $stmtClub->execute([$api_club, $club_name]);
+            $stmtClub = $pdo->prepare('SELECT id FROM clubs WHERE code = ? LIMIT 1');
+            $stmtClub->execute([$api_club]);
+            $club_id = $stmtClub->fetchColumn();
+            if (!$club_id) {
+                throw new RuntimeException('Club configuré introuvable dans le catalogue.');
+            }
+
+            // --- INSERTION DU LIEU ---
+            $stmtGetLieu->execute([$lieu_texte]);
+            $lieu_id = $stmtGetLieu->fetchColumn();
+            if (!$lieu_id) {
+                $stmtAddLieu->execute([$lieu_texte]);
+                $lieu_id = $pdo->lastInsertId();
+            }
+
+            // Parcours de chaque ligne du PDF
+            foreach ($lines as $line) {
+                $line = trim(preg_replace('/\s+/u', ' ', $line));
+                if (empty($line))
+                    continue;
+
+                // ---------------------------------------------------------
+                // 1. DÉTECTION ET CONVERSION DU NOM DE L'ÉPREUVE (Ex: "50SF")
+                // ---------------------------------------------------------
+                if (preg_match('/(\d+(?:x\d+)?)m\s+(Surface|Bipalmes|Immersion|Apnée|Apnee|Scaphandre)/ui', $line, $mEpreuve)) {
+                    $distance = $mEpreuve[1];  // Capture "50", "100" ou "4x100"
+                    $styleStr = mb_strtolower($mEpreuve[2], 'UTF-8');
+
+                    $styleCode = '';
+                    if (strpos($styleStr, 'surface') !== false)
+                        $styleCode = 'SF';
+                    elseif (strpos($styleStr, 'bipalmes') !== false)
+                        $styleCode = 'BI';
+                    elseif (strpos($styleStr, 'immersion') !== false)
+                        $styleCode = 'IS';
+                    elseif (strpos($styleStr, 'apn') !== false)
+                        $styleCode = 'AP';
+                    else
+                        $styleCode = 'XX';
+
+                    $epreuve_courante = $distance . $styleCode;  // Concaténation (ex: "50" + "SF" = "50SF")
+
+                    // --- INSERTION DE L'ÉPREUVE ---
+                    $stmtGetEpreuve->execute([$epreuve_courante]);
+                    $epreuve_id = $stmtGetEpreuve->fetchColumn();
+                    if (!$epreuve_id) {
+                        $stmtAddEpreuve->execute([$epreuve_courante]);
+                        $epreuve_id = $pdo->lastInsertId();
+                    }
+                    continue;
+                }
+                // ---------------------------------------------------------
+                if (empty($epreuve_id)) {
+                    continue;
                 }
 
-                $stmtGetSaison = $pdo->prepare('SELECT id FROM saisons WHERE nom_saison = ? LIMIT 1');
-                $stmtGetSaison->execute([$saison]);
-                $saison_id = $stmtGetSaison->fetchColumn();
-                if (!$saison_id) {
-                    $stmtAddSaison = $pdo->prepare('INSERT INTO saisons (nom_saison) VALUES (?)');
-                    $stmtAddSaison->execute([$saison]);
-                    $saison_id = $pdo->lastInsertId();
+                // 2. Nettoyage du statut et des anomalies
+                $statut = '';
+                if (preg_match('/\(en finale\)|Abandon|Disqualification|Forfait|Faux départ/i', $line, $matches)) {
+                    $statut = trim($matches[0]);
+                    $line = trim(str_replace($statut, '', $line));
                 }
+                $line = preg_replace('/([A-Z]{2,})([\d])/', '$1 $2', $line);
+                $line = preg_replace('/(\d{2}\.\d{2})([\d])/', '$1 $2', $line);
+                $line = preg_replace('/([\d])(MPF|RF|RM|RE|IN)/', '$1 $2', $line);
 
-                $stmtClub = $pdo->prepare('INSERT IGNORE INTO clubs (code, nom) VALUES (?, ?)');
-                $stmtClub->execute([$api_club, $club_name]);
-                $stmtClub = $pdo->prepare('SELECT id FROM clubs WHERE code = ? LIMIT 1');
-                $stmtClub->execute([$api_club]);
-                $club_id = $stmtClub->fetchColumn();
-                if (!$club_id) {
-                    throw new RuntimeException('Club configuré introuvable dans le catalogue.');
-                }
+                // 3. Scanner de structure
+                $pattern = '/^(\d*)\s*([a-zA-ZÀ-ÿ\s\'-]+?)\s*(\d{2})\s*([FH][A-Z0-9+]{2,3})\s*(\*?\s*[a-zA-Z0-9]{2,})\s*(.*)$/ui';
 
-                // --- INSERTION DU LIEU ---
-                $stmtGetLieu->execute([$lieu_texte]);
-                $lieu_id = $stmtGetLieu->fetchColumn();
-                if (!$lieu_id) {
-                    $stmtAddLieu->execute([$lieu_texte]);
-                    $lieu_id = $pdo->lastInsertId();
-                }
+                if (preg_match($pattern, $line, $m)) {
+                    $place = trim($m[1]);
+                    $place = is_numeric($place) ? (int) $place : null;  // Gestion des nulls pour les Abandons/Forfaits
 
-                // Parcours de chaque ligne du PDF
-                foreach ($lines as $line) {
-                    $line = trim(preg_replace('/\s+/u', ' ', $line));
-                    if (empty($line)) {
-                        continue;
-                    }
+                    $nom_complet = trim($m[2]);
+                    $annee = $m[3];
+                    $categorie = trim($m[4]);
+                    $club_pdf = trim($m[5]);
 
-                    // ---------------------------------------------------------
-                    // 1. DÉTECTION ET CONVERSION DU NOM DE L'ÉPREUVE (Ex: "50SF")
-                    // ---------------------------------------------------------
-                    if (preg_match('/(\d+(?:x\d+)?)m\s+(Surface|Bipalmes|Immersion|Apnée|Apnee|Scaphandre)/ui', $line, $mEpreuve)) {
-                        $distance = $mEpreuve[1];  // Capture "50", "100" ou "4x100"
-                        $styleStr = mb_strtolower($mEpreuve[2], 'UTF-8');
-
-                        $styleCode = '';
-                        if (strpos($styleStr, 'surface') !== false) {
-                            $styleCode = 'SF';
-                        } elseif (strpos($styleStr, 'bipalmes') !== false) {
-                            $styleCode = 'BI';
-                        } elseif (strpos($styleStr, 'immersion') !== false) {
-                            $styleCode = 'IS';
-                        } elseif (strpos($styleStr, 'apn') !== false) {
-                            $styleCode = 'AP';
-                        } else {
-                            $styleCode = 'XX';
-                        }
-
-                        $epreuve_courante = $distance . $styleCode;  // Concaténation (ex: "50" + "SF" = "50SF")
-
-                        // --- INSERTION DE L'ÉPREUVE ---
-                        $stmtGetEpreuve->execute([$epreuve_courante]);
-                        $epreuve_id = $stmtGetEpreuve->fetchColumn();
-                        if (!$epreuve_id) {
-                            $stmtAddEpreuve->execute([$epreuve_courante]);
-                            $epreuve_id = $pdo->lastInsertId();
-                        }
-                        continue;
-                    }
-                    // ---------------------------------------------------------
-                    if (empty($epreuve_id)) {
-                        continue;
-                    }
-
-                    // 2. Nettoyage du statut et des anomalies
-                    $statut = '';
-                    if (preg_match('/\(en finale\)|Abandon|Disqualification|Forfait|Faux départ/i', $line, $matches)) {
-                        $statut = trim($matches[0]);
-                        $line = trim(str_replace($statut, '', $line));
-                    }
-                    $line = preg_replace('/([A-Z]{2,})([\d])/', '$1 $2', $line);
-                    $line = preg_replace('/(\d{2}\.\d{2})([\d])/', '$1 $2', $line);
-                    $line = preg_replace('/([\d])(MPF|RF|RM|RE|IN)/', '$1 $2', $line);
-
-                    // 3. Scanner de structure
-                    $pattern = '/^(\d*)\s*([a-zA-ZÀ-ÿ\s\'-]+?)\s*(\d{2})\s*([FH][A-Z0-9+]{2,3})\s*(\*?\s*[a-zA-Z0-9]{2,})\s*(.*)$/ui';
-
-                    if (preg_match($pattern, $line, $m)) {
-                        $place = trim($m[1]);
-                        $place = is_numeric($place) ? (int) $place : null;  // Gestion des nulls pour les Abandons/Forfaits
-
-                        $nom_complet = trim($m[2]);
-                        $annee = $m[3];
-                        $categorie = trim($m[4]);
-                        $club_pdf = trim($m[5]);
-
-                        // PDFs usually contain the club name, while the API config stores its short code.
-                        $normalizeClub = static function ($value) {
-                            return preg_replace('/[^A-Z0-9]/u', '', mb_strtoupper(trim((string)$value), 'UTF-8'));
-                        };
-                        $club_propre = $normalizeClub(str_replace('*', '', $club_pdf));
-                        $clubCodes = array_filter([
+                    // PDFs usually contain the club name, while the API config stores its short code.
+                    $normalizeClub = static function ($value) {
+                        return preg_replace('/[^A-Z0-9]/u', '', mb_strtoupper(trim((string)$value), 'UTF-8'));
+                    };
+                    $club_propre = $normalizeClub(str_replace('*', '', $club_pdf));
+                    $clubCodes = array_filter([
                         $normalizeClub($api_club),
                         $normalizeClub($club_name)
                     ]);
-                        if ($clubCodes && !in_array($club_propre, $clubCodes, true)) {
-                            continue;
-                        }
+                    if ($clubCodes && !in_array($club_propre, $clubCodes, true)) {
+                        continue;
+                    }
 
-                        // ---------------------------------------------------------
-                        // 5. GESTION DU TEMPS NORMALISÉ (Format 00:00.00)
-                        // ---------------------------------------------------------
-                        $temps_brut = trim(preg_replace('/\s+/', ' ', $m[6]));
-                        $temps_array = explode(' ', $temps_brut);
-                        $temps_final = '';
+                    // ---------------------------------------------------------
+                    // 5. GESTION DU TEMPS NORMALISÉ (Format 00:00.00)
+                    // ---------------------------------------------------------
+                    $temps_brut = trim(preg_replace('/\s+/', ' ', $m[6]));
+                    $temps_array = explode(' ', $temps_brut);
+                    $temps_final = '';
 
-                        foreach ($temps_array as $t) {
-                            if (preg_match('/^\d/', $t)) {
-                                // Nettoyage des lettres parasites (MPF, IN, etc.)
-                                $t = preg_replace('/[a-zA-Z]+$/', '', $t);
+                    foreach ($temps_array as $t) {
+                        if (preg_match('/^\d/', $t)) {
+                            // Nettoyage des lettres parasites (MPF, IN, etc.)
+                            $t = preg_replace('/[a-zA-Z]+$/', '', $t);
 
-                                // Normalisation vers 00:00.00
-                                // Si le temps contient ':', c'est MM:SS.ms
-                                if (strpos($t, ':') !== false) {
-                                    $parts = explode(':', $t);
-                                    $minutes = str_pad($parts[0], 2, '0', STR_PAD_LEFT);
-                                    // S'il manque les millisecondes après le point, on en rajoute
-                                    $secParts = explode('.', $parts[1]);
-                                    $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
-                                    $ms = isset($secParts[1]) ? str_pad($secParts[1], 2, '0', STR_PAD_RIGHT) : '00';
-                                    $temps_final = "$minutes:$secondes.$ms";
-                                }
-                                // Si pas de ':', c'est SS.ms (on ajoute 00: devant)
-                                else {
-                                    $secParts = explode('.', $t);
-                                    $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
-                                    $ms = isset($secParts[1]) ? str_pad($secParts[1], 2, '0', STR_PAD_RIGHT) : '00';
-                                    $temps_final = "00:$secondes.$ms";
-                                }
-                            } else {
-                                $statut = trim($statut . ' ' . $t);
+                            // Normalisation vers 00:00.00
+                            // Si le temps contient ':', c'est MM:SS.ms
+                            if (strpos($t, ':') !== false) {
+                                $parts = explode(':', $t);
+                                $minutes = str_pad($parts[0], 2, '0', STR_PAD_LEFT);
+                                // S'il manque les millisecondes après le point, on en rajoute
+                                $secParts = explode('.', $parts[1]);
+                                $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
+                                $ms = isset($secParts[1]) ? str_pad($secParts[1], 2, '0', STR_PAD_RIGHT) : '00';
+                                $temps_final = "$minutes:$secondes.$ms";
                             }
+                            // Si pas de ':', c'est SS.ms (on ajoute 00: devant)
+                            else {
+                                $secParts = explode('.', $t);
+                                $secondes = str_pad($secParts[0], 2, '0', STR_PAD_LEFT);
+                                $ms = isset($secParts[1]) ? str_pad($secParts[1], 2, '0', STR_PAD_RIGHT) : '00';
+                                $temps_final = "00:$secondes.$ms";
+                            }
+                        } else {
+                            $statut = trim($statut . ' ' . $t);
                         }
-                        // ---------------------------------------------------------
+                    }
+                    // ---------------------------------------------------------
 
-                        // --- 6. SÉPARATION NOM / PRÉNOM ---
-                        // Les noms de famille sont en majuscules, les prénoms en minuscules ou capitalisés
-                        preg_match("/^([A-ZÀ-Ÿ\s'-]+)\s+([A-ZÀ-Ÿ]?[a-zà-ÿA-ZÀ-Ÿ\s'-]+)\$/u", $nom_complet, $name_matches);
-                        $nom = isset($name_matches[1]) ? trim($name_matches[1]) : $nom_complet;
-                        $prenom = isset($name_matches[2]) ? trim($name_matches[2]) : '';
+                    // --- 6. SÉPARATION NOM / PRÉNOM ---
+                    // Les noms de famille sont en majuscules, les prénoms en minuscules ou capitalisés
+                    preg_match("/^([A-ZÀ-Ÿ\s'-]+)\s+([A-ZÀ-Ÿ]?[a-zà-ÿA-ZÀ-Ÿ\s'-]+)\$/u", $nom_complet, $name_matches);
+                    $nom = isset($name_matches[1]) ? trim($name_matches[1]) : $nom_complet;
+                    $prenom = isset($name_matches[2]) ? trim($name_matches[2]) : '';
 
-                        // --- 7. DÉDUCTION DU GENRE ET DE L'ANNÉE ---
-                        $genre = (strtoupper(substr($categorie, 0, 1)) === 'F') ? 'F' : 'M';
-                        $annee_int = (int) $annee;
-                        // Si l'année à 2 chiffres est supérieure à (année actuelle - 2000 + 10), c'est une naissance des années 1900
-                        $annee_naissance = ($annee_int > date('y') + 10) ? 1900 + $annee_int : 2000 + $annee_int;
-                        $date_naissance = $annee_naissance . '-01-01';
+                    // --- 7. DÉDUCTION DU GENRE ET DE L'ANNÉE ---
+                    $genre = (strtoupper(substr($categorie, 0, 1)) === 'F') ? 'F' : 'M';
+                    $annee_int = (int) $annee;
+                    // Si l'année à 2 chiffres est supérieure à (année actuelle - 2000 + 10), c'est une naissance des années 1900
+                    $annee_naissance = ($annee_int > date('y') + 10) ? 1900 + $annee_int : 2000 + $annee_int;
+                    $date_naissance = $annee_naissance . '-01-01';
 
-                        // --- INSERTION DE LA CATÉGORIE ---
-                        $stmtGetCat->execute([$categorie]);
-                        $categorie_id = $stmtGetCat->fetchColumn();
-                        if (!$categorie_id) {
-                            $stmtAddCat->execute([$categorie, $categorie]);
-                            $categorie_id = $pdo->lastInsertId();
-                        }
+                    // --- INSERTION DE LA CATÉGORIE ---
+                    $stmtGetCat->execute([$categorie]);
+                    $categorie_id = $stmtGetCat->fetchColumn();
+                    if (!$categorie_id) {
+                        $stmtAddCat->execute([$categorie, $categorie]);
+                        $categorie_id = $pdo->lastInsertId();
+                    }
 
-                        // --- INSERTION DU NAGEUR ---
-                        $stmtGetNageur->execute([$nom, $prenom]);
-                        $nageur_id = $stmtGetNageur->fetchColumn();
-                        if (!$nageur_id) {
-                            $stmtAddNageur->execute([$nom, $prenom, $genre, $date_naissance]);
-                            $nageur_id = $pdo->lastInsertId();
-                        }
+                    // --- INSERTION DU NAGEUR ---
+                    $stmtGetNageur->execute([$nom, $prenom]);
+                    $nageur_id = $stmtGetNageur->fetchColumn();
+                    if (!$nageur_id) {
+                        $stmtAddNageur->execute([$nom, $prenom, $genre, $date_naissance]);
+                        $nageur_id = $pdo->lastInsertId();
+                    }
 
-                        $stmtAddMembership->execute([$club_id, $nageur_id, $saison_id]);
+                    $stmtAddMembership->execute([$club_id, $nageur_id, $saison_id]);
 
-                        // --- INSERTION OU MISE À JOUR DE LA PERFORMANCE ---
-                        if (!empty($temps_final)) {
-                            // On cherche d'abord si ce temps existe déjà pour ce nageur/épreuve/date
-                            $stmtCheckPerf->execute([
+                    // --- INSERTION OU MISE À JOUR DE LA PERFORMANCE ---
+                    if (!empty($temps_final)) {
+                        // On cherche d'abord si ce temps existe déjà pour ce nageur/épreuve/date
+                        $stmtCheckPerf->execute([
                             $nageur_id,
                             $epreuve_id ?? null,
                             $saison_id,
@@ -298,34 +296,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                             $temps_final,
                             $date_texte
                         ]);
-                            $existingPerf = $stmtCheckPerf->fetch(PDO::FETCH_ASSOC);
+                        $existingPerf = $stmtCheckPerf->fetch(PDO::FETCH_ASSOC);
 
-                            if ($existingPerf) {
-                                // La performance existe déjà : on compare le classement
-                                $ancienClassement = $existingPerf['classement'] !== null ? (int)$existingPerf['classement'] : null;
-                                $nouveauClassement = $place !== null ? (int)$place : null;
+                        if ($existingPerf) {
+                            // La performance existe déjà : on compare le classement
+                            $ancienClassement = $existingPerf['classement'] !== null ? (int)$existingPerf['classement'] : null;
+                            $nouveauClassement = $place !== null ? (int)$place : null;
 
-                                if ($nouveauClassement !== null && $ancienClassement !== $nouveauClassement) {
-                                    // La position a changé (ex: quelqu'un a fait un meilleur temps dans l'année)
-                                    $stmtUpdatePerf->execute([$nouveauClassement, $existingPerf['id']]);
-                                    $updateCount++;
+                            if ($nouveauClassement !== null && $ancienClassement !== $nouveauClassement) {
+                                // La position a changé (ex: quelqu'un a fait un meilleur temps dans l'année)
+                                $stmtUpdatePerf->execute([$nouveauClassement, $existingPerf['id']]);
+                                $updateCount++;
 
-                                    // On laisse une trace dans le log
-                                    $logMessage = sprintf(
-                                        "[%s] [UPDATE] %s %s (%s) | Position : %s -> %s (Temps : %s)\n",
-                                        date('Y-m-d H:i:s'),
-                                        $nom,
-                                        $prenom,
-                                        $epreuve_courante,
-                                        $ancienClassement !== null ? $ancienClassement . 'e' : 'N/C',
-                                        $nouveauClassement . 'e',
-                                        $temps_final
-                                    );
-                                    file_put_contents(__DIR__ . '/sync_modifications.log', $logMessage, FILE_APPEND | LOCK_EX);
-                                }
-                            } else {
-                                // La performance n'existe pas, on l'ajoute
-                                $stmtAddPerf->execute([
+                                // On laisse une trace dans le log
+                                $logMessage = sprintf(
+                                    "[%s] [UPDATE] %s %s (%s) | Position : %s -> %s (Temps : %s)\n",
+                                    date('Y-m-d H:i:s'),
+                                    $nom,
+                                    $prenom,
+                                    $epreuve_courante,
+                                    $ancienClassement !== null ? $ancienClassement . 'e' : 'N/C',
+                                    $nouveauClassement . 'e',
+                                    $temps_final
+                                );
+                                file_put_contents(__DIR__ . '/sync_modifications.log', $logMessage, FILE_APPEND | LOCK_EX);
+                            }
+                        } else {
+                            // La performance n'existe pas, on l'ajoute
+                            $stmtAddPerf->execute([
                                 $nageur_id,
                                 $epreuve_id ?? null,
                                 $categorie_id,
@@ -335,28 +333,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                                 $date_texte,
                                 $place
                             ]);
-                                if ($stmtAddPerf->rowCount() > 0) {
-                                    $successCount++;
-                                }
+                            if ($stmtAddPerf->rowCount() > 0) {
+                                $successCount++;
                             }
                         }
                     }
                 }
+            }
 
-                $pdo->commit();
-                // Redirection vers le tableau de bord après un import atomique.
-                echo "<script>
+            $pdo->commit();
+            // Redirection vers le tableau de bord après un import atomique.
+            echo "<script>
                     alert('Traitement terminé ! {$successCount} nouvelles perf(s) ajoutée(s) et {$updateCount} classement(s) mis à jour.');
                     window.location.href = 'index.php?action=dashboard'; // ou l'url de votre tableau de bord
                   </script>";
-                exit;
-            } catch (Throwable $e) {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-                error_log('PDF import failed: ' . $e->getMessage());
-                $error = 'Impossible de traiter ce PDF. Vérifiez le fichier et le schéma de base de données.';
+            exit;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
             }
+            error_log('PDF import failed: ' . $e->getMessage());
+            $error = 'Impossible de traiter ce PDF. Vérifiez le fichier et le schéma de base de données.';
+        }
         }
     } else {
         $error = 'Veuillez sélectionner un fichier valide.';

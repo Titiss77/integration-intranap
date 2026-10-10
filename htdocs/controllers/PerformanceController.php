@@ -52,6 +52,7 @@ class PerformanceController
         foreach (
             $lignes_bdd as $ligne
         ) {
+
             $categorie =
                 $ligne['categorie'];
 
@@ -79,9 +80,11 @@ class PerformanceController
         foreach (
             $groupes as $key => $nageurs
         ) {
+
             usort(
                 $nageurs,
                 function ($a, $b) {
+
                     $tempsA =
                         $this->timeToSeconds(
                             $a['temps']
@@ -111,6 +114,7 @@ class PerformanceController
             foreach (
                 $nageurs as $index => $nageur
             ) {
+
                 $temps_actuel =
                     $this->timeToSeconds(
                         $nageur['temps']
@@ -124,6 +128,7 @@ class PerformanceController
                     $temps_actuel !==
                     $temps_precedent
                 ) {
+
                     $position =
                         $index + 1;
                 }
@@ -160,6 +165,7 @@ class PerformanceController
         $position,
         $grille_qualifs
     ) {
+
         if (
             !isset(
                 $grille_qualifs[
@@ -262,6 +268,7 @@ class PerformanceController
             'all' ===
             $saison_selectionnee
         ) {
+
             $categories_actuelles =
                 $model->getCategoriesActuelles();
         }
@@ -274,9 +281,11 @@ class PerformanceController
         if (
             !empty($lignes_bdd)
         ) {
+
             foreach (
                 $lignes_bdd as $ligne
             ) {
+
                 $nageur_id =
                     $ligne['nageur_id'];
 
@@ -289,6 +298,7 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $categorie_a_afficher =
                         $categories_actuelles[
                             $nageur_id
@@ -298,7 +308,9 @@ class PerformanceController
                         $categories_actuelles[
                             $nageur_id
                         ]['libelle'];
+
                 } else {
+
                     $categorie_a_afficher =
                         $ligne['categorie'];
 
@@ -316,6 +328,7 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $categories_disponibles[
                         $categorie_a_afficher
                     ] =
@@ -329,6 +342,7 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $profils_nageurs[
                         $nageur_id
                     ] = [
@@ -376,6 +390,7 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $position =
                         $positions_qualification[
                             $position_key
@@ -417,6 +432,7 @@ class PerformanceController
                         $epreuves_trouvees
                     )
                 ) {
+
                     $epreuves_trouvees[] =
                         $ligne['epreuve'];
                 }
@@ -428,6 +444,7 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $performances_par_epreuve[
                         $ligne['epreuve']
                     ] = [];
@@ -488,8 +505,10 @@ class PerformanceController
         $categories_triees = [];
 
         foreach (
-            $ordre_categories_officiel as $code_cat
+            $ordre_categories_officiel
+            as $code_cat
         ) {
+
             if (
                 isset(
                     $categories_disponibles[
@@ -497,6 +516,7 @@ class PerformanceController
                     ]
                 )
             ) {
+
                 $categories_triees[
                     $code_cat
                 ] =
@@ -507,8 +527,10 @@ class PerformanceController
         }
 
         foreach (
-            $categories_disponibles as $code_cat => $libelle
+            $categories_disponibles
+            as $code_cat => $libelle
         ) {
+
             if (
                 !isset(
                     $categories_triees[
@@ -516,6 +538,7 @@ class PerformanceController
                     ]
                 )
             ) {
+
                 $categories_triees[
                     $code_cat
                 ] = $libelle;
@@ -575,8 +598,10 @@ class PerformanceController
         ];
 
         foreach (
-            $profils_nageurs as $nageur_id => $infos
+            $profils_nageurs
+            as $nageur_id => $infos
         ) {
+
             $est_qualifie_nageur =
                 false;
 
@@ -593,21 +618,27 @@ class PerformanceController
                 'F' ===
                 $premiere_lettre
             ) {
+
                 ++$statistiques['filles'];
+
             } elseif (
                 'H' ===
                 $premiere_lettre
             ) {
+
                 ++$statistiques['garcons'];
             }
 
             foreach (
-                $infos['chronos'] as $epreuve => $perf
+                $infos['chronos']
+                as $epreuve => $perf
             ) {
+
                 if (
                     true ===
                     $perf['est_qualifie']
                 ) {
+
                     $est_qualifie_nageur =
                         true;
 
@@ -623,6 +654,7 @@ class PerformanceController
             if (
                 $est_qualifie_nageur
             ) {
+
                 $statistiques[
                     'nageurs_qualifies'
                 ][] = [
@@ -699,6 +731,7 @@ class PerformanceController
         foreach (
             $history as $h
         ) {
+
             $data[] = [
 
                 'date' =>
@@ -723,6 +756,7 @@ class PerformanceController
         if (
             !empty($categorie)
         ) {
+
             $grille =
                 $model->getGrilleQualifs(
                     $saison_selectionnee === 'all'
@@ -737,6 +771,7 @@ class PerformanceController
                     ][$epreuve]
                 )
             ) {
+
                 $temps_ref_str =
                     $grille[
                         $categorie
@@ -747,6 +782,7 @@ class PerformanceController
                     $temps_ref_str !== null &&
                     $temps_ref_str !== ''
                 ) {
+
                     $temps_ref_sec =
                         $this->timeToSeconds(
                             $temps_ref_str
@@ -873,6 +909,7 @@ class PerformanceController
             'all' ===
             $saison_selectionnee
         ) {
+
             $categories_actuelles =
                 $model->getCategoriesActuelles();
         }
@@ -880,9 +917,11 @@ class PerformanceController
         if (
             !empty($lignes_bdd)
         ) {
+
             foreach (
                 $lignes_bdd as $ligne
             ) {
+
                 $nageur_id =
                     $ligne['nageur_id'];
 
@@ -895,11 +934,14 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $categorie =
                         $categories_actuelles[
                             $nageur_id
                         ]['nom_categorie'];
+
                 } else {
+
                     $categorie =
                         $ligne['categorie'];
                 }
@@ -919,6 +961,7 @@ class PerformanceController
                         ]
                     )
                 ) {
+
                     $position =
                         $positions_qualification[
                             $position_key
@@ -991,6 +1034,7 @@ class PerformanceController
         if (
             2 === count($parts)
         ) {
+
             return
                 ($parts[0] * 60) +
                 (float)$parts[1];
