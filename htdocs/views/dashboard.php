@@ -52,8 +52,11 @@
                 🔄 Synchroniser avec la FFESSM
 
             </button>
-
-            <button id="btnSyncAllTimes" class="btn-primary" onclick="lancerSync(true)">Récupérer tous les temps (temporaire)</button>
+            <!---
+            <button id="btnSyncAllTimes" class="btn-primary" onclick="lancerSync(true)"
+                style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">Récupérer
+                tous les temps (temporaire)</button>
+            --->
 
             <button onclick="voirLogs()"
                 style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">
