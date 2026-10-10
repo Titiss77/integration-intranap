@@ -44,6 +44,14 @@ if (isset($_GET['action']) && 'sync' === $_GET['action']) {
     exit;
 }
 
+// Export des insertions idempotentes pour fusionner la base locale en ligne.
+if (isset($_GET['action']) && 'export_sql' === $_GET['action']) {
+    require_once __DIR__.'/controllers/SyncController.php';
+    $sync = new SyncController();
+    $sync->exportSql($_GET['token'] ?? '');
+    exit;
+}
+
 // Interception pour l'API du GRAPHIQUE
 if (isset($_GET['action']) && 'history' === $_GET['action']) {
     $controller->getHistoryApi();

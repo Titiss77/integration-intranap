@@ -52,6 +52,11 @@
                 🔄 Synchroniser avec la FFESSM
 
             </button>
+
+            <a class="btn-primary" style="display:inline-block; text-decoration:none;"
+                href="index.php?action=export_sql&amp;token=<?php echo urlencode($_SESSION['csrf_token']); ?>">
+                Télécharger le delta SQL de la dernière synchronisation
+            </a>
             <!---
             <button id="btnSyncAllTimes" class="btn-primary" onclick="lancerSync(true)"
                 style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">Récupérer

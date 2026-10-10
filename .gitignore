@@ -1,3 +1,4 @@
 page_a_srapper.txt
 *.sql*
 *.log
+sync_delta_*.json

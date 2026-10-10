@@ -420,6 +420,8 @@ class SyncController
 
         if ($etape === 'debut') {
 
+            $this->startSyncDelta();
+
             $this->writeToLog(
                 '--- DÉBUT DE SYNCHRONISATION ---'
             );
@@ -935,6 +937,10 @@ class SyncController
                     $stmtAddPerf->rowCount() > 0
                 ) {
 
+                    $this->recordSyncDeltaPerformance(
+                        (int)$this->pdo->lastInsertId()
+                    );
+
                     $nb_insertions++;
 
                     $info = sprintf(
@@ -971,6 +977,8 @@ class SyncController
             if (
                 $etape === 'fin'
             ) {
+
+                $this->completeSyncDelta();
 
                 $this->writeToLog(
                     '--- FIN DE SYNCHRONISATION ---'
@@ -1113,6 +1121,195 @@ class SyncController
         ]);
 
         return $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Exporte la base locale sous forme de INSERT IGNORE portables.
+     * Les relations sont résolues par les clés métier, jamais par les IDs locaux.
+     */
+    private function syncDeltaPath($name)
+    {
+        return dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'sync_delta_' . $name . '.json';
+    }
+
+    private function writeSyncDelta($path, $state)
+    {
+        file_put_contents($path, json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+
+    private function startSyncDelta()
+    {
+        $this->writeSyncDelta($this->syncDeltaPath('pending'), [
+            'status' => 'running',
+            'started_at' => date('c'),
+            'performance_ids' => []
+        ]);
+    }
+
+    private function recordSyncDeltaPerformance($performanceId)
+    {
+        $path = $this->syncDeltaPath('pending');
+        if (!is_file($path)) {
+            return;
+        }
+
+        $state = json_decode(file_get_contents($path), true);
+        if (!is_array($state) || ($state['status'] ?? '') !== 'running') {
+            return;
+        }
+
+        $state['performance_ids'][] = (int)$performanceId;
+        $state['performance_ids'] = array_values(array_unique($state['performance_ids']));
+        $this->writeSyncDelta($path, $state);
+    }
+
+    private function completeSyncDelta()
+    {
+        $pendingPath = $this->syncDeltaPath('pending');
+        if (!is_file($pendingPath)) {
+            return;
+        }
+
+        $state = json_decode(file_get_contents($pendingPath), true);
+        if (!is_array($state) || ($state['status'] ?? '') !== 'running') {
+            return;
+        }
+
+        $state['status'] = 'complete';
+        $state['completed_at'] = date('c');
+        $this->writeSyncDelta($this->syncDeltaPath('latest'), $state);
+        @unlink($pendingPath);
+    }
+
+    public function exportSql($token_recu = '')
+    {
+        if (PHP_SESSION_NONE === session_status()) {
+            session_start();
+        }
+
+        if (
+            empty($_SESSION['csrf_token']) ||
+            !hash_equals($_SESSION['csrf_token'], $token_recu)
+        ) {
+            http_response_code(403);
+            exit('Jeton CSRF invalide.');
+        }
+
+        $remoteAddress = $_SERVER['REMOTE_ADDR'] ?? '';
+        if (!in_array($remoteAddress, ['127.0.0.1', '::1'], true)) {
+            http_response_code(403);
+            exit('Export disponible uniquement en local.');
+        }
+
+        $statePath = $this->syncDeltaPath('latest');
+        if (!is_file($statePath)) {
+            http_response_code(409);
+            exit('Aucune synchronisation terminee disponible. Lancez une synchronisation.');
+        }
+
+        $state = json_decode(file_get_contents($statePath), true);
+        if (!is_array($state) || ($state['status'] ?? '') !== 'complete') {
+            http_response_code(409);
+            exit('La derniere synchronisation est incomplete.');
+        }
+
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', $state['performance_ids'] ?? []),
+            function ($id) { return $id > 0; }
+        )));
+
+        $placeholders = $ids
+            ? implode(',', $ids)
+            : 'NULL';
+
+        $sqlValue = function ($value) {
+            return $value === null ? 'NULL' : $this->pdo->quote((string)$value);
+        };
+
+        $lines = [
+            '-- Fusion idempotente des données locales dans la base en ligne.',
+            '-- Les lignes déjà présentes sont ignorées.',
+            'SET NAMES utf8mb4;',
+            'START TRANSACTION;',
+            ''
+        ];
+
+        $insertRows = function ($table, $columns, $rows) use (&$lines, $sqlValue) {
+            foreach ($rows as $row) {
+                $values = array_map($sqlValue, array_values($row));
+                $quotedColumns = array_map(function ($column) {
+                    return '`' . $column . '`';
+                }, $columns);
+
+                $lines[] = 'INSERT IGNORE INTO `' . $table . '` (' .
+                    implode(', ', $quotedColumns) . ') VALUES (' .
+                    implode(', ', $values) . ');';
+            }
+            $lines[] = '';
+        };
+
+        $insertRows('saisons', ['nom_saison'], $this->pdo
+            ->query('SELECT DISTINCT s.nom_saison FROM saisons s JOIN performances p ON p.saison_id = s.id WHERE p.id IN (' . $placeholders . ')')
+            ->fetchAll(PDO::FETCH_ASSOC));
+
+        $insertRows('categories', ['nom_categorie', 'libelle'], $this->pdo
+            ->query('SELECT DISTINCT c.nom_categorie, c.libelle FROM categories c JOIN performances p ON p.categorie_id = c.id WHERE p.id IN (' . $placeholders . ')')
+            ->fetchAll(PDO::FETCH_ASSOC));
+
+        $insertRows('epreuves', ['nom_epreuve'], $this->pdo
+            ->query('SELECT DISTINCT e.nom_epreuve FROM epreuves e JOIN performances p ON p.epreuve_id = e.id WHERE p.id IN (' . $placeholders . ')')
+            ->fetchAll(PDO::FETCH_ASSOC));
+
+        $insertRows('lieux', ['nom_lieu'], $this->pdo
+            ->query('SELECT DISTINCT l.nom_lieu FROM lieux l JOIN performances p ON p.lieu_id = l.id WHERE p.id IN (' . $placeholders . ')')
+            ->fetchAll(PDO::FETCH_ASSOC));
+
+        $insertRows('nageurs', ['nom', 'prenom', 'genre', 'date_naissance'], $this->pdo
+            ->query('SELECT DISTINCT n.nom, n.prenom, n.genre, n.date_naissance FROM nageurs n JOIN performances p ON p.nageur_id = n.id WHERE p.id IN (' . $placeholders . ')')
+            ->fetchAll(PDO::FETCH_ASSOC));
+
+        $performances = $this->pdo->query(
+            'SELECT
+                n.nom,
+                n.prenom,
+                e.nom_epreuve,
+                c.nom_categorie,
+                l.nom_lieu,
+                s.nom_saison,
+                p.temps,
+                p.date_perf
+             FROM performances p
+             JOIN nageurs n ON n.id = p.nageur_id
+             JOIN epreuves e ON e.id = p.epreuve_id
+             JOIN categories c ON c.id = p.categorie_id
+             JOIN lieux l ON l.id = p.lieu_id
+             JOIN saisons s ON s.id = p.saison_id
+             WHERE p.id IN (' . $placeholders . ')
+             ORDER BY p.id'
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($performances as $performance) {
+            $lines[] = 'INSERT IGNORE INTO `performances` ' .
+                '(`nageur_id`, `epreuve_id`, `categorie_id`, `lieu_id`, `saison_id`, `temps`, `date_perf`) ' .
+                'SELECT ' .
+                '(SELECT id FROM nageurs WHERE nom = ' . $sqlValue($performance['nom']) .
+                    ' AND prenom = ' . $sqlValue($performance['prenom']) . ' LIMIT 1), ' .
+                '(SELECT id FROM epreuves WHERE nom_epreuve = ' . $sqlValue($performance['nom_epreuve']) . ' LIMIT 1), ' .
+                '(SELECT id FROM categories WHERE nom_categorie = ' . $sqlValue($performance['nom_categorie']) . ' LIMIT 1), ' .
+                '(SELECT id FROM lieux WHERE nom_lieu = ' . $sqlValue($performance['nom_lieu']) . ' LIMIT 1), ' .
+                '(SELECT id FROM saisons WHERE nom_saison = ' . $sqlValue($performance['nom_saison']) . ' LIMIT 1), ' .
+                $sqlValue($performance['temps']) . ', ' .
+                $sqlValue($performance['date_perf']) . ';';
+        }
+
+        $lines[] = '';
+        $lines[] = 'COMMIT;';
+
+        $filename = 'synchronisation_pec_' . date('Ymd_His') . '.sql';
+        header('Content-Type: application/sql; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('X-Content-Type-Options: nosniff');
+        echo implode("\n", $lines);
     }
 
     /**
