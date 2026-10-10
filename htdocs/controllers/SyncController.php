@@ -897,6 +897,11 @@ class SyncController
                 $saison_performance_id =
                     $this->getOrCreateSeasonId($saison_performance);
 
+                $this->registerClubMembership(
+                    $nageur_id,
+                    $saison_performance_id
+                );
+
                 /*
                  * ----------------------------------------------------
                  * VERIFICATION D'EXISTENCE
@@ -1130,6 +1135,36 @@ class SyncController
         return $this->pdo->lastInsertId();
     }
 
+    /** Enregistre la saison observée dans le roster du club filtré. */
+    private function registerClubMembership($nageur_id, $saison_id)
+    {
+        $code = strtoupper(trim($this->club_cible));
+        if ($code === '') {
+            return;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'INSERT IGNORE INTO clubs (code, nom) VALUES (?, ?)'
+        );
+        $stmt->execute([
+            $code,
+            $_ENV['CLUB_NAME'] ?? 'Palmes en Cornouailles'
+        ]);
+
+        $stmt = $this->pdo->prepare('SELECT id FROM clubs WHERE code = ? LIMIT 1');
+        $stmt->execute([$code]);
+        $club_id = $stmt->fetchColumn();
+        if (!$club_id) {
+            return;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'INSERT IGNORE INTO club_memberships (club_id, nageur_id, saison_id)
+             VALUES (?, ?, ?)'
+        );
+        $stmt->execute([$club_id, $nageur_id, $saison_id]);
+    }
+
     /**
      * Exporte la base locale sous forme de INSERT IGNORE portables.
      * Les relations sont résolues par les clés métier, jamais par les IDs locaux.
@@ -1303,6 +1338,31 @@ class SyncController
         $insertRows('nageurs', ['nom', 'prenom', 'genre', 'date_naissance'], $this->pdo
             ->query('SELECT DISTINCT n.nom, n.prenom, n.genre, n.date_naissance FROM nageurs n JOIN performances p ON p.nageur_id = n.id WHERE p.id IN (' . $placeholders . ')')
             ->fetchAll(PDO::FETCH_ASSOC));
+
+        $clubCode = strtoupper(trim($this->club_cible));
+        $clubName = $_ENV['CLUB_NAME'] ?? 'Palmes en Cornouailles';
+        $lines[] = 'INSERT IGNORE INTO `clubs` (`code`, `nom`) VALUES (' .
+            $sqlValue($clubCode) . ', ' . $sqlValue($clubName) . ');';
+
+        $memberships = $this->pdo->query(
+            'SELECT DISTINCT n.nom, n.prenom, s.nom_saison
+             FROM club_memberships cm
+             JOIN clubs c ON c.id = cm.club_id
+             JOIN nageurs n ON n.id = cm.nageur_id
+             JOIN saisons s ON s.id = cm.saison_id
+             JOIN performances p ON p.nageur_id = cm.nageur_id AND p.saison_id = cm.saison_id
+             WHERE c.code = ' . $this->pdo->quote($clubCode) . '
+               AND p.id IN (' . $placeholders . ')'
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($memberships as $membership) {
+            $lines[] = 'INSERT IGNORE INTO `club_memberships` (`club_id`, `nageur_id`, `saison_id`) ' .
+                'SELECT (SELECT id FROM clubs WHERE code = ' . $sqlValue($clubCode) . ' LIMIT 1), ' .
+                '(SELECT id FROM nageurs WHERE nom = ' . $sqlValue($membership['nom']) .
+                    ' AND prenom = ' . $sqlValue($membership['prenom']) . ' LIMIT 1), ' .
+                '(SELECT id FROM saisons WHERE nom_saison = ' . $sqlValue($membership['nom_saison']) . ' LIMIT 1);';
+        }
+        $lines[] = '';
 
         $performances = $this->pdo->query(
             'SELECT

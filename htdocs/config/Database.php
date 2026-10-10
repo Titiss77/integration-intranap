@@ -14,7 +14,7 @@ class Database
             $pass = $_ENV['DB_PASS'] ?? '';
 
             try {
-                self::$pdo = new PDO("mysql:host={$host};dbname={$db};charset=utf8", $user, $pass);
+                self::$pdo = new PDO("mysql:host={$host};dbname={$db};charset=utf8mb4", $user, $pass);
                 self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $e) {
                 exit("<p style='color:red;'>❌ Erreur de connexion à la BDD : ".$e->getMessage().'</p>');

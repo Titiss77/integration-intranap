@@ -225,9 +225,14 @@ class PerformanceController
                 ? $_GET['saison']
                 : 'all';
 
+        $mode_affichage = ($_GET['affichage'] ?? 'meilleures') === 'toutes'
+            ? 'toutes'
+            : 'meilleures';
+
         $lignes_bdd =
             $model->getPerformances(
-                $saison_selectionnee
+                $saison_selectionnee,
+                $mode_affichage
             );
 
         $grille_qualifs =
@@ -246,9 +251,13 @@ class PerformanceController
          *
          * Aucun classement n'est sauvegardé.
          */
+        $lignes_pour_qualification = $mode_affichage === 'toutes'
+            ? $model->getPerformances($saison_selectionnee, 'meilleures')
+            : $lignes_bdd;
+
         $positions_qualification =
             $this->calculateQualificationPositions(
-                $lignes_bdd
+                $lignes_pour_qualification
             );
 
         $categories_actuelles = [];
@@ -395,11 +404,11 @@ class PerformanceController
                         $grille_qualifs
                     );
 
-                $profils_nageurs[
-                    $nageur_id
-                ]['chronos'][
-                    $ligne['epreuve']
-                ] = [
+                $chronos_existants = $profils_nageurs[$nageur_id]['chronos'];
+                $chronometre_actuel = $chronos_existants[$ligne['epreuve']] ?? null;
+                if ($chronometre_actuel === null ||
+                    $this->timeToSeconds($temps_nageur) < $this->timeToSeconds($chronometre_actuel['temps'])) {
+                    $profils_nageurs[$nageur_id]['chronos'][$ligne['epreuve']] = [
 
                     'temps' =>
                         $temps_nageur,
@@ -412,7 +421,8 @@ class PerformanceController
 
                     'est_qualifie' =>
                         $est_qualifie
-                ];
+                    ];
+                }
 
                 if (
                     !in_array(
@@ -570,8 +580,7 @@ class PerformanceController
                     $profils_nageurs
                 ),
 
-            'total_performances' =>
-                0,
+            'total_performances' => count($lignes_bdd),
 
             'nageurs_qualifies' =>
                 [],
@@ -622,10 +631,6 @@ class PerformanceController
                 $infos['chronos']
                 as $epreuve => $perf
             ) {
-
-                ++$statistiques[
-                    'total_performances'
-                ];
 
                 if (
                     true ===

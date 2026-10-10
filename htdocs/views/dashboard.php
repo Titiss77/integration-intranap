@@ -26,6 +26,32 @@
 
     <div class="container">
 
+        <header class="site-header">
+            <a class="brand" href="index.php" aria-label="Accueil des performances PEC">
+                <span class="brand-mark" aria-hidden="true">PEC</span>
+                <span><strong>Palmes en Cornouailles</strong><small>Performances du club</small></span>
+            </a>
+            <nav class="main-nav" aria-label="Navigation principale">
+                <a class="active" href="#performances">Performances</a>
+                <a href="#tableContainer">Classements PEC</a>
+                <a href="#searchInput">Fiches nageurs</a>
+            </nav>
+            <a class="federation-link" href="https://livepalmes.web.app/" target="_blank" rel="noopener noreferrer">LivePalmes national <span aria-hidden="true">↗</span></a>
+        </header>
+
+        <section class="hero" aria-labelledby="page-title">
+            <div class="hero-copy">
+                <span class="eyebrow">NAGE AVEC PALMES · CLUB PEC</span>
+                <h2 id="page-title">Les performances<br><em>de nos nageurs.</em></h2>
+                <p>Meilleurs temps, évolutions et résultats des nageurs de Palmes en Cornouailles.</p>
+            </div>
+            <div class="hero-stats" aria-label="Chiffres du club">
+                <div><strong><?php echo number_format($statistiques['total_nageurs'], 0, ',', ' '); ?></strong><span>Nageurs</span></div>
+                <div><strong><?php echo number_format($statistiques['total_performances'], 0, ',', ' '); ?></strong><span>Performances</span></div>
+                <div><strong><?php echo htmlspecialchars($annee_selectionnee === 'all' ? 'Toutes' : $annee_selectionnee); ?></strong><span>Saison affichée</span></div>
+            </div>
+        </section>
+
         <button style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">
 
             <a href="https://livepalmes.web.app/" target="_blank" style="text-decoration:none; color:crimson;">
@@ -152,15 +178,22 @@
 
         </div>
 
+        <div class="section-title" id="performances">
+            <div><span class="eyebrow">EXPLORER</span><h2>Performances du club</h2></div>
+            <span class="section-caption">Résultats fédéraux · nageurs PEC</span>
+        </div>
+
         <div class="controls">
 
             <form method="GET" style="display:flex; align-items:center; gap:10px; width:100%;">
+
+                <input type="hidden" name="affichage" value="<?php echo htmlspecialchars($mode_affichage, ENT_QUOTES); ?>">
 
                 <label style="white-space:nowrap;">
                     📅 <strong>Saison :</strong>
                 </label>
 
-                <select name="saison" onchange="this.form.submit()" style="flex:1;">
+                <select name="saison" aria-label="Saison" onchange="this.form.submit()" style="flex:1;">
 
                     <option value="all" <?php echo 'all' === $annee_selectionnee ? 'selected' : ''; ?>>
 
@@ -186,7 +219,15 @@
 
             </form>
 
-            <select id="categoryFilter" onchange="filterData()">
+            <label for="displayMode" style="white-space:nowrap;">
+                Affichage :
+            </label>
+            <select id="displayMode" onchange="setDisplayMode(this.value)">
+                <option value="meilleures" <?php echo $mode_affichage === 'meilleures' ? 'selected' : ''; ?>>Meilleures</option>
+                <option value="toutes" <?php echo $mode_affichage === 'toutes' ? 'selected' : ''; ?>>Toutes les performances</option>
+            </select>
+
+            <select id="categoryFilter" aria-label="Catégorie" onchange="filterData()">
 
                 <option value="all">
                     Toutes les catégories
@@ -975,6 +1016,13 @@
             }
         );
     }
+
+    function setDisplayMode(mode) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('affichage', mode);
+        window.location.href = url.toString();
+    }
+
     </script>
 
 </body>
