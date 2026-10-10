@@ -505,8 +505,7 @@ class PerformanceController
         $categories_triees = [];
 
         foreach (
-            $ordre_categories_officiel
-            as $code_cat
+            $ordre_categories_officiel as $code_cat
         ) {
 
             if (
@@ -527,8 +526,7 @@ class PerformanceController
         }
 
         foreach (
-            $categories_disponibles
-            as $code_cat => $libelle
+            $categories_disponibles as $code_cat => $libelle
         ) {
 
             if (
@@ -598,8 +596,7 @@ class PerformanceController
         ];
 
         foreach (
-            $profils_nageurs
-            as $nageur_id => $infos
+            $profils_nageurs as $nageur_id => $infos
         ) {
 
             $est_qualifie_nageur =
@@ -630,8 +627,7 @@ class PerformanceController
             }
 
             foreach (
-                $infos['chronos']
-                as $epreuve => $perf
+                $infos['chronos'] as $epreuve => $perf
             ) {
 
                 if (

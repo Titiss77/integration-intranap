@@ -119,7 +119,9 @@ class PerformanceModel
 
         $stmt = $this->pdo->prepare($sql);
         $params = [$this->clubCode];
-        if ($saison !== 'all') $params[] = $saison;
+        if ($saison !== 'all') {
+            $params[] = $saison;
+        }
         $stmt->execute($params);
         $filtered = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

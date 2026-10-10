@@ -948,12 +948,6 @@ function closePdfModal()
 // --- FERMETURE DES MODALES ---
 
 document.addEventListener('click', function (event) {
-    const tab = event.target.closest('.tab-btn[data-target]');
-    if (tab) {
-        openEpreuve({currentTarget: tab}, tab.dataset.target);
-        filterData();
-    }
-
     const cell = event.target.closest('.cell-temps[data-nageur-id]');
     if (cell) {
         showChart(cell.dataset.nageurId, cell.dataset.epreuve, cell.dataset.nom, cell.dataset.categorie);

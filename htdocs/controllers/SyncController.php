@@ -838,8 +838,7 @@ class SyncController
                 $est_blacklist = false;
 
                 foreach (
-                    $blacklist
-                    as $bl_nom
+                    $blacklist as $bl_nom
                 ) {
 
                     if (
@@ -1301,7 +1300,9 @@ class SyncController
 
         $ids = array_values(array_unique(array_filter(
             array_map('intval', $state['performance_ids'] ?? []),
-            function ($id) { return $id > 0; }
+            function ($id) {
+                return $id > 0;
+            }
         )));
 
         $placeholders = $ids
