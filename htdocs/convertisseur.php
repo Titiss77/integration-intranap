@@ -1,6 +1,15 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
+if (!in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1', '::ffff:127.0.0.1'], true)) {
+    http_response_code(403);
+    exit('Import PDF disponible uniquement en local.');
+}
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 $error = null;
 $successCount = 0;
 $updateCount = 0; // Compteur pour les mises à jour de classement
@@ -13,6 +22,7 @@ if (file_exists($envPath)) {
 }
 
 $api_club = strtoupper(trim($_ENV['API_CLUB'] ?? $envConfig['API_CLUB'] ?? ''));
+$club_name = trim($_ENV['CLUB_NAME'] ?? $envConfig['CLUB_NAME'] ?? 'Palmes en Cornouailles');
 $db_host = $_ENV['DB_HOST'] ?? $envConfig['DB_HOST'] ?? 'localhost';
 $db_name = $_ENV['DB_NAME'] ?? $envConfig['DB_NAME'] ?? 'b7_41910034_intranap_club';
 $db_user = $_ENV['DB_USER'] ?? $envConfig['DB_USER'] ?? 'root';
@@ -22,15 +32,35 @@ try {
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die('Erreur de connexion à la base de données : ' . $e->getMessage());
+    error_log('PDF importer database error: ' . $e->getMessage());
+    http_response_code(503);
+    die('Service temporairement indisponible.');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
+    if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+        http_response_code(403);
+        exit('Jeton de sécurité invalide. Rechargez la page puis réessayez.');
+    }
+    if ($api_club === '') {
+        http_response_code(503);
+        exit('Le code du club doit être configuré avant l’import.');
+    }
     if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
         $tmpFilePath = $_FILES['pdf_file']['tmp_name'];
+        if ($_FILES['pdf_file']['size'] > 10 * 1024 * 1024 ||
+            !is_uploaded_file($tmpFilePath) ||
+            file_get_contents($tmpFilePath, false, null, 0, 5) !== '%PDF-') {
+            http_response_code(400);
+            $error = 'Le fichier doit être un PDF valide de 10 Mo maximum.';
+        }
+        if ($error !== null) {
+            // The report below keeps the error visible without parsing or writing data.
+        } else {
         $parser = new \Smalot\PdfParser\Parser();
 
         try {
+            $pdo->beginTransaction();
             $pdf = $parser->parseFile($tmpFilePath);
             $text = $pdf->getText();
             $lines = explode("\n", $text);
@@ -49,9 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
             $stmtAddNageur = $pdo->prepare('INSERT INTO nageurs (nom, prenom, genre, date_naissance) VALUES (?, ?, ?, ?)');
 
             // --- REQUÊTES POUR LA GESTION DES DOUBLONS & CLASSEMENTS ---
-            $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison_id = ? AND temps = ? AND date_perf = ? LIMIT 1');
+            $stmtCheckPerf = $pdo->prepare('SELECT id, classement FROM performances WHERE nageur_id = ? AND epreuve_id = ? AND saison_id = ? AND lieu_id = ? AND temps = ? AND date_perf = ? LIMIT 1');
             $stmtUpdatePerf = $pdo->prepare('UPDATE performances SET classement = ? WHERE id = ?');
             $stmtAddPerf = $pdo->prepare('INSERT INTO performances (nageur_id, epreuve_id, categorie_id, lieu_id, saison_id, temps, date_perf, classement) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmtAddMembership = $pdo->prepare('INSERT IGNORE INTO club_memberships (club_id, nageur_id, saison_id) VALUES (?, ?, ?)');
 
             // Variables de contexte par défaut
             $epreuve_courante = 'Épreuve inconnue';
@@ -92,6 +123,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                 $stmtAddSaison = $pdo->prepare('INSERT INTO saisons (nom_saison) VALUES (?)');
                 $stmtAddSaison->execute([$saison]);
                 $saison_id = $pdo->lastInsertId();
+            }
+
+            $stmtClub = $pdo->prepare('INSERT IGNORE INTO clubs (code, nom) VALUES (?, ?)');
+            $stmtClub->execute([$api_club, $club_name]);
+            $stmtClub = $pdo->prepare('SELECT id FROM clubs WHERE code = ? LIMIT 1');
+            $stmtClub->execute([$api_club]);
+            $club_id = $stmtClub->fetchColumn();
+            if (!$club_id) {
+                throw new RuntimeException('Club configuré introuvable dans le catalogue.');
             }
 
             // --- INSERTION DU LIEU ---
@@ -139,6 +179,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                     continue;
                 }
                 // ---------------------------------------------------------
+                if (empty($epreuve_id)) {
+                    continue;
+                }
 
                 // 2. Nettoyage du statut et des anomalies
                 $statut = '';
@@ -162,9 +205,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                     $categorie = trim($m[4]);
                     $club_pdf = trim($m[5]);
 
-                    // 4. Filtrage par club (.env)
-                    $club_propre = strtoupper(trim(str_replace('*', '', $club_pdf)));
-                    if (!empty($api_club) && $club_propre !== $api_club) {
+                    // PDFs usually contain the club name, while the API config stores its short code.
+                    $normalizeClub = static function ($value) {
+                        return preg_replace('/[^A-Z0-9]/u', '', mb_strtoupper(trim((string)$value), 'UTF-8'));
+                    };
+                    $club_propre = $normalizeClub(str_replace('*', '', $club_pdf));
+                    $clubCodes = array_filter([
+                        $normalizeClub($api_club),
+                        $normalizeClub($club_name)
+                    ]);
+                    if ($clubCodes && !in_array($club_propre, $clubCodes, true)) {
                         continue;
                     }
 
@@ -233,6 +283,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                         $nageur_id = $pdo->lastInsertId();
                     }
 
+                    $stmtAddMembership->execute([$club_id, $nageur_id, $saison_id]);
+
                     // --- INSERTION OU MISE À JOUR DE LA PERFORMANCE ---
                     if (!empty($temps_final)) {
                         // On cherche d'abord si ce temps existe déjà pour ce nageur/épreuve/date
@@ -240,6 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                             $nageur_id,
                             $epreuve_id ?? null,
                             $saison_id,
+                            $lieu_id,
                             $temps_final,
                             $date_texte
                         ]);
@@ -288,14 +341,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['convert'])) {
                 }
             }
 
-            // Redirection vers le dashboard avec un message de succès
+            $pdo->commit();
+            // Redirection vers le tableau de bord après un import atomique.
             echo "<script>
                     alert('Traitement terminé ! {$successCount} nouvelles perf(s) ajoutée(s) et {$updateCount} classement(s) mis à jour.');
                     window.location.href = 'index.php?action=dashboard'; // ou l'url de votre tableau de bord
                   </script>";
             exit;
-        } catch (Exception $e) {
-            $error = "Erreur lors de la lecture du PDF ou de l'insertion BDD : " . $e->getMessage();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('PDF import failed: ' . $e->getMessage());
+            $error = 'Impossible de traiter ce PDF. Vérifiez le fichier et le schéma de base de données.';
+        }
         }
     } else {
         $error = 'Veuillez sélectionner un fichier valide.';

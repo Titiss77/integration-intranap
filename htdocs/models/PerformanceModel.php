@@ -251,7 +251,8 @@ class PerformanceModel
      */
     public function getHistorique(
         $nageur_id,
-        $epreuve
+        $epreuve,
+        $saison = 'all'
     ) {
 
         $stmtEpreuve =
@@ -294,13 +295,16 @@ class PerformanceModel
                  WHERE p.nageur_id = ?
                    AND p.epreuve_id = ?
                    AND club.code = ?
+                   AND (? = \'all\' OR s.nom_saison = ?)
                  ORDER BY p.date_perf ASC, p.id ASC'
             );
 
         $stmt->execute([
             $nageur_id,
             $epreuve_id,
-            $this->clubCode
+            $this->clubCode,
+            $saison,
+            $saison
         ]);
 
         $rows =

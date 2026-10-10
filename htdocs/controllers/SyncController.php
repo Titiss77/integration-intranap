@@ -12,6 +12,15 @@ class SyncController
     private $log_file;
     private $logger;
 
+    private function isLocalRequest()
+    {
+        return in_array(
+            $_SERVER['REMOTE_ADDR'] ?? '',
+            ['127.0.0.1', '::1', '::ffff:127.0.0.1'],
+            true
+        );
+    }
+
     public function __construct()
     {
         $this->pdo = Database::getConnection();
@@ -304,6 +313,12 @@ class SyncController
             'Cache-Control: no-cache, must-revalidate'
         );
 
+        if (!$this->isLocalRequest()) {
+            http_response_code(403);
+            echo json_encode(['error' => true, 'message' => 'Synchronisation disponible uniquement en local.']);
+            return;
+        }
+
         if (
             PHP_SESSION_NONE === session_status()
         ) {
@@ -332,17 +347,29 @@ class SyncController
             session_write_close();
         }
 
-        $epreuve = trim(
-            $_GET['epreuve'] ?? ''
-        );
+        $epreuve = trim($_POST['epreuve'] ?? '');
 
         $cat_code = strtoupper(
             trim(
-                $_GET['genre'] ?? ''
+                $_POST['genre'] ?? ''
             )
         );
 
-        $etape = $_GET['etape'] ?? 'suite';
+        $etape = $_POST['etape'] ?? 'suite';
+        if (!in_array($etape, ['debut', 'suite', 'fin'], true)) {
+            echo json_encode(['error' => true, 'message' => 'Étape de synchronisation invalide.']);
+            return;
+        }
+
+        $epreuves_autorisees = [
+            '50SF', '100SF', '200SF', '400SF', '800SF', '1500SF',
+            '50AP', '100IS', '800IS', '200IS', '400IS',
+            '50BI', '100BI', '200BI', '400BI'
+        ];
+        if (!in_array($epreuve, $epreuves_autorisees, true)) {
+            echo json_encode(['error' => true, 'message' => 'Épreuve invalide.']);
+            return;
+        }
 
         /*
          * ------------------------------------------------------------
@@ -352,9 +379,7 @@ class SyncController
          * Exemple :
          * 2026-2027
          */
-        $saison_recue =
-            $_GET['saison']
-            ?? $this->getCurrentSeason();
+        $saison_recue = $_POST['saison'] ?? $this->getCurrentSeason();
 
         try {
 
@@ -521,6 +546,8 @@ class SyncController
                      FROM performances
                      WHERE nageur_id = ?
                        AND epreuve_id = ?
+                       AND saison_id = ?
+                       AND lieu_id = ?
                        AND date_perf = ?
                        AND temps = ?
                      LIMIT 1'
@@ -590,17 +617,10 @@ class SyncController
                 true
             );
 
-            curl_setopt(
-                $ch,
-                CURLOPT_SSL_VERIFYPEER,
-                false
-            );
-
-            curl_setopt(
-                $ch,
-                CURLOPT_SSL_VERIFYHOST,
-                false
-            );
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+            curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS);
 
             $cookie_file =
                 __DIR__ .
@@ -684,6 +704,10 @@ class SyncController
                 throw new Exception(
                     "Erreur réseau cURL ({$http_code}) : {$curl_error}"
                 );
+            }
+
+            if ($http_code < 200 || $http_code >= 300) {
+                throw new Exception("La FFESSM a répondu avec le code HTTP {$http_code}.");
             }
 
             if (
@@ -911,6 +935,8 @@ class SyncController
                 $stmtCheckPerf->execute([
                     $nageur_id,
                     $epreuve_id,
+                    $saison_performance_id,
+                    $lieu_id,
                     $date_perf,
                     $temps_final
                 ]);
@@ -1413,6 +1439,14 @@ class SyncController
      */
     public function getLogs()
     {
+        if (!$this->isLocalRequest()) {
+            http_response_code(403);
+            header('Content-Type: text/plain; charset=utf-8');
+            exit('Accès refusé.');
+        }
+
+        header('Content-Type: text/plain; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
         echo file_exists(
             $this->log_file
         )

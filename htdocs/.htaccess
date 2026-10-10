@@ -1,13 +1,10 @@
-# Bloquer l'accès aux fichiers de configuration
-<FilesMatch "^\.env">
+Options -Indexes
+
+<FilesMatch "^(\.env($|[._].*)|cookie_ffessm\.txt|blacklist\.txt|sync_(debug|modifications)\.log|.*\.sql)$">
     Require all denied
 </FilesMatch>
 
-# Optionnel : Bloquer l'accès aux fichiers SQL
-<FilesMatch "\.sql$">
-    Require all denied
-</FilesMatch>
-
-<Files "sync_modifications.log">
-    Require all denied
-</Files>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^perfs(?:/|$) - [F,L,NC]
+</IfModule>

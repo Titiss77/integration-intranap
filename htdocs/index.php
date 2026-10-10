@@ -1,13 +1,14 @@
 <?php
 
-// 🔴 1. Sécurisation extrême du cookie de session (RGPD / Sécurité)
+$https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
+
+ini_set('session.use_strict_mode', '1');
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'domain' => $_SERVER['HTTP_HOST'],
-    'secure' => isset($_SERVER['HTTPS']), // true si HTTPS est actif
-    'httponly' => true, // Empêche l'accès au cookie via JavaScript (anti-XSS)
-    'samesite' => 'Strict' // Empêche l'envoi du cookie depuis d'autres sites (anti-CSRF)
+    'secure' => $https,
+    'httponly' => true,
+    'samesite' => 'Lax'
 ]);
 
 // 🔴 2. Démarrage de la session
@@ -21,9 +22,11 @@ if (empty($_SESSION['csrf_token'])) {
 // 🔴 4. En-têtes de sécurité HTTP
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
-header('X-XSS-Protection: 1; mode=block');
-// Dé-commenté pour forcer le HTTPS (très important pour le RGPD)
-header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+if ($https) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
 
 // --- CHARGEMENT DES VARIABLES D'ENVIRONNEMENT ---
 require_once __DIR__.'/config/Env.php';
@@ -38,7 +41,7 @@ if (isset($_GET['action']) && 'sync' === $_GET['action']) {
     $sync = new SyncController();
 
     // 🔴 On passe le token reçu dans l'URL au contrôleur
-    $token_recu = $_GET['token'] ?? '';
+    $token_recu = $_POST['token'] ?? '';
     $sync->syncData($token_recu);
 
     exit;

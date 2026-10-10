@@ -3,9 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Performances du Club</title>
+    <title>Performances PEC — Palmes en Cornouailles</title>
 
     <link rel="stylesheet" href="assets/style.css?v=<?php echo filemtime(__DIR__ . '/../assets/style.css'); ?>">
 
@@ -16,7 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-    const SYNC_SEASONS = <?php echo json_encode(array_values(array_unique($annees_disponibles))); ?>;
+    const SYNC_SEASONS =
+        <?php echo json_encode(array_values(array_unique($annees_disponibles)), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     const CSRF_TOKEN =
         "<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>";
     </script>
@@ -36,35 +37,30 @@
                 <a href="#tableContainer">Classements PEC</a>
                 <a href="#searchInput">Fiches nageurs</a>
             </nav>
-            <a class="federation-link" href="https://livepalmes.web.app/" target="_blank" rel="noopener noreferrer">LivePalmes national <span aria-hidden="true">↗</span></a>
+            <a class="federation-link" href="https://livepalmes.web.app/" target="_blank"
+                rel="noopener noreferrer">LivePalmes national <span aria-hidden="true">↗</span></a>
         </header>
 
         <section class="hero" aria-labelledby="page-title">
             <div class="hero-copy">
                 <span class="eyebrow">NAGE AVEC PALMES · CLUB PEC</span>
-                <h2 id="page-title">Les performances<br><em>de nos nageurs.</em></h2>
+                <h1 id="page-title">Les performances<br><em>de nos nageurs.</em></h1>
                 <p>Meilleurs temps, évolutions et résultats des nageurs de Palmes en Cornouailles.</p>
             </div>
             <div class="hero-stats" aria-label="Chiffres du club">
-                <div><strong><?php echo number_format($statistiques['total_nageurs'], 0, ',', ' '); ?></strong><span>Nageurs</span></div>
-                <div><strong><?php echo number_format($statistiques['total_performances'], 0, ',', ' '); ?></strong><span>Performances</span></div>
-                <div><strong><?php echo htmlspecialchars($annee_selectionnee === 'all' ? 'Toutes' : $annee_selectionnee); ?></strong><span>Saison affichée</span></div>
+                <div>
+                    <strong><?php echo number_format($statistiques['total_nageurs'], 0, ',', ' '); ?></strong><span>Nageurs</span>
+                </div>
+                <div>
+                    <strong><?php echo number_format($statistiques['total_performances'], 0, ',', ' '); ?></strong><span>Performances</span>
+                </div>
+                <div>
+                    <strong><?php echo htmlspecialchars($annee_selectionnee === 'all' ? 'Toutes' : $annee_selectionnee); ?></strong><span>Saison
+                        affichée</span></div>
             </div>
         </section>
 
-        <button style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">
-
-            <a href="https://livepalmes.web.app/" target="_blank" style="text-decoration:none; color:crimson;">
-
-                📜 LivePalmes Officiel
-
-            </a>
-
-        </button>
-
-        <h1>🏊 Meilleurs Temps du PEC</h1>
-
-        <div style="margin-bottom:20px;">
+        <div class="admin-tools" style="margin-bottom:20px;">
 
             <?php
         $delta_state_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'sync_delta_latest.json';
@@ -119,19 +115,20 @@
 
                     <h2 style="color:var(--couleur-principale); margin-bottom:15px; font-size:1.3rem;">
 
-                        📄 Convertir un PDF en CSV
+                        Importer un resultat PDF
 
                     </h2>
 
                     <p style="color:var(--texte-secondaire); margin-bottom:20px; font-size:0.9rem;">
 
-                        Uploadez un fichier de résultats PDF.
-                        Il sera automatiquement converti et téléchargé
-                        au format CSV.
+                        Importer dans la base les performances des nageurs PEC reconnues dans un PDF de competition.
 
                     </p>
 
                     <form action="convertisseur.php" method="post" enctype="multipart/form-data">
+
+                        <input type="hidden" name="csrf_token"
+                            value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
 
                         <div style="margin-bottom:20px; text-align:left;">
 
@@ -143,7 +140,7 @@
                         <button type="submit" name="convert" class="btn-success"
                             style="width:100%; padding:12px; font-size:1.1rem;">
 
-                            🚀 Convertir et Télécharger
+                            Importer les performances
 
                         </button>
 
@@ -179,7 +176,9 @@
         </div>
 
         <div class="section-title" id="performances">
-            <div><span class="eyebrow">EXPLORER</span><h2>Performances du club</h2></div>
+            <div><span class="eyebrow">EXPLORER</span>
+                <h2>Performances du club</h2>
+            </div>
             <span class="section-caption">Résultats fédéraux · nageurs PEC</span>
         </div>
 
@@ -187,7 +186,8 @@
 
             <form method="GET" style="display:flex; align-items:center; gap:10px; width:100%;">
 
-                <input type="hidden" name="affichage" value="<?php echo htmlspecialchars($mode_affichage, ENT_QUOTES); ?>">
+                <input type="hidden" name="affichage"
+                    value="<?php echo htmlspecialchars($mode_affichage, ENT_QUOTES); ?>">
 
                 <label style="white-space:nowrap;">
                     📅 <strong>Saison :</strong>
@@ -222,9 +222,12 @@
             <label for="displayMode" style="white-space:nowrap;">
                 Affichage :
             </label>
-            <select id="displayMode" onchange="setDisplayMode(this.value)">
-                <option value="meilleures" <?php echo $mode_affichage === 'meilleures' ? 'selected' : ''; ?>>Meilleures</option>
-                <option value="toutes" <?php echo $mode_affichage === 'toutes' ? 'selected' : ''; ?>>Toutes les performances</option>
+            <select id="displayMode" aria-label="Mode d'affichage des performances"
+                onchange="setDisplayMode(this.value)">
+                <option value="meilleures" <?php echo $mode_affichage === 'meilleures' ? 'selected' : ''; ?>>Meilleures
+                </option>
+                <option value="toutes" <?php echo $mode_affichage === 'toutes' ? 'selected' : ''; ?>>Toutes les
+                    performances</option>
             </select>
 
             <select id="categoryFilter" aria-label="Catégorie" onchange="filterData()">
@@ -257,7 +260,8 @@
 
             </select>
 
-            <input type="text" id="searchInput" onkeyup="filterData()" placeholder="🔍 Rechercher un nageur...">
+            <input type="text" id="searchInput" aria-label="Rechercher un nageur" oninput="filterData()"
+                placeholder="🔍 Rechercher un nageur...">
 
         </div>
 
@@ -501,8 +505,8 @@
 
                 ?>
 
-                <button class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
-                    onclick="openEpreuve(event, 'ep-<?php echo $epreuve; ?>')">
+                <button type="button" class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
+                    data-target="ep-<?php echo htmlspecialchars($epreuve, ENT_QUOTES, 'UTF-8'); ?>">
 
                     <?php
                         echo htmlspecialchars(
@@ -539,7 +543,7 @@
 
                 ?>
 
-                <div id="ep-<?php echo $epreuve; ?>" class="tab-pane"
+                <div id="ep-<?php echo htmlspecialchars($epreuve, ENT_QUOTES, 'UTF-8'); ?>" class="tab-pane"
                     style="display:<?php echo $premiere ? 'block' : 'none'; ?>;">
 
                     <h2 style="color:var(--couleur-principale); margin-bottom:20px; text-align:center;">
@@ -646,12 +650,12 @@
 
                                 </td>
 
-                                <td data-label="Temps" class="cell-temps" onclick='showChart(
-                                                <?php echo $perf['nageur_id']; ?>,
-                                                "<?php echo htmlspecialchars($epreuve); ?>",
-                                                "<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom']); ?>",
-                                                "<?php echo htmlspecialchars($perf['categorie']); ?>"
-                                            )'>
+                                <td data-label="Temps" class="cell-temps" tabindex="0" role="button"
+                                    aria-label="Voir l’évolution de <?php echo htmlspecialchars($perf['prenom'] . ' ' . $perf['nom'], ENT_QUOTES, 'UTF-8'); ?> en <?php echo htmlspecialchars($epreuve, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-nageur-id="<?php echo (int)$perf['nageur_id']; ?>"
+                                    data-epreuve="<?php echo htmlspecialchars($epreuve, ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-nom="<?php echo htmlspecialchars($perf['nom'] . ' ' . $perf['prenom'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-categorie="<?php echo htmlspecialchars($perf['categorie'], ENT_QUOTES, 'UTF-8'); ?>">
 
                                     <div class="btn-evolution" style="<?php echo $color; ?>" title="Voir l'évolution">
 
@@ -1015,6 +1019,18 @@
                     'none';
             }
         );
+
+        const panes = Array.from(document.querySelectorAll('.tab-pane'));
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (searchValue !== '' || categoryValue !== 'all') {
+            panes.forEach(pane => {
+                pane.style.display = 'block';
+            });
+        } else {
+            panes.forEach(pane => {
+                pane.style.display = activeTab && pane.id === activeTab.dataset.target ? 'block' : 'none';
+            });
+        }
     }
 
     function setDisplayMode(mode) {
@@ -1022,7 +1038,6 @@
         url.searchParams.set('affichage', mode);
         window.location.href = url.toString();
     }
-
     </script>
 
 </body>

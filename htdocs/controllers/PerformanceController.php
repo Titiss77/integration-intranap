@@ -220,10 +220,12 @@ class PerformanceController
         $saisons_disponibles =
             $model->getSaisons();
 
-        $saison_selectionnee =
-            isset($_GET['saison'])
-                ? $_GET['saison']
-                : 'all';
+        $saison_param = $_GET['saison'] ?? 'all';
+        $saison_selectionnee = is_string($saison_param) ? $saison_param : 'all';
+        if ($saison_selectionnee !== 'all' &&
+            !in_array($saison_selectionnee, $saisons_disponibles, true)) {
+            $saison_selectionnee = 'all';
+        }
 
         $mode_affichage = ($_GET['affichage'] ?? 'meilleures') === 'toutes'
             ? 'toutes'
@@ -691,17 +693,19 @@ class PerformanceController
 
     public function getHistoryApi()
     {
-        $nageur_id =
-            $_GET['nageur_id'] ?? 0;
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
 
-        $epreuve =
-            $_GET['epreuve'] ?? '';
-
-        $categorie =
-            $_GET['categorie'] ?? '';
-
-        $saison_selectionnee =
-            $_GET['saison'] ?? 'all';
+        $nageur_param = $_GET['nageur_id'] ?? null;
+        $nageur_id = is_scalar($nageur_param) ? filter_var($nageur_param, FILTER_VALIDATE_INT) : false;
+        $epreuve = is_string($_GET['epreuve'] ?? null) ? trim($_GET['epreuve']) : '';
+        $categorie = is_string($_GET['categorie'] ?? null) ? trim($_GET['categorie']) : '';
+        $saison_selectionnee = is_string($_GET['saison'] ?? null) ? $_GET['saison'] : 'all';
+        if (!$nageur_id || $nageur_id < 1 || $epreuve === '') {
+            http_response_code(400);
+            echo json_encode(['error' => 'Paramètres invalides.']);
+            return;
+        }
 
         $pdo =
             Database::getConnection();
@@ -709,10 +713,17 @@ class PerformanceController
         $model =
             new PerformanceModel($pdo);
 
+        $saisons_disponibles = $model->getSaisons();
+        if ($saison_selectionnee !== 'all' &&
+            !in_array($saison_selectionnee, $saisons_disponibles, true)) {
+            $saison_selectionnee = 'all';
+        }
+
         $history =
             $model->getHistorique(
                 $nageur_id,
-                $epreuve
+                $epreuve,
+                $saison_selectionnee
             );
 
         $data = [];
@@ -738,39 +749,6 @@ class PerformanceController
                     $h['lieu']
             ];
         }
-
-        usort(
-            $data,
-            function ($a, $b) {
-
-                $da =
-                    implode(
-                        '',
-                        array_reverse(
-                            explode(
-                                '/',
-                                $a['date']
-                            )
-                        )
-                    );
-
-                $db =
-                    implode(
-                        '',
-                        array_reverse(
-                            explode(
-                                '/',
-                                $b['date']
-                            )
-                        )
-                    );
-
-                return strcmp(
-                    $da,
-                    $db
-                );
-            }
-        );
 
         $temps_ref_sec = null;
         $temps_ref_str = null;
@@ -826,7 +804,7 @@ class PerformanceController
 
             'temps_ref_str' =>
                 $temps_ref_str
-        ]);
+        ], JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function exportCsv()
@@ -837,14 +815,22 @@ class PerformanceController
         $model =
             new PerformanceModel($pdo);
 
-        $saison_selectionnee =
-            isset($_GET['saison'])
-                ? $_GET['saison']
-                : 'all';
+        $saison_param = $_GET['saison'] ?? 'all';
+        $saison_selectionnee = is_string($saison_param) ? $saison_param : 'all';
+        $saisons_disponibles = $model->getSaisons();
+        if ($saison_selectionnee !== 'all' &&
+            !in_array($saison_selectionnee, $saisons_disponibles, true)) {
+            $saison_selectionnee = 'all';
+        }
+
+        $mode_affichage = ($_GET['affichage'] ?? 'meilleures') === 'toutes'
+            ? 'toutes'
+            : 'meilleures';
 
         $lignes_bdd =
             $model->getPerformances(
-                $saison_selectionnee
+                $saison_selectionnee,
+                $mode_affichage
             );
 
         $grille_qualifs =
@@ -858,9 +844,13 @@ class PerformanceController
          * Les positions sont calculées uniquement
          * pour déterminer les qualifications.
          */
+        $lignes_pour_qualification = $mode_affichage === 'toutes'
+            ? $model->getPerformances($saison_selectionnee, 'meilleures')
+            : $lignes_bdd;
+
         $positions_qualification =
             $this->calculateQualificationPositions(
-                $lignes_bdd
+                $lignes_pour_qualification
             );
 
         $nom_saison =
@@ -987,14 +977,11 @@ class PerformanceController
                         $grille_qualifs
                     );
 
-                $est_qualifie =
-                    $qualification === true
-                        ? 'Oui'
-                        : 'Non';
+                $est_qualifie = $qualification === null
+                    ? 'Non défini'
+                    : ($qualification ? 'Oui' : 'Non');
 
-                fputcsv(
-                    $output,
-                    [
+                $row = [
                         $ligne['nom'],
                         $ligne['prenom'],
                         $ligne['date_naissance'],
@@ -1004,13 +991,24 @@ class PerformanceController
                         $ligne['date_perf'],
                         $ligne['lieu'],
                         $est_qualifie
-                    ],
+                    ];
+                fputcsv(
+                    $output,
+                    array_map([$this, 'protectCsvFormula'], $row),
                     ';'
                 );
             }
         }
 
         fclose($output);
+    }
+
+    private function protectCsvFormula($value)
+    {
+        $value = (string)$value;
+        return preg_match('/^[\t\r ]*[=+@-]/u', $value)
+            ? "'" . $value
+            : $value;
     }
 
     private function timeToSeconds(

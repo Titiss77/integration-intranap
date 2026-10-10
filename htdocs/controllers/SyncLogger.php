@@ -11,7 +11,7 @@ class SyncLogger {
     private function write($level, $procedure, $message) {
         $timestamp = date('Y-m-d H:i:s');
         $line = sprintf("[%s] [%-7s] [%-15s] %s" . PHP_EOL, $timestamp, $level, $procedure, $message);
-        file_put_contents($this->logFile, $line, FILE_APPEND);
+        file_put_contents($this->logFile, $line, FILE_APPEND | LOCK_EX);
     }
 
     public function info($procedure, $message) {
@@ -31,6 +31,6 @@ class SyncLogger {
     }
     
     public function separator() {
-        file_put_contents($this->logFile, str_repeat("-", 80) . PHP_EOL, FILE_APPEND);
+        file_put_contents($this->logFile, str_repeat("-", 80) . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
 }
