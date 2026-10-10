@@ -65,15 +65,15 @@
 
             <?php
         $delta_state_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'sync_delta_latest.json';
-        $delta_state = is_file($delta_state_path)
-            ? json_decode(file_get_contents($delta_state_path), true)
-            : null;
-        $delta_pret = is_array($delta_state) && ($delta_state['status'] ?? '') === 'complete';
+    $delta_state = is_file($delta_state_path)
+        ? json_decode(file_get_contents($delta_state_path), true)
+        : null;
+    $delta_pret = is_array($delta_state) && ($delta_state['status'] ?? '') === 'complete';
 
-        if (
-            $_SERVER['REMOTE_ADDR'] === '127.0.0.1' ||
-            $_SERVER['REMOTE_ADDR'] === '::1'
-        ):
+    if (
+        $_SERVER['REMOTE_ADDR'] === '127.0.0.1' ||
+        $_SERVER['REMOTE_ADDR'] === '::1'
+    ):
         ?>
 
             <button id="btnSync" class="btn-primary" onclick="lancerSync()">
@@ -203,9 +203,8 @@
                     </option>
 
                     <?php foreach (
-                    $annees_disponibles
-                    as $annee
-                ) { ?>
+                        $annees_disponibles as $annee
+                    ) { ?>
 
                     <option value="<?php echo htmlspecialchars($annee); ?>"
                         <?php echo $annee_selectionnee == $annee ? 'selected' : ''; ?>>
@@ -238,20 +237,19 @@
                 </option>
 
                 <?php foreach (
-                $categories_disponibles
-                as $cat_code => $cat_libelle
-            ) { ?>
+                    $categories_disponibles as $cat_code => $cat_libelle
+                ) { ?>
 
                 <option value="<?php echo htmlspecialchars($cat_code, ENT_QUOTES); ?>">
 
                     <?php
 
-                    echo !empty($cat_libelle)
-                        ? htmlspecialchars($cat_libelle) .
-                            ' (' .
-                            htmlspecialchars($cat_code) .
-                            ')'
-                        : htmlspecialchars($cat_code);
+                        echo !empty($cat_libelle)
+                            ? htmlspecialchars($cat_libelle) .
+                                ' (' .
+                                htmlspecialchars($cat_code) .
+                                ')'
+                            : htmlspecialchars($cat_code);
 
                     ?>
 
@@ -300,8 +298,8 @@
             </h2>
 
             <?php if (
-            'all' !== $annee_selectionnee
-        ) { ?>
+                'all' !== $annee_selectionnee
+            ) { ?>
             <!---
             <h3 style="color:#dc3545; font-size:medium; font-weight:600; margin:1rem;">
 
@@ -319,8 +317,8 @@
                     <h3 style="color:var(--couleur-principale);">
 
                         <?php
-                        echo $statistiques['total_nageurs'];
-                        ?>
+                            echo $statistiques['total_nageurs'];
+                ?>
 
                     </h3>
 
@@ -347,10 +345,10 @@
                     <h3 style="color:var(--succes);">
 
                         <?php
-                        echo count(
-                            $statistiques['nageurs_qualifies']
-                        );
-                        ?>
+                echo count(
+                    $statistiques['nageurs_qualifies']
+                );
+                ?>
 
                     </h3>
 
@@ -360,8 +358,8 @@
 
                         Sur
                         <?php
-                        echo $statistiques['total_qualifications'];
-                        ?>
+                echo $statistiques['total_qualifications'];
+                ?>
                         épreuves au total
 
                     </div>
@@ -373,8 +371,8 @@
                     <h3 style="color:var(--info);">
 
                         <?php
-                        echo $statistiques['total_performances'];
-                        ?>
+                echo $statistiques['total_performances'];
+                ?>
 
                     </h3>
 
@@ -399,9 +397,8 @@
             <ul style="list-style-type:none; padding:0;">
 
                 <?php foreach (
-                        $statistiques['nageurs_qualifies']
-                        as $q
-                    ) { ?>
+                    $statistiques['nageurs_qualifies'] as $q
+                ) { ?>
 
                 <li
                     style="padding:12px; border-bottom:1px solid var(--bordure); display:flex; flex-direction:column; gap:4px;">
@@ -411,12 +408,12 @@
                         <strong style="color:var(--succes); font-size:1.1rem;">
 
                             <?php
-                                    echo htmlspecialchars(
-                                        $q['nom'] .
-                                        ' ' .
-                                        $q['prenom']
-                                    );
-                                    ?>
+                                echo htmlspecialchars(
+                                    $q['nom'] .
+                                                    ' ' .
+                                                    $q['prenom']
+                                );
+                    ?>
 
                         </strong>
 
@@ -424,10 +421,10 @@
                             style="background:var(--fond-page); padding:2px 8px; border-radius:12px; font-size:0.8rem; margin-left:8px; color:var(--texte-principal);">
 
                             <?php
-                                    echo htmlspecialchars(
-                                        $q['categorie']
-                                    );
-                                    ?>
+                    echo htmlspecialchars(
+                        $q['categorie']
+                    );
+                    ?>
 
                         </span>
 
@@ -439,10 +436,10 @@
 
                         <strong>
                             <?php
-                                    echo htmlspecialchars(
-                                        $q['epreuves']
-                                    );
-                                    ?>
+                    echo htmlspecialchars(
+                        $q['epreuves']
+                    );
+                    ?>
                         </strong>
 
                     </span>
@@ -477,8 +474,8 @@
         </div>
 
         <?php if (
-        empty($lignes_bdd)
-    ) { ?>
+            empty($lignes_bdd)
+        ) { ?>
 
         <p style="text-align:center; color:var(--avertissement); font-size:1.2em; padding:40px;">
 
@@ -497,32 +494,29 @@
 
                 <?php
 
-                $premiere = true;
+                        $premiere = true;
 
-                foreach (
-                    $colonnes_epreuves
-                    as $epreuve
-                ) {
-
+            foreach (
+                $colonnes_epreuves as $epreuve
+            ) {
                 ?>
 
                 <button type="button" class="tab-btn <?php echo $premiere ? 'active' : ''; ?>"
                     data-target="ep-<?php echo htmlspecialchars($epreuve, ENT_QUOTES, 'UTF-8'); ?>">
 
                     <?php
-                        echo htmlspecialchars(
-                            $epreuve
-                        );
-                        ?>
+                    echo htmlspecialchars(
+                        $epreuve
+                    ); ?>
 
                 </button>
 
                 <?php
 
                     $premiere = false;
-                }
+            }
 
-                ?>
+            ?>
 
             </div>
 
@@ -530,19 +524,15 @@
 
                 <?php
 
-                $premiere = true;
+            $premiere = true;
 
-                foreach (
-                    $colonnes_epreuves
-                    as $epreuve
-                ) {
-
-                    $perfs =
-                        $performances_par_epreuve[
-                            $epreuve
-                        ];
-
-                ?>
+            foreach (
+                $colonnes_epreuves as $epreuve
+            ) {
+                $perfs =
+                    $performances_par_epreuve[
+                        $epreuve
+                    ]; ?>
 
                 <div id="ep-<?php echo htmlspecialchars($epreuve, ENT_QUOTES, 'UTF-8'); ?>" class="tab-pane"
                     style="display:<?php echo $premiere ? 'block' : 'none'; ?>;">
@@ -551,10 +541,9 @@
 
                         🏊
                         <?php
-                            echo htmlspecialchars(
-                                $epreuve
-                            );
-                            ?>
+                        echo htmlspecialchars(
+                            $epreuve
+                        ); ?>
 
                     </h2>
 
@@ -577,33 +566,24 @@
                         <tbody>
 
                             <?php foreach (
-                                    $perfs
-                                    as $perf
+                                $perfs as $perf
+                            ) {
+                                if (
+                                    true ===
+                                    $perf['est_qualifie']
                                 ) {
-
-                                    if (
-                                        true ===
-                                        $perf['est_qualifie']
-                                    ) {
-
-                                        $color =
-                                            'color:var(--succes); font-weight:bold;';
-
-                                    } elseif (
-                                        false ===
-                                        $perf['est_qualifie']
-                                    ) {
-
-                                        $color =
-                                            'color:var(--danger);';
-
-                                    } else {
-
-                                        $color =
-                                            'color:var(--texte-principal);';
-                                    }
-
-                                ?>
+                                    $color =
+                                                'color:var(--succes); font-weight:bold;';
+                                } elseif (
+                                    false ===
+                                    $perf['est_qualifie']
+                                ) {
+                                    $color =
+                                                'color:var(--danger);';
+                                } else {
+                                    $color =
+                                                'color:var(--texte-principal);';
+                                } ?>
 
                             <tr class="nageur-row"
                                 data-category="<?php echo htmlspecialchars($perf['categorie'], ENT_QUOTES); ?>">
@@ -615,20 +595,18 @@
                                         <strong style="color:var(--texte-principal); display:block; font-size:1.05rem;">
 
                                             <?php
-                                                    echo htmlspecialchars(
-                                                        $perf['nom']
-                                                    );
-                                                    ?>
+                                                        echo htmlspecialchars(
+                                                            $perf['nom']
+                                                        ); ?>
 
                                         </strong>
 
                                         <span style="color:var(--texte-secondaire); font-size:0.9rem;">
 
                                             <?php
-                                                    echo htmlspecialchars(
-                                                        $perf['prenom']
-                                                    );
-                                                    ?>
+                                                                                echo htmlspecialchars(
+                                                                                    $perf['prenom']
+                                                                                ); ?>
 
                                         </span>
 
@@ -642,10 +620,9 @@
                                         style="background:var(--couleur-principale); color:white; padding:2px 8px; border-radius:12px; font-size:0.8em; font-weight:bold;">
 
                                         <?php
-                                                echo htmlspecialchars(
-                                                    $perf['categorie']
-                                                );
-                                                ?>
+                                                                                                echo htmlspecialchars(
+                                                                                                    $perf['categorie']
+                                                                                                ); ?>
 
                                     </span>
 
@@ -662,10 +639,9 @@
 
                                         <span>
                                             <?php
-                                                    echo htmlspecialchars(
-                                                        $perf['temps']
-                                                    );
-                                                    ?>
+                                                                                                echo htmlspecialchars(
+                                                                                                    $perf['temps']
+                                                                                                ); ?>
                                         </span>
 
                                         <span class="icon">
@@ -681,8 +657,7 @@
                                     <?php
                                             echo htmlspecialchars(
                                                 $perf['date_perf']
-                                            );
-                                            ?>
+                                            ); ?>
 
                                 </td>
 
@@ -691,14 +666,14 @@
                                     <?php
                                             echo htmlspecialchars(
                                                 $perf['lieu']
-                                            );
-                                            ?>
+                                            ); ?>
 
                                 </td>
 
                             </tr>
 
-                            <?php } ?>
+                            <?php
+                            } ?>
 
                         </tbody>
 
@@ -709,9 +684,9 @@
                 <?php
 
                     $premiere = false;
-                }
+            }
 
-                ?>
+            ?>
 
             </div>
 
@@ -869,8 +844,8 @@
 
                     <strong>
                         <?php
-                    echo $_ENV['EMAIL_CONTACT'] ?? 'root';
-                    ?>
+                echo $_ENV['EMAIL_CONTACT'] ?? 'root';
+    ?>
                     </strong>.
                 </p>
 

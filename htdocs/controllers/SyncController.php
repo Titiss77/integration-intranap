@@ -79,7 +79,6 @@ class SyncController
          * 2026
          */
         if (preg_match('/^(\d{4})$/', $saison, $matches)) {
-
             $anneeDebut = (int)$matches[1];
 
             return $anneeDebut . '-' . ($anneeDebut + 1);
@@ -96,7 +95,6 @@ class SyncController
                 $matches
             )
         ) {
-
             $anneeDebut = (int)$matches[1];
             $anneeFin = (int)$matches[2];
 
@@ -194,7 +192,6 @@ class SyncController
         }
 
         if (strpos($t, ':') !== false) {
-
             $parts = explode(':', $t, 2);
 
             $minutes = str_pad(
@@ -382,7 +379,6 @@ class SyncController
         $saison_recue = $_POST['saison'] ?? $this->getCurrentSeason();
 
         try {
-
             $saison =
                 $this->normalizeSeason(
                     $saison_recue
@@ -397,11 +393,9 @@ class SyncController
                 $this->getApiYearFromSeason(
                     $saison
                 );
-
         } catch (
             Exception $e
         ) {
-
             echo json_encode([
                 'error' => true,
                 'message' => $e->getMessage()
@@ -448,7 +442,6 @@ class SyncController
         $this->getOrCreateSeasonId($saison_courante);
 
         if ($etape === 'debut') {
-
             $this->startSyncDelta();
 
             $this->writeToLog(
@@ -487,7 +480,6 @@ class SyncController
                 $chemin_blacklist
             )
         ) {
-
             $lignes = file(
                 $chemin_blacklist,
                 FILE_IGNORE_NEW_LINES |
@@ -495,7 +487,6 @@ class SyncController
             );
 
             foreach ($lignes as $ligne) {
-
                 $ligne = trim($ligne);
 
                 if ($ligne === '') {
@@ -741,7 +732,6 @@ class SyncController
             $nb_insertions = 0;
 
             foreach ($donnees as $n) {
-
                 if (
                     !is_array($n)
                 ) {
@@ -838,10 +828,8 @@ class SyncController
                 $est_blacklist = false;
 
                 foreach (
-                    $blacklist
-                    as $bl_nom
+                    $blacklist as $bl_nom
                 ) {
-
                     if (
                         $nom_complet_normalise ===
                         $bl_nom ||
@@ -974,7 +962,6 @@ class SyncController
                 if (
                     $stmtAddPerf->rowCount() > 0
                 ) {
-
                     $this->recordSyncDeltaPerformance(
                         (int)$this->pdo->lastInsertId()
                     );
@@ -1015,7 +1002,6 @@ class SyncController
             if (
                 $etape === 'fin'
             ) {
-
                 $this->completeSyncDelta();
 
                 $this->writeToLog(
@@ -1034,11 +1020,9 @@ class SyncController
                     "Traitement de {$epreuve} pour la saison {$saison} terminé. " .
                     "{$nb_insertions} nouvelle(s) performance(s)."
             ]);
-
         } catch (
             Exception $e
         ) {
-
             $this->logger->info(
                 'ERROR',
                 $e->getMessage()
@@ -1301,7 +1285,9 @@ class SyncController
 
         $ids = array_values(array_unique(array_filter(
             array_map('intval', $state['performance_ids'] ?? []),
-            function ($id) { return $id > 0; }
+            function ($id) {
+                return $id > 0;
+            }
         )));
 
         $placeholders = $ids
