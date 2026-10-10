@@ -466,66 +466,20 @@ function exporterCsv()
 
 // --- 5. STATISTIQUES ---
 
-function toggleStats()
-{
-    let tableContainer =
-        document.getElementById(
-            'tableContainer'
-        );
+function toggleStats() {
+    const tableContainer = document.getElementById('tableContainer');
+    const statsContainer = document.getElementById('statsContainer');
+    const btnToggle = document.getElementById('btnToggleStats');
+    if (!statsContainer || !btnToggle) return;
 
-    let statsContainer =
-        document.getElementById(
-            'statsContainer'
-        );
+    const showStats = window.getComputedStyle(statsContainer).display === 'none';
+    statsContainer.style.display = showStats ? 'block' : 'none';
+    if (tableContainer) tableContainer.style.display = showStats ? 'none' : 'block';
 
-    let btnToggle =
-        document.getElementById(
-            'btnToggleStats'
-        );
-
-    if (
-        statsContainer.style.display ===
-        'none'
-    ) {
-
-        statsContainer.style.display =
-            'block';
-
-        if (
-            tableContainer
-        ) {
-
-            tableContainer.style.display =
-                'none';
-        }
-
-        btnToggle.innerHTML =
-            '📋 Retour au Tableau';
-
-        btnToggle.style.backgroundColor =
-            'var(--couleur-principale)';
-
-    } else {
-
-        statsContainer.style.display =
-            'none';
-
-        if (
-            tableContainer
-        ) {
-
-            tableContainer.style.display =
-                'block';
-        }
-
-        btnToggle.innerHTML =
-            '📊 Afficher les Statistiques';
-
-        btnToggle.style.backgroundColor =
-            '#17a2b8';
-    }
+    btnToggle.classList.toggle('is-active', showStats);
+    btnToggle.setAttribute('aria-expanded', showStats ? 'true' : 'false');
+    btnToggle.textContent = showStats ? 'Retour au tableau' : 'Afficher les statistiques';
 }
-
 
 // --- 6. LOGS ---
 

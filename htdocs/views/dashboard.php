@@ -7,6 +7,7 @@
 
     <title>Performances PEC — Palmes en Cornouailles</title>
 
+    <link rel="stylesheet" href="assets/root.css?v=<?php echo filemtime(__DIR__ . '/../assets/root.css'); ?>">
     <link rel="stylesheet" href="assets/style.css?v=<?php echo filemtime(__DIR__ . '/../assets/style.css'); ?>">
 
     <link rel="icon" type="image/x-icon" href="https://palmes-en-cornouailles.22web.org/favicon.ico">
@@ -279,7 +280,7 @@
 
             <div>
 
-                <button type="button" id="btnToggleStats" class="btn-info" onclick="toggleStats()">
+                <button type="button" id="btnToggleStats" class="btn-info" aria-controls="statsContainer" aria-expanded="false" onclick="toggleStats()">
 
                     📊 Afficher les Statistiques
 

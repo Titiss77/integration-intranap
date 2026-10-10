@@ -1,0 +1,19 @@
+:root {
+    color-scheme: light;
+    --couleur-principale: #063b5c;
+    --couleur-secondaire: #087ca7;
+    --fond-page: #f2f7f8;
+    --fond-carte: #ffffff;
+    --texte-principal: #102b3a;
+    --texte-secondaire: #58717e;
+    --bordure: #d9e5e9;
+    --ligne-survol: #eff7f8;
+    --couleur-temps: #102b3a;
+    --succes: #087e72;
+    --danger: #b74747;
+    --info: #087ca7;
+    --avertissement: #bd7b23;
+    --fond-nuit: #062d46;
+    --accent: #62d4c4;
+    --ombre: 0 18px 55px rgba(5, 46, 69, .08);
+}
