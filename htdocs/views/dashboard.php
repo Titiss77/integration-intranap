@@ -16,6 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
+    const SYNC_SEASONS = <?php echo json_encode(array_values(array_unique($annees_disponibles))); ?>;
     const CSRF_TOKEN =
         "<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>";
     </script>
@@ -51,6 +52,8 @@
                 🔄 Synchroniser avec la FFESSM
 
             </button>
+
+            <button id="btnSyncAllTimes" class="btn-primary" onclick="lancerSync(true)">Récupérer tous les temps (temporaire)</button>
 
             <button onclick="voirLogs()"
                 style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">

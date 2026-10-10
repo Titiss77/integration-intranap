@@ -106,13 +106,8 @@ class SyncController
     }
 
     /**
-     * Retourne l'année de début d'une saison.
-     *
-     * Exemple :
-     * 2026-2027 -> 2026
-     *
-     * Cette valeur est uniquement utilisée
-     * pour l'API FFESSM.
+     * Retourne l'annee de fin attendue par l'API FFESSM.
+     * Exemple : 2026-2027 -> 2027.
      */
     private function getApiYearFromSeason($saison)
     {
@@ -123,7 +118,7 @@ class SyncController
                 $matches
             )
         ) {
-            return (int)$matches[1];
+            return (int)$matches[2];
         }
 
         return (int)$saison;
@@ -517,9 +512,8 @@ class SyncController
                      FROM performances
                      WHERE nageur_id = ?
                        AND epreuve_id = ?
-                       AND saison_id = ?
-                       AND temps = ?
                        AND date_perf = ?
+                       AND temps = ?
                      LIMIT 1'
                 );
 
@@ -832,6 +826,17 @@ class SyncController
                     continue;
                 }
 
+                $date_perf = trim($n['date'] ?? '');
+                $saison_performance = $this->getSeasonFromPerformanceDate(
+                    $date_perf,
+                    $saison
+                );
+
+                // Skip all side effects for rows outside the requested season.
+                if ($saison_performance !== $saison) {
+                    continue;
+                }
+
                 /*
                  * ----------------------------------------------------
                  * NAGEUR
@@ -880,16 +885,6 @@ class SyncController
                  * ----------------------------------------------------
                  */
 
-                $date_perf =
-                    trim(
-                        $n['date'] ?? ''
-                    );
-
-                $saison_performance =
-                    $this->getSeasonFromPerformanceDate(
-                        $date_perf,
-                        $saison
-                    );
                 $saison_performance_id =
                     $this->getOrCreateSeasonId($saison_performance);
 
@@ -902,9 +897,8 @@ class SyncController
                 $stmtCheckPerf->execute([
                     $nageur_id,
                     $epreuve_id,
-                    $saison_performance_id,
-                    $temps_final,
-                    $date_perf
+                    $date_perf,
+                    $temps_final
                 ]);
 
                 $existingPerf =

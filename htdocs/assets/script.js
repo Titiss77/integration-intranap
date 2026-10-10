@@ -1,201 +1,69 @@
 // --- 1. SYNCHRONISATION ---
 
-async function lancerSync() {
+async function lancerSync(tousLesTemps = false) {
+    const btnSync = document.getElementById('btnSync');
+    const btnAll = document.getElementById('btnSyncAllTimes');
+    const btn = tousLesTemps ? btnAll : btnSync;
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
 
-    const btn =
-        document.getElementById('btnSync');
-
-    const progressContainer =
-        document.getElementById(
-            'progressContainer'
-        );
-
-    const progressBar =
-        document.getElementById(
-            'progressBar'
-        );
-
-    const progressText =
-        document.getElementById(
-            'progressText'
-        );
-
+    if (!btn) return;
     btn.disabled = true;
+    if (btnSync) btnSync.disabled = true;
+    if (btnAll) btnAll.disabled = true;
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressBar.style.backgroundColor = 'var(--succes)';
+    progressBar.innerText = '0%';
+    progressText.innerText = 'Initialisation de la synchronisation...';
 
-    btn.style.backgroundColor =
-        "#ccc";
-
-    progressContainer.style.display =
-        'block';
-
-    progressBar.style.width =
-        '0%';
-
-    progressBar.style.backgroundColor =
-        'var(--succes)';
-
-    progressBar.innerText =
-        '0%';
-
-    progressText.innerText =
-        'Initialisation de la synchronisation...';
-
-    const liste_epreuves = [
-        '50SF',
-        '100SF',
-        '200SF',
-        '400SF',
-        '800SF',
-        '1500SF',
-        '50AP',
-        '100IS',
-        '800IS',
-        '200IS',
-        '400IS',
-        '50BI',
-        '100BI',
-        '200BI',
-        '400BI'
-    ];
-
-    const genres = [
-        'F',
-        'M'
-    ];
-
+    const epreuves = ['50SF','100SF','200SF','400SF','800SF','1500SF','50AP','100IS','800IS','200IS','400IS','50BI','100BI','200BI','400BI'];
+    const genres = ['F', 'M'];
+    const selected = document.querySelector('select[name="saison"]')?.value || 'all';
+    const now = new Date();
+    const startYear = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+    const currentSeason = `${startYear}-${startYear + 1}`;
+    const seasons = tousLesTemps && selected === 'all'
+        ? [...new Set([...(SYNC_SEASONS || []), currentSeason])]
+        : [selected === 'all' ? currentSeason : selected];
+    if (tousLesTemps && !confirm(`La récupération va interroger ${seasons.length} saison(s) et peut prendre plusieurs minutes. Continuer ?`)) {
+        if (btnSync) btnSync.disabled = false;
+        if (btnAll) btnAll.disabled = false;
+        return;
+    }
     const tasks = [];
-
-    for (
-        let epreuve of liste_epreuves
-    ) {
-
-        for (
-            let genre of genres
-        ) {
-
-            tasks.push({
-                epreuve: epreuve,
-                genre: genre
-            });
+    for (const saison of seasons) {
+        for (const epreuve of epreuves) {
+            for (const genre of genres) tasks.push({saison, epreuve, genre});
         }
     }
 
-    const totalSteps =
-        tasks.length;
-
-    let currentStep = 0;
-
-    for (
-        let i = 0;
-        i < totalSteps;
-        i++
-    ) {
-
-        let task =
-            tasks[i];
-
-        let etapeStr =
-            'suite';
-
-        if (
-            i === 0
-        ) {
-            etapeStr =
-                'debut';
-        }
-
-        if (
-            i === totalSteps - 1
-        ) {
-            etapeStr =
-                'fin';
-        }
-
-        progressText.innerText =
-            `Synchronisation en cours : ${task.epreuve} (${task.genre === 'F' ? 'Femmes' : 'Hommes'})...`;
-
+    for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i];
+        const etape = i === 0 ? 'debut' : (i === tasks.length - 1 ? 'fin' : 'suite');
+        progressText.innerText = `Synchronisation ${task.saison} : ${task.epreuve} (${task.genre === 'F' ? 'Femmes' : 'Hommes'})...`;
         try {
-
-            let url =
-                `index.php?action=sync&token=${encodeURIComponent(CSRF_TOKEN)}&epreuve=${task.epreuve}&genre=${task.genre}&etape=${etapeStr}`;
-
-            let response =
-                await fetch(url);
-
-            let data =
-                await response.json();
-
-            if (
-                data.error
-            ) {
-
-                progressBar.style.backgroundColor =
-                    'var(--danger)';
-
-                progressText.innerText =
-                    "Erreur : " +
-                    data.message;
-
-                btn.disabled =
-                    false;
-
-                btn.style.backgroundColor =
-                    "var(--couleur-secondaire)";
-
-                return;
-            }
-
-            currentStep++;
-
-            let percent =
-                Math.round(
-                    (
-                        currentStep /
-                        totalSteps
-                    ) *
-                    100
-                );
-
-            progressBar.style.width =
-                percent + '%';
-
-            progressBar.innerText =
-                percent + '%';
-
-        } catch (
-            err
-        ) {
-
-            console.error(
-                "Erreur synchronisation :",
-                err
-            );
-
-            progressBar.style.backgroundColor =
-                'var(--danger)';
-
-            progressText.innerText =
-                "Erreur réseau. L'hébergeur a peut-être bloqué la requête.";
-
-            btn.disabled =
-                false;
-
-            btn.style.backgroundColor =
-                "var(--couleur-secondaire)";
-
+            const params = new URLSearchParams({action:'sync', token:CSRF_TOKEN, epreuve:task.epreuve, genre:task.genre, saison:task.saison, etape});
+            const response = await fetch(`index.php?${params.toString()}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.message || 'Erreur de synchronisation');
+            const percent = Math.round(((i + 1) / tasks.length) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressBar.innerText = `${percent}%`;
+        } catch (err) {
+            console.error('Erreur synchronisation :', err);
+            progressBar.style.backgroundColor = 'var(--danger)';
+            progressText.innerText = `Erreur : ${err.message || 'Erreur r?seau.'}`;
+            if (btnSync) btnSync.disabled = false;
+            if (btnAll) btnAll.disabled = false;
             return;
         }
     }
-
-    progressText.innerHTML =
-        "<strong>Synchronisation terminée ! La page va se recharger.</strong>";
-
-    setTimeout(
-        () => {
-            location.reload();
-        },
-        2000
-    );
+    progressText.innerText = 'Synchronisation termin?e ! La page va se recharger.';
+    if (btnSync) btnSync.disabled = false;
+    if (btnAll) btnAll.disabled = false;
+    setTimeout(() => location.reload(), 2000);
 }
 
 
