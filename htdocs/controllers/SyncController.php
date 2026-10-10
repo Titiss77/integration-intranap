@@ -364,9 +364,9 @@ class SyncController
                 );
 
             /*
-             * Année de début envoyée à la FFESSM.
+             * Année de fin envoyée à la FFESSM.
              *
-             * 2026-2027 -> 2026
+             * 2026-2027 -> 2027
              */
             $annee_api =
                 $this->getApiYearFromSeason(
@@ -418,6 +418,10 @@ class SyncController
 
         $cat_nom = $categories_genre[$cat_code];
 
+        $saison_courante = $this->getCurrentSeason();
+        $this->getOrCreateSeasonId($saison);
+        $this->getOrCreateSeasonId($saison_courante);
+
         if ($etape === 'debut') {
 
             $this->startSyncDelta();
@@ -433,6 +437,9 @@ class SyncController
                 '--- DÉBUT DE SYNCHRONISATION ---'
             );
         }
+
+        $this->recordSyncDeltaSeason($saison);
+        $this->recordSyncDeltaSeason($saison_courante);
 
         $this->logger->info(
             'API_CALL',
@@ -1142,8 +1149,26 @@ class SyncController
         $this->writeSyncDelta($this->syncDeltaPath('pending'), [
             'status' => 'running',
             'started_at' => date('c'),
-            'performance_ids' => []
+            'performance_ids' => [],
+            'season_names' => []
         ]);
+    }
+
+    private function recordSyncDeltaSeason($seasonName)
+    {
+        $path = $this->syncDeltaPath('pending');
+        if (!is_file($path)) {
+            return;
+        }
+
+        $state = json_decode(file_get_contents($path), true);
+        if (!is_array($state) || ($state['status'] ?? '') !== 'running') {
+            return;
+        }
+
+        $state['season_names'][] = (string)$seasonName;
+        $state['season_names'] = array_values(array_unique($state['season_names']));
+        $this->writeSyncDelta($path, $state);
     }
 
     private function recordSyncDeltaPerformance($performanceId)
@@ -1248,9 +1273,20 @@ class SyncController
             $lines[] = '';
         };
 
-        $insertRows('saisons', ['nom_saison'], $this->pdo
+        $seasonRows = $this->pdo
             ->query('SELECT DISTINCT s.nom_saison FROM saisons s JOIN performances p ON p.saison_id = s.id WHERE p.id IN (' . $placeholders . ')')
-            ->fetchAll(PDO::FETCH_ASSOC));
+            ->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($state['season_names'] ?? [] as $seasonName) {
+            $seasonRows[] = ['nom_saison' => $seasonName];
+        }
+        $seasonRows[] = ['nom_saison' => $this->getCurrentSeason()];
+
+        $uniqueSeasonRows = [];
+        foreach ($seasonRows as $seasonRow) {
+            $uniqueSeasonRows[$seasonRow['nom_saison']] = $seasonRow;
+        }
+        $insertRows('saisons', ['nom_saison'], array_values($uniqueSeasonRows));
 
         $insertRows('categories', ['nom_categorie', 'libelle'], $this->pdo
             ->query('SELECT DISTINCT c.nom_categorie, c.libelle FROM categories c JOIN performances p ON p.categorie_id = c.id WHERE p.id IN (' . $placeholders . ')')

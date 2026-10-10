@@ -41,6 +41,12 @@
         <div style="margin-bottom:20px;">
 
             <?php
+        $delta_state_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'sync_delta_latest.json';
+        $delta_state = is_file($delta_state_path)
+            ? json_decode(file_get_contents($delta_state_path), true)
+            : null;
+        $delta_pret = is_array($delta_state) && ($delta_state['status'] ?? '') === 'complete';
+
         if (
             $_SERVER['REMOTE_ADDR'] === '127.0.0.1' ||
             $_SERVER['REMOTE_ADDR'] === '::1'
@@ -53,10 +59,13 @@
 
             </button>
 
-            <a class="btn-primary" style="display:inline-block; text-decoration:none;"
+            <?php if ($delta_pret): ?>
+            <a class="btn-primary"
+                style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);"
                 href="index.php?action=export_sql&amp;token=<?php echo urlencode($_SESSION['csrf_token']); ?>">
                 Télécharger le delta SQL de la dernière synchronisation
             </a>
+            <?php endif; ?>
             <!---
             <button id="btnSyncAllTimes" class="btn-primary" onclick="lancerSync(true)"
                 style="background:none; padding:4px 10px; font-size:0.8rem; color:var(--texte-secondaire);">Récupérer
