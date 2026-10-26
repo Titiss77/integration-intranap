@@ -283,6 +283,10 @@ class SyncController
                 throw new Exception('La réponse de la FFESSM est vide.');
             }
 
+            if (stripos($response, 'Maintenance en cours') !== false) {
+                throw new Exception('L\'API de la FFESSM est actuellement en maintenance. Veuillez patienter le temps que leur service soit rétabli.');
+            }
+
             // --- LIGNE D'INJECTION DE DEBUG ---
             $this->logger->info('DEBUG', 'Réponse brute : ' . $response);
             // ----------------------------------
