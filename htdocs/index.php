@@ -32,6 +32,20 @@ if ($https) {
 require_once __DIR__.'/config/Env.php';
 Env::load(__DIR__.'/.env');
 
+// Authentification FFESSM (OAuth2/OpenID Connect), indépendante de la synchronisation des performances.
+if (isset($_GET['action']) && in_array($_GET['action'], ['ffessm_login', 'ffessm_callback', 'ffessm_logout'], true)) {
+    require_once __DIR__.'/controllers/FfessmAuthController.php';
+    $ffessmAuth = new FfessmAuthController();
+    if ($_GET['action'] === 'ffessm_login') {
+        $ffessmAuth->login();
+    } elseif ($_GET['action'] === 'ffessm_callback') {
+        $ffessmAuth->callback();
+    } else {
+        $ffessmAuth->logout();
+    }
+    exit;
+}
+
 require_once __DIR__.'/controllers/PerformanceController.php';
 $controller = new PerformanceController();
 
