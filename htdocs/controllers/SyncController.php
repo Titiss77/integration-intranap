@@ -293,8 +293,24 @@ class SyncController
 
             $donnees = json_decode($response, true);
 
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $erreurJson = json_last_error_msg();
+
+                // Ne pas afficher le token ni l'URL complète de la requête.
+                $extrait = substr(trim($response), 0, 500);
+
+                throw new Exception(
+                    "Réponse FFESSM invalide. "
+                    . "Erreur JSON : " . $erreurJson
+                    . ". Début de la réponse : " . $extrait
+                );
+            }
+
             if (!is_array($donnees)) {
-                throw new Exception('La réponse de la FFESSM n\'est pas un JSON valide.');
+                throw new Exception(
+                    "La réponse de la FFESSM est un JSON valide, "
+                    . "mais sa structure n'est pas celle attendue."
+                );
             }
 
             $nb_insertions = 0;
